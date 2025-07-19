@@ -80,6 +80,14 @@ function logError(msg) {
   );
 }
 
+function logEmailDebug(msg) {
+  const file = path.join(logsDir, 'email.log');
+  const entry = `[${new Date().toISOString()}] ${msg}\n`;
+  fs.appendFile(file, entry, (err) => {
+    if (err) console.error('Email log error:', err);
+  });
+}
+
 const https = require('https');
 const http = require('http');
 
@@ -240,11 +248,15 @@ async function sendOtpEmail(email, code, language = 'en') {
     const conn = `${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587}`;
     logActivity(`EMAIL_CONNECT ${conn}`);
     logActivity(`EMAIL_POST ${JSON.stringify(mailOptions)}`);
+    logEmailDebug(`CONNECT ${conn}`);
+    logEmailDebug(`POST ${JSON.stringify(mailOptions)}`);
     const info = await mailTransport.sendMail(mailOptions);
     logActivity(`EMAIL_RESPONSE ${info.response || ''}`);
     logActivity(`EMAIL_SENT ${email}`);
+    logEmailDebug(`RESPONSE ${info.response || ''}`);
   } catch (e) {
     logError(`EMAIL_ERROR ${e.message}`);
+    logEmailDebug(`ERROR ${e.message}`);
   }
 }
 
@@ -288,11 +300,15 @@ async function sendGenericEmail(email, subject, message) {
     const conn = `${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587}`;
     logActivity(`EMAIL_CONNECT ${conn}`);
     logActivity(`EMAIL_POST ${JSON.stringify(mailOptions)}`);
+    logEmailDebug(`CONNECT ${conn}`);
+    logEmailDebug(`POST ${JSON.stringify(mailOptions)}`);
     const info = await mailTransport.sendMail(mailOptions);
     logActivity(`EMAIL_RESPONSE ${info.response || ''}`);
     logActivity(`EMAIL_SENT ${email}`);
+    logEmailDebug(`RESPONSE ${info.response || ''}`);
   } catch (e) {
     logError(`EMAIL_ERROR ${e.message}`);
+    logEmailDebug(`ERROR ${e.message}`);
   }
 }
 

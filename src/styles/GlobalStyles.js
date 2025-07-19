@@ -412,6 +412,15 @@ const GlobalStyles = () => (
     body[dir="rtl"] .form-input { font-family: var(--font-primary-ar); }
     body[dir="ltr"] .form-input { font-family: var(--font-primary-en); }
     .form-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(62, 138, 150, 0.3); }
+    .branch-select {
+        width: 100%;
+        padding: 15px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: var(--form-input-bg);
+        color: var(--form-input-text);
+    }
     .phone-input-group { display: flex; }
     .phone-prefix { padding: 15px; background-color: #e9ecef; border: 1px solid #ccc; font-size: 1rem; }
     body[data-theme='dark'] .phone-prefix { background-color: #2D3748; border-color: #4A5568; }
