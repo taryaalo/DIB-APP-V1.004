@@ -33,11 +33,12 @@ An Express server is included for caching uploaded files and form data. Start it
 npm install
 node server.js
 ```
-The React development server started with `npm start` now runs in HTTPS mode on port `7102`.
-If you run the backend on a different port (e.g. 7103), update `REACT_APP_API_BASE_URL` in your `.env` to match:
+The React development server started with `npm start` runs on port `7102` in HTTP mode.
+To enable HTTPS for development set `HTTPS=true` before running `npm start`.
+If you run the backend on a different port (e.g. 7103), update `REACT_APP_API_BASE_URL` in your `.env` to match the protocol and port:
 
 ```bash
-REACT_APP_API_BASE_URL=https://localhost:7103
+REACT_APP_API_BASE_URL=http://localhost:7003
 ```
 
 The Express backend tries to start both an HTTP server on `PORT` (default
@@ -46,6 +47,7 @@ key files are read from `src/ssl/cert.pem` and `src/ssl/key.pem` or from the
 `SSL_CERT_PATH` and `SSL_KEY_PATH` environment variables. If the HTTPS server
 fails to start the application continues running on HTTP only and a warning is
 written to the console and log file.
+Set `DISABLE_HTTPS=true` in your `.env` to skip starting the HTTPS server entirely.
 
 The ChatGPT provider relies on a working internet connection. If requests fail with
 "Failed to fetch", ensure that your environment allows outbound HTTPS requests to
