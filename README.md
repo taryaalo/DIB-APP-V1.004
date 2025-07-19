@@ -54,6 +54,7 @@ The ChatGPT provider relies on a working internet connection. If requests fail w
 ### Testing the database connection
 
 The server exposes an endpoint `/api/test-db` which performs a simple database query. On the language selection page a "Test DB Connection" button calls this endpoint and shows whether the connection succeeds.
+If the connection fails the server logs the error message and stack trace under `logs/` and records it in the `error_log` table.
 
 ## Logs
 

@@ -816,7 +816,7 @@ app.get('/api/test-db', async (req, res) => {
     await pool.query('SELECT 1');
     res.json({ connected: true });
   } catch (e) {
-    logError(`DB_TEST_ERROR ${e.message}`);
+    logError(`DB_TEST_ERROR ${e.message} ${e.stack}`);
     res.status(500).json({ connected: false, error: e.message });
   }
 });
