@@ -122,7 +122,8 @@ async function getTemplate(key, media) {
 }
 
 function fillTemplate(tpl, params) {
-  return tpl.replace(/{{(.*?)}}/g, (_, k) => params[k] || '');
+  const filled = tpl.replace(/{{(.*?)}}/g, (_, k) => params[k] || '');
+  return filled.replace(/\/n/g, '\n');
 }
 
 app.post('/api/cache-form', (req, res) => {
@@ -144,6 +145,16 @@ app.post('/api/cache-upload', upload.single('file'), (req, res) => {
 
 app.get('/api/cached-uploads', (req, res) => {
     res.json(cachedUploads || {});
+});
+
+app.get('/api/branches', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT branch_id, name_en, name_ar, city, location FROM bank_branches ORDER BY branch_id');
+    res.json(result.rows);
+  } catch (e) {
+    logError(`BRANCHES_ERROR ${e.message}`);
+    res.status(500).json({ error: 'failed' });
+  }
 });
 
 app.get('/api/cache-extracted/:docType', (req, res) => {
@@ -168,7 +179,7 @@ function generateOtp() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-async function sendOtpSms(phone, code) {
+async function sendOtpSms(phone, code, language = 'ar') {
   const url = process.env.SMS_API_URL;
   const token = process.env.SMS_API_TOKEN;
   if (!url || !token) return;
@@ -176,7 +187,8 @@ async function sendOtpSms(phone, code) {
     let message = `Your OTP code is ${code}`;
     const tpl = await getTemplate('otp', 'sms');
     if (tpl) {
-      message = fillTemplate(tpl.arabic_template, { code });
+      const tplText = language === 'en' ? tpl.english_template : tpl.arabic_template;
+      message = fillTemplate(tplText, { code });
     }
     const payload = {
       api_token: token,
@@ -210,12 +222,13 @@ const mailTransport = nodemailer.createTransport({
     : undefined,
 });
 
-async function sendOtpEmail(email, code) {
+async function sendOtpEmail(email, code, language = 'en') {
   if (!process.env.SMTP_HOST) return;
   let message = `Your OTP code is ${code}`;
   const tpl = await getTemplate('otp', 'email');
   if (tpl) {
-    message = fillTemplate(tpl.english_template, { code });
+    const tplText = language === 'ar' ? tpl.arabic_template : tpl.english_template;
+    message = fillTemplate(tplText, { code });
   }
   const mailOptions = {
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -284,20 +297,20 @@ async function sendGenericEmail(email, subject, message) {
 }
 
 app.post('/api/send-otp', (req, res) => {
-  const { phone, email } = req.body || {};
+  const { phone, email, language } = req.body || {};
   if (!phone && !email) return res.status(400).json({ error: 'missing_contact' });
 
   if (phone) {
     const code = generateOtp();
     otpStore[`phone:${phone}`] = { code, expires: Date.now() + 5 * 60 * 1000 };
-    sendOtpSms(phone, code);
+    sendOtpSms(phone, code, language || 'ar');
     logActivity(`OTP_SENT_PHONE ${phone} ${code}`);
   }
 
   if (email) {
     const code = generateOtp();
     otpStore[`email:${email}`] = { code, expires: Date.now() + 5 * 60 * 1000 };
-    sendOtpEmail(email, code);
+    sendOtpEmail(email, code, language || 'en');
     logActivity(`OTP_SENT_EMAIL ${email} ${code}`);
   }
 
@@ -535,14 +548,14 @@ function addWorkingDays(date, days) {
   return d;
 }
 
-async function scheduleAppointment(branch, referenceNumber) {
+async function scheduleAppointment(branchId, referenceNumber) {
   let slot = addWorkingDays(new Date(), 3);
   slot.setHours(9, 0, 0, 0);
 
   while (true) {
     const existing = await pool.query(
       'SELECT 1 FROM customer_queue WHERE branch=$1 AND appointment_time=$2',
-      [branch, slot]
+      [branchId, slot]
     );
     if (existing.rows.length === 0) break;
     slot = new Date(slot.getTime() + 30 * 60 * 1000);
@@ -554,7 +567,7 @@ async function scheduleAppointment(branch, referenceNumber) {
 
   await pool.query(
     'INSERT INTO customer_queue (branch, reference_number, appointment_time) VALUES ($1,$2,$3)',
-    [branch, referenceNumber, slot]
+    [branchId, referenceNumber, slot]
   );
   return slot;
 }
@@ -633,7 +646,9 @@ app.post('/api/submit-form', async (req, res) => {
             form.aiModel || null,
             form.serviceType || null,
             manualFields,
-            referenceNumber
+            form.branchId || null,
+            referenceNumber,
+            form.language || 'ar'
         ];
         const query = `UPDATE personal_info SET
       full_name=COALESCE($1, full_name),
@@ -662,8 +677,10 @@ app.post('/api/submit-form', async (req, res) => {
       census_card_number=COALESCE($24, census_card_number),
       ai_model=COALESCE($25, ai_model),
       service_type=COALESCE($26, service_type),
-      manual_fields=COALESCE($27, manual_fields)
-    WHERE reference_number=$28 RETURNING id, created_at`;
+      manual_fields=COALESCE($27, manual_fields),
+      branch_id=COALESCE($28, branch_id),
+      language=COALESCE($30, language)
+    WHERE reference_number=$29 RETURNING id, created_at`;
 
         const result = await pool.query(query, values);
         const id = result.rows[0].id;
@@ -707,8 +724,17 @@ app.post('/api/submit-form', async (req, res) => {
         cachedForm = {};
         cachedUploads = {};
         cachedExtracted = {};
-        const branch = form.branch || 'Main';
-        const appointmentTime = await scheduleAppointment(branch, referenceNumber);
+        const branchId = form.branchId || 101;
+        const appointmentTime = await scheduleAppointment(branchId, referenceNumber);
+        let branchEn = 'Main Branch';
+        let branchAr = 'الفرع الرئيسي';
+        try {
+            const bres = await pool.query('SELECT name_en, name_ar FROM bank_branches WHERE branch_id=$1', [branchId]);
+            if (bres.rows[0]) {
+                branchEn = bres.rows[0].name_en;
+                branchAr = bres.rows[0].name_ar;
+            }
+        } catch(e) { logError(`BRANCH_LOOKUP_ERROR ${e.message}`); }
 
         const arabicDays = ['\u0627\u0644\u0623\u062d\u062f','\u0627\u0644\u0627\u062b\u0646\u064a\u0646','\u0627\u0644\u062b\u0644\u0627\u062b\u0627\u0621','\u0627\u0644\u0623\u0631\u0628\u0639\u0627\u0621','\u0627\u0644\u062e\u0645\u064a\u0633','\u0627\u0644\u062c\u0645\u0639\u0629','\u0627\u0644\u0633\u0628\u062a'];
         const englishDays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -718,22 +744,23 @@ app.post('/api/submit-form', async (req, res) => {
         const dateStr = formatDate(apptDate);
         const timeStr = formatTime(apptDate);
 
-        let arabicMsg = `\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645 \u0623. ${form.fullName}\n\u0645\u0648\u0639\u062f\u0643\u0645 \u0641\u064a \u0641\u0631\u0639 ${branch} \u0628\u0645\u0635\u0631\u0641 \u0627\u0644\u0636\u0645\u0627\u0646 \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u064a\n\u064a\u0648\u0645 ${dayAr} \u0627\u0644\u0645\u0648\u0627\u0641\u0642 ${dateStr} \u0627\u0644\u0633\u0627\u0639\u0629 ${timeStr}\n\u0644\u0625\u0643\u0645\u0627\u0644 \u0641\u062a\u062d \u062d\u0633\u0627\u0628\u0643\u0645\n\u0645\u0631\u062c\u0639: ${referenceNumber}\n\u0644\u0644\u0627\u0633\u062a\u0641\u0633\u0627\u0631: 0919875555\n\u0646\u062a\u0637\u0644\u0639 \u0644\u0627\u0633\u062a\u0642\u0628\u0627\u0644\u0643\u0645!`;
-        let englishMsg = `Dear ${form.fullName},\nYour appointment at ${branch} branch of Daman Islamic Bank is on ${dayEn} ${dateStr} at ${timeStr} to complete opening your account.\nReference: ${referenceNumber}\nFor inquiries: 0919875555\nWe look forward to welcoming you!`;
+        let arabicMsg = `\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645 \u0623. ${form.firstNameAr || form.fullName}\n\u0645\u0648\u0639\u062f\u0643\u0645 \u0641\u064a \u0641\u0631\u0639 ${branchAr} \u0628\u0645\u0635\u0631\u0641 \u0627\u0644\u0636\u0645\u0627\u0646 \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u064a\n\u064a\u0648\u0645 ${dayAr} \u0627\u0644\u0645\u0648\u0627\u0641\u0642 ${dateStr} \u0627\u0644\u0633\u0627\u0639\u0629 ${timeStr}\n\u0644\u0625\u0643\u0645\u0627\u0644 \u0641\u062a\u062d \u062d\u0633\u0627\u0628\u0643\u0645\n\u0645\u0631\u062c\u0639: ${referenceNumber}\n\u0644\u0644\u0627\u0633\u062a\u0641\u0633\u0627\u0631: 0919875555\n\u0646\u062a\u0637\u0644\u0639 \u0644\u0627\u0633\u062a\u0642\u0628\u0627\u0644\u0643\u0645!`;
+        let englishMsg = `Dear ${form.firstNameEn || form.fullName},\nYour appointment at ${branchEn} branch of Daman Islamic Bank is on ${dayEn} ${dateStr} at ${timeStr} to complete opening your account.\nReference: ${referenceNumber}\nFor inquiries: 0919875555\nWe look forward to welcoming you!`;
         const tplSms = await getTemplate('appointment', 'sms');
         if (tplSms) {
-            arabicMsg = fillTemplate(tplSms.arabic_template, { name: form.fullName, branch, day_ar: dayAr, day_en: dayEn, date: dateStr, time: timeStr, reference: referenceNumber });
+            arabicMsg = fillTemplate(tplSms.arabic_template, { name: form.firstNameAr || form.fullName, branch: branchAr, day_ar: dayAr, day_en: dayEn, date: dateStr, time: timeStr, reference: referenceNumber });
         }
         const tplEmail = await getTemplate('appointment', 'email');
         if (tplEmail) {
-            englishMsg = fillTemplate(tplEmail.english_template, { name: form.fullName, branch, day_ar: dayAr, day_en: dayEn, date: dateStr, time: timeStr, reference: referenceNumber });
+            englishMsg = fillTemplate(tplEmail.english_template, { name: form.firstNameEn || form.fullName, branch: branchEn, day_ar: dayAr, day_en: dayEn, date: dateStr, time: timeStr, reference: referenceNumber });
         }
 
-        if (form.phone) {
-            sendGenericSms(form.phone, arabicMsg);
-        }
-        if (form.email) {
-            await sendGenericEmail(form.email, 'Account Opening Appointment', englishMsg);
+        if (form.language === 'en') {
+            if (form.phone) sendGenericSms(form.phone, englishMsg);
+            if (form.email) await sendGenericEmail(form.email, 'Account Opening Appointment', englishMsg);
+        } else {
+            if (form.phone) sendGenericSms(form.phone, arabicMsg);
+            if (form.email) await sendGenericEmail(form.email, 'Account Opening Appointment', arabicMsg);
         }
 
         res.json({ referenceNumber, createdAt, appointmentTime });

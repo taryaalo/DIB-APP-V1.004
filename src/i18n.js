@@ -67,6 +67,7 @@ const translations = {
   country: { en: 'Country', ar: 'الدولة' },
   city: { en: 'City', ar: 'المدينة' },
   area: { en: 'Area', ar: 'المنطقة' },
+  selectBranch: { en: 'Select Branch', ar: 'اختر الفرع' },
   residentialAddress: { en: 'Residential Address', ar: 'العنوان السكني' },
   workInfoTitle: { en: 'Work and Income Information', ar: 'معلومات العمل والدخل' },
   employmentStatus: { en: 'Employment Status', ar: 'حالة التوظيف' },
