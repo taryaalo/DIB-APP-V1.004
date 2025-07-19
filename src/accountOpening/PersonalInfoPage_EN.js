@@ -154,7 +154,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
             const eng = value.replace(/[^A-Za-z\s]/g, '');
             setForm(f => ({ ...f, [name]: eng }));
         } else if (name === 'phone') {
-            const digits = value.replace(/[^0-9+]/g, '');
+            const digits = value.replace(/[^0-9]/g, '');
             setForm(f => ({ ...f, phone: digits }));
         } else if (name === 'familyRecordNumber') {
             const digits = value.replace(/[^0-9]/g, '');
@@ -227,7 +227,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: form.phone })
+                    body: JSON.stringify({ phone: `+218${form.phone}` })
                 });
                 setVerifyStep(2);
                 setOtpTimer(120);
@@ -239,7 +239,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                 const resp = await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/verify-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: form.phone, otp })
+                    body: JSON.stringify({ phone: `+218${form.phone}`, otp })
                 });
                 const data = await resp.json();
                 if (data.verified) {
@@ -282,11 +282,11 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
         setVerifyStep(1);
         setOtp('');
         setOtpError('');
-        setFormData(d => ({ ...d, personalInfo: form }));
+        setFormData(d => ({ ...d, personalInfo: { ...form, phone: `+218${form.phone}` } }));
         fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/cache-form`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...formData, personalInfo: form })
+            body: JSON.stringify({ ...formData, personalInfo: { ...form, phone: `+218${form.phone}` } })
         }).catch(e => console.error(e));
         onNavigate('confirm', { form, manualFields });
     };
@@ -297,7 +297,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: form.phone })
+                    body: JSON.stringify({ phone: `+218${form.phone}` })
                 });
             } else if (verifyStep === 3) {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
@@ -428,7 +428,13 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                         </div>
                     </div>
 
-                    <div className="form-group"><input name="phone" value={form.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber', language)} /><LockIcon className="lock-icon" /></div>
+                    <div className="form-group">
+                        <div className="phone-input-group">
+                            <span className="phone-prefix">+218</span>
+                            <input name="phone" value={form.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber', language)} className="form-input" />
+                        </div>
+                        <LockIcon className="lock-icon" />
+                    </div>
                     <div className="form-group"><label><input type="checkbox" name="enableEmail" checked={form.enableEmail} onChange={handleChange} /> {t('enableEmail', language)}</label></div>
                     {form.enableEmail && (
                         <div className="form-group">
@@ -454,7 +460,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                         {verifyStep === 1 ? (
                             <>
                                 <h3>{t('verifyContact', language)}</h3>
-                                <p>{t('phoneNumber', language)}: {form.phone}</p>
+                                <p>{t('phoneNumber', language)}: +218{form.phone}</p>
                                 {form.enableEmail && <p>{t('email', language)}: {form.email}</p>}
                             </>
                         ) : (
