@@ -195,13 +195,18 @@ const mailTransport = nodemailer.createTransport({
 
 async function sendOtpEmail(email, code) {
   if (!process.env.SMTP_HOST) return;
+  const mailOptions = {
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: email,
+    subject: 'OTP Verification',
+    text: `Your OTP code is ${code}`,
+  };
   try {
-    await mailTransport.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to: email,
-      subject: 'OTP Verification',
-      text: `Your OTP code is ${code}`,
-    });
+    const conn = `${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587}`;
+    logActivity(`EMAIL_CONNECT ${conn}`);
+    logActivity(`EMAIL_POST ${JSON.stringify(mailOptions)}`);
+    const info = await mailTransport.sendMail(mailOptions);
+    logActivity(`EMAIL_RESPONSE ${info.response || ''}`);
     logActivity(`EMAIL_SENT ${email}`);
   } catch (e) {
     logError(`EMAIL_ERROR ${e.message}`);
