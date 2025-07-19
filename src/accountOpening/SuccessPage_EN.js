@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { t } from '../i18n';
 import { SuccessIcon } from '../common/Icons';
 import ThemeSwitcher from '../common/ThemeSwitcher';
@@ -11,7 +10,6 @@ import { useFormData } from '../contexts/FormContext';
 
 const SuccessPage_EN = ({ onNavigate, state }) => {
   const { language } = useLanguage();
-  const { theme } = useTheme();
   const { setFormData } = useFormData();
   const reference = state?.referenceNumber;
   const createdAt = state?.createdAt;
@@ -23,7 +21,7 @@ const SuccessPage_EN = ({ onNavigate, state }) => {
   }, [setFormData]);
 
   return (
-    <div className="form-page success-page" data-theme={theme}>
+    <div className="form-page success-page">
       <header className="header docs-header">
         <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
         <div className="header-switchers">

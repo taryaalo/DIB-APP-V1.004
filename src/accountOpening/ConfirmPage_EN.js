@@ -219,7 +219,7 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
                 </div>
                 <div className="form-group">
                     <label>{t('selectBranch', language)} *</label>
-                    <select value={branchId} onChange={e=>setBranchId(e.target.value)} required>
+                    <select value={branchId} onChange={e=>setBranchId(e.target.value)} required className="branch-select">
                         <option value="">{t('selectBranch', language)}</option>
                         {branches.map(b=>(
                           <option key={b.branch_id} value={b.branch_id}>{language==='ar'?b.name_ar:b.name_en}</option>
