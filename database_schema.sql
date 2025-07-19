@@ -39,6 +39,8 @@ ALTER TABLE personal_info ADD COLUMN IF NOT EXISTS surname_ar VARCHAR(100);
 ALTER TABLE personal_info ADD COLUMN IF NOT EXISTS surname_en VARCHAR(100);
 ALTER TABLE personal_info ADD COLUMN IF NOT EXISTS mother_full_name VARCHAR(255);
 ALTER TABLE personal_info ADD COLUMN IF NOT EXISTS marital_status VARCHAR(50);
+ALTER TABLE personal_info ADD COLUMN IF NOT EXISTS branch_id INT;
+ALTER TABLE personal_info ADD COLUMN IF NOT EXISTS language VARCHAR(5);
 
 CREATE TABLE IF NOT EXISTS address_info (
     id SERIAL PRIMARY KEY,
@@ -128,6 +130,22 @@ BEGIN
     END IF;
 END;
 $$;
+
+-- Table for bank branches
+CREATE TABLE IF NOT EXISTS bank_branches (
+    branch_id INT PRIMARY KEY,
+    name_en VARCHAR(100) NOT NULL,
+    name_ar VARCHAR(100) NOT NULL,
+    city VARCHAR(100),
+    location TEXT
+);
+
+INSERT INTO bank_branches(branch_id, name_en, name_ar, city, location) VALUES
+    (101, 'Main Branch', 'الفرع الرئيسي', 'Benghazi', 'Google map location'),
+    (102, 'Alzaho Branch', 'فرع الزهو', 'Benghazi', 'Google map location'),
+    (103, 'Aljawhra Branch', 'فرع الجوهرة', 'Benghazi', 'Google map location'),
+    (104, 'Tripoli Branch', 'فرع طرابلس', 'Tripoli', 'Google map location')
+ON CONFLICT (branch_id) DO NOTHING;
 
 -- Queue table for appointments
 CREATE TABLE IF NOT EXISTS customer_queue (

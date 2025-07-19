@@ -30,6 +30,8 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
     const [submitError, setSubmitError] = useState('');
     const [cachedUploads, setCachedUploads] = useState({});
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [branches, setBranches] = useState([]);
+    const [branchId, setBranchId] = useState(form.personalInfo?.branchId || '');
 
     useEffect(() => {
         const fetchCachedUploads = async () => {
@@ -46,6 +48,7 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
         };
 
         fetchCachedUploads();
+        fetch(`${API_BASE_URL}/api/branches`).then(r=>r.json()).then(setBranches).catch(()=>{});
     }, []);
 
     useEffect(() => {
@@ -96,6 +99,8 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
 
             const payload = {
                 ...(form.personalInfo || {}),
+                branchId,
+                language,
                 referenceNumber: reference,
                 addressInfo: form.addressInfo,
                 workInfo: form.workInfo,
@@ -211,6 +216,15 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
                     {renderSection('addressInfoTitle', form.addressInfo, <MapPinIcon />)}
                     {renderSection('workInfoTitle', form.workInfo, <BriefcaseIcon />)}
                     {renderDocumentsSection('requiredDocs', cachedUploads)}
+                </div>
+                <div className="form-group">
+                    <label>{t('selectBranch', language)} *</label>
+                    <select value={branchId} onChange={e=>setBranchId(e.target.value)} required>
+                        <option value="">{t('selectBranch', language)}</option>
+                        {branches.map(b=>(
+                          <option key={b.branch_id} value={b.branch_id}>{language==='ar'?b.name_ar:b.name_en}</option>
+                        ))}
+                    </select>
                 </div>
 
                 {submitError && <p className="error-message">{submitError}</p>}

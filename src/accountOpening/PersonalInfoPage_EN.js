@@ -227,7 +227,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: `+218${form.phone}` })
+                    body: JSON.stringify({ phone: `+218${form.phone}`, language })
                 });
                 setVerifyStep(2);
                 setOtpTimer(120);
@@ -247,7 +247,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                         await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: form.email })
+                            body: JSON.stringify({ email: form.email, language })
                         });
                         setVerifyStep(3);
                         setOtpTimer(120);
@@ -297,13 +297,13 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: `+218${form.phone}` })
+                    body: JSON.stringify({ phone: `+218${form.phone}`, language })
                 });
             } else if (verifyStep === 3) {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: form.email })
+                    body: JSON.stringify({ email: form.email, language })
                 });
             }
             setOtpTimer(120);
