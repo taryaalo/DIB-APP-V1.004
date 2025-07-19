@@ -213,6 +213,54 @@ async function sendOtpEmail(email, code) {
   }
 }
 
+async function sendGenericSms(phone, message) {
+  const url = process.env.SMS_API_URL;
+  const token = process.env.SMS_API_TOKEN;
+  if (!url || !token || !phone) return;
+  try {
+    const payload = {
+      api_token: token,
+      recipient: phone,
+      sender_id: process.env.SMS_SENDER_ID || '16661',
+      type: 'plain',
+      message,
+    };
+    logActivity(`SMS_CONNECT ${url}`);
+    logActivity(`SMS_POST ${JSON.stringify(payload)}`);
+    const resp = await axios.post(
+      url,
+      payload,
+      { httpsAgent: new https.Agent({ rejectUnauthorized: false }) }
+    );
+    logActivity(`SMS_RESPONSE ${resp.status} ${JSON.stringify(resp.data)}`);
+    logActivity(`SMS_SENT ${phone}`);
+  } catch (e) {
+    const status = e.response?.status;
+    const data = e.response?.data;
+    logError(`SMS_ERROR ${e.message} ${status || ''} ${data ? JSON.stringify(data) : ''}`);
+  }
+}
+
+async function sendGenericEmail(email, subject, message) {
+  if (!process.env.SMTP_HOST || !email) return;
+  const mailOptions = {
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: email,
+    subject,
+    text: message,
+  };
+  try {
+    const conn = `${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587}`;
+    logActivity(`EMAIL_CONNECT ${conn}`);
+    logActivity(`EMAIL_POST ${JSON.stringify(mailOptions)}`);
+    const info = await mailTransport.sendMail(mailOptions);
+    logActivity(`EMAIL_RESPONSE ${info.response || ''}`);
+    logActivity(`EMAIL_SENT ${email}`);
+  } catch (e) {
+    logError(`EMAIL_ERROR ${e.message}`);
+  }
+}
+
 app.post('/api/send-otp', (req, res) => {
   const { phone, email } = req.body || {};
   if (!phone && !email) return res.status(400).json({ error: 'missing_contact' });
@@ -455,6 +503,55 @@ function generateReference(createdAt) {
    return `REF-${datePart}-${randomPart}`;
 }
 
+function addWorkingDays(date, days) {
+  const d = new Date(date);
+  while (days > 0) {
+    d.setDate(d.getDate() + 1);
+    const day = d.getDay();
+    if (day >= 0 && day <= 4) days--; // Sunday to Thursday
+  }
+  return d;
+}
+
+async function scheduleAppointment(branch, referenceNumber) {
+  let slot = addWorkingDays(new Date(), 3);
+  slot.setHours(9, 0, 0, 0);
+
+  while (true) {
+    const existing = await pool.query(
+      'SELECT 1 FROM customer_queue WHERE branch=$1 AND appointment_time=$2',
+      [branch, slot]
+    );
+    if (existing.rows.length === 0) break;
+    slot = new Date(slot.getTime() + 30 * 60 * 1000);
+    if (slot.getHours() >= 14) {
+      slot = addWorkingDays(slot, 1);
+      slot.setHours(9, 0, 0, 0);
+    }
+  }
+
+  await pool.query(
+    'INSERT INTO customer_queue (branch, reference_number, appointment_time) VALUES ($1,$2,$3)',
+    [branch, referenceNumber, slot]
+  );
+  return slot;
+}
+
+function formatDate(d) {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+function formatTime(d) {
+  let h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${m} ${ampm}`;
+}
+
 app.post('/api/initialize-application', async (req, res) => {
     const { aiModel, serviceType } = req.body;
     try {
@@ -588,7 +685,28 @@ app.post('/api/submit-form', async (req, res) => {
         cachedForm = {};
         cachedUploads = {};
         cachedExtracted = {};
-        res.json({ referenceNumber, createdAt });
+        const branch = form.branch || 'Main';
+        const appointmentTime = await scheduleAppointment(branch, referenceNumber);
+
+        const arabicDays = ['\u0627\u0644\u0623\u062d\u062f','\u0627\u0644\u0627\u062b\u0646\u064a\u0646','\u0627\u0644\u062b\u0644\u0627\u062b\u0627\u0621','\u0627\u0644\u0623\u0631\u0628\u0639\u0627\u0621','\u0627\u0644\u062e\u0645\u064a\u0633','\u0627\u0644\u062c\u0645\u0639\u0629','\u0627\u0644\u0633\u0628\u062a'];
+        const englishDays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const apptDate = new Date(appointmentTime);
+        const dayAr = arabicDays[apptDate.getDay()];
+        const dayEn = englishDays[apptDate.getDay()];
+        const dateStr = formatDate(apptDate);
+        const timeStr = formatTime(apptDate);
+
+        const arabicMsg = `\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645 \u0623. ${form.fullName}\n\u0645\u0648\u0639\u062f\u0643\u0645 \u0641\u064a \u0641\u0631\u0639 ${branch} \u0628\u0645\u0635\u0631\u0641 \u0627\u0644\u0636\u0645\u0627\u0646 \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u064a\n\u064a\u0648\u0645 ${dayAr} \u0627\u0644\u0645\u0648\u0627\u0641\u0642 ${dateStr} \u0627\u0644\u0633\u0627\u0639\u0629 ${timeStr}\n\u0644\u0625\u0643\u0645\u0627\u0644 \u0641\u062a\u062d \u062d\u0633\u0627\u0628\u0643\u0645\n\u0645\u0631\u062c\u0639: ${referenceNumber}\n\u0644\u0644\u0627\u0633\u062a\u0641\u0633\u0627\u0631: 0919875555\n\u0646\u062a\u0637\u0644\u0639 \u0644\u0627\u0633\u062a\u0642\u0628\u0627\u0644\u0643\u0645!`;
+        const englishMsg = `Dear ${form.fullName},\nYour appointment at ${branch} branch of Daman Islamic Bank is on ${dayEn} ${dateStr} at ${timeStr} to complete opening your account.\nReference: ${referenceNumber}\nFor inquiries: 0919875555\nWe look forward to welcoming you!`;
+
+        if (form.phone) {
+            sendGenericSms(form.phone, arabicMsg);
+        }
+        if (form.email) {
+            await sendGenericEmail(form.email, 'Account Opening Appointment', englishMsg);
+        }
+
+        res.json({ referenceNumber, createdAt, appointmentTime });
     } catch (e) {
         logError(`SUBMIT_ERROR ${e.message}; STACK: ${e.stack}`);
         res.status(500).json({ error: 'Failed to save' });
