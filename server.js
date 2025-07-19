@@ -161,20 +161,26 @@ async function sendOtpSms(phone, code) {
   const token = process.env.SMS_API_TOKEN;
   if (!url || !token) return;
   try {
-    await axios.post(
+    const payload = {
+      api_token: token,
+      recipient: phone,
+      sender_id: process.env.SMS_SENDER_ID || '16661',
+      type: 'plain',
+      message: `Your OTP code is ${code}`,
+    };
+    logActivity(`SMS_CONNECT ${url}`);
+    logActivity(`SMS_POST ${JSON.stringify(payload)}`);
+    const resp = await axios.post(
       url,
-      {
-        api_token: token,
-        recipient: phone,
-        sender_id: process.env.SMS_SENDER_ID || '16661',
-        type: 'plain',
-        message: `Your OTP code is ${code}`,
-      },
+      payload,
       { httpsAgent: new https.Agent({ rejectUnauthorized: false }) }
     );
+    logActivity(`SMS_RESPONSE ${resp.status} ${JSON.stringify(resp.data)}`);
     logActivity(`SMS_SENT ${phone}`);
   } catch (e) {
-    logError(`SMS_ERROR ${e.message}`);
+    const status = e.response?.status;
+    const data = e.response?.data;
+    logError(`SMS_ERROR ${e.message} ${status || ''} ${data ? JSON.stringify(data) : ''}`);
   }
 }
 
