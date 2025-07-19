@@ -138,3 +138,21 @@ CREATE TABLE IF NOT EXISTS customer_queue (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(branch, appointment_time)
 );
+
+-- Table for message templates
+CREATE TABLE IF NOT EXISTS message_templates (
+    id SERIAL PRIMARY KEY,
+    template_key VARCHAR(50) NOT NULL,
+    media VARCHAR(20) NOT NULL,
+    english_template TEXT NOT NULL,
+    arabic_template TEXT NOT NULL,
+    UNIQUE(template_key, media)
+);
+
+-- Default templates used by the application
+INSERT INTO message_templates (template_key, media, english_template, arabic_template) VALUES
+    ('otp', 'sms', 'Your OTP code is {{code}}', 'رمز التحقق الخاص بك هو {{code}}'),
+    ('otp', 'email', 'Your OTP code is {{code}}', 'رمز التحقق الخاص بك هو {{code}}'),
+    ('appointment', 'sms', 'Dear {{name}},\nYour appointment at {{branch}} branch of Daman Islamic Bank is on {{day_en}} {{date}} at {{time}} to complete opening your account.\nReference: {{reference}}\nFor inquiries: 0919875555\nWe look forward to welcoming you!', 'السلام عليكم أ. {{name}}\nموعدكم في فرع {{branch}} بمصرف الضمان الإسلامي\nيوم {{day_ar}} الموافق {{date}} الساعة {{time}}\nلإكمال فتح حسابكم\nمرجع: {{reference}}\nللاستفسار: 0919875555\nنتطلع لاستقبالكم!'),
+    ('appointment', 'email', 'Dear {{name}},\nYour appointment at {{branch}} branch of Daman Islamic Bank is on {{day_en}} {{date}} at {{time}} to complete opening your account.\nReference: {{reference}}\nFor inquiries: 0919875555\nWe look forward to welcoming you!', 'السلام عليكم أ. {{name}}\nموعدكم في فرع {{branch}} بمصرف الضمان الإسلامي\nيوم {{day_ar}} الموافق {{date}} الساعة {{time}}\nلإكمال فتح حسابكم\nمرجع: {{reference}}\nللاستفسار: 0919875555\nنتطلع لاستقبالكم!')
+ON CONFLICT (template_key, media) DO NOTHING;
