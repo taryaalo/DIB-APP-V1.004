@@ -113,6 +113,18 @@ let cachedUploads = {};
 let cachedExtracted = {};
 let otpStore = {};
 
+async function getTemplate(key, media) {
+  const res = await pool.query(
+    'SELECT english_template, arabic_template FROM message_templates WHERE template_key=$1 AND media=$2 LIMIT 1',
+    [key, media]
+  );
+  return res.rows[0] || null;
+}
+
+function fillTemplate(tpl, params) {
+  return tpl.replace(/{{(.*?)}}/g, (_, k) => params[k] || '');
+}
+
 app.post('/api/cache-form', (req, res) => {
   cachedForm = req.body || {};
   res.json({ success: true });
@@ -161,12 +173,17 @@ async function sendOtpSms(phone, code) {
   const token = process.env.SMS_API_TOKEN;
   if (!url || !token) return;
   try {
+    let message = `Your OTP code is ${code}`;
+    const tpl = await getTemplate('otp', 'sms');
+    if (tpl) {
+      message = fillTemplate(tpl.arabic_template, { code });
+    }
     const payload = {
       api_token: token,
       recipient: phone,
       sender_id: process.env.SMS_SENDER_ID || '16661',
       type: 'plain',
-      message: `Your OTP code is ${code}`,
+      message,
     };
     logActivity(`SMS_CONNECT ${url}`);
     logActivity(`SMS_POST ${JSON.stringify(payload)}`);
@@ -195,11 +212,16 @@ const mailTransport = nodemailer.createTransport({
 
 async function sendOtpEmail(email, code) {
   if (!process.env.SMTP_HOST) return;
+  let message = `Your OTP code is ${code}`;
+  const tpl = await getTemplate('otp', 'email');
+  if (tpl) {
+    message = fillTemplate(tpl.english_template, { code });
+  }
   const mailOptions = {
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to: email,
     subject: 'OTP Verification',
-    text: `Your OTP code is ${code}`,
+    text: message,
   };
   try {
     const conn = `${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587}`;
@@ -696,8 +718,16 @@ app.post('/api/submit-form', async (req, res) => {
         const dateStr = formatDate(apptDate);
         const timeStr = formatTime(apptDate);
 
-        const arabicMsg = `\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645 \u0623. ${form.fullName}\n\u0645\u0648\u0639\u062f\u0643\u0645 \u0641\u064a \u0641\u0631\u0639 ${branch} \u0628\u0645\u0635\u0631\u0641 \u0627\u0644\u0636\u0645\u0627\u0646 \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u064a\n\u064a\u0648\u0645 ${dayAr} \u0627\u0644\u0645\u0648\u0627\u0641\u0642 ${dateStr} \u0627\u0644\u0633\u0627\u0639\u0629 ${timeStr}\n\u0644\u0625\u0643\u0645\u0627\u0644 \u0641\u062a\u062d \u062d\u0633\u0627\u0628\u0643\u0645\n\u0645\u0631\u062c\u0639: ${referenceNumber}\n\u0644\u0644\u0627\u0633\u062a\u0641\u0633\u0627\u0631: 0919875555\n\u0646\u062a\u0637\u0644\u0639 \u0644\u0627\u0633\u062a\u0642\u0628\u0627\u0644\u0643\u0645!`;
-        const englishMsg = `Dear ${form.fullName},\nYour appointment at ${branch} branch of Daman Islamic Bank is on ${dayEn} ${dateStr} at ${timeStr} to complete opening your account.\nReference: ${referenceNumber}\nFor inquiries: 0919875555\nWe look forward to welcoming you!`;
+        let arabicMsg = `\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645 \u0623. ${form.fullName}\n\u0645\u0648\u0639\u062f\u0643\u0645 \u0641\u064a \u0641\u0631\u0639 ${branch} \u0628\u0645\u0635\u0631\u0641 \u0627\u0644\u0636\u0645\u0627\u0646 \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u064a\n\u064a\u0648\u0645 ${dayAr} \u0627\u0644\u0645\u0648\u0627\u0641\u0642 ${dateStr} \u0627\u0644\u0633\u0627\u0639\u0629 ${timeStr}\n\u0644\u0625\u0643\u0645\u0627\u0644 \u0641\u062a\u062d \u062d\u0633\u0627\u0628\u0643\u0645\n\u0645\u0631\u062c\u0639: ${referenceNumber}\n\u0644\u0644\u0627\u0633\u062a\u0641\u0633\u0627\u0631: 0919875555\n\u0646\u062a\u0637\u0644\u0639 \u0644\u0627\u0633\u062a\u0642\u0628\u0627\u0644\u0643\u0645!`;
+        let englishMsg = `Dear ${form.fullName},\nYour appointment at ${branch} branch of Daman Islamic Bank is on ${dayEn} ${dateStr} at ${timeStr} to complete opening your account.\nReference: ${referenceNumber}\nFor inquiries: 0919875555\nWe look forward to welcoming you!`;
+        const tplSms = await getTemplate('appointment', 'sms');
+        if (tplSms) {
+            arabicMsg = fillTemplate(tplSms.arabic_template, { name: form.fullName, branch, day_ar: dayAr, day_en: dayEn, date: dateStr, time: timeStr, reference: referenceNumber });
+        }
+        const tplEmail = await getTemplate('appointment', 'email');
+        if (tplEmail) {
+            englishMsg = fillTemplate(tplEmail.english_template, { name: form.fullName, branch, day_ar: dayAr, day_en: dayEn, date: dateStr, time: timeStr, reference: referenceNumber });
+        }
 
         if (form.phone) {
             sendGenericSms(form.phone, arabicMsg);
