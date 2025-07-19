@@ -1,0 +1,301 @@
+/* DIB-APP-V1.003-main/src/styles/SequentialDocsPage.css */
+
+.sequential-docs-page .form-main {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px 40px 40px 40px;
+}
+
+.sequential-docs-page .controls-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.sequential-docs-page .page-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    margin: 0;
+}
+
+.sequential-docs-page .result-container {
+    display: grid;
+    grid-template-columns: 3fr 2fr; 
+    gap: 30px;
+    width: 100%;
+    align-items: stretch;
+}
+
+.sequential-docs-page .image-preview-box {
+    border-radius: 12px;
+    padding: 20px;
+    background-color: var(--form-input-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.image-container {
+    position: relative;
+    width: 100%;
+    flex-grow: 1; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; 
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: var(--secondary-color);
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* --- Slower and Wider Scan Effect --- */
+.image-container.scanning::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px; /* Made the line wider */
+    background: transparent;
+    box-shadow: 0 0 20px 3px var(--success-color), 0 0 35px 10px rgba(40, 167, 69, 0.7);
+    /* Slower animation duration */
+    animation: fancy-scan 3s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; 
+    z-index: 2;
+}
+
+
+.sequential-docs-page .data-result-box {
+    border-radius: 12px;
+    padding: 20px;
+    background-color: var(--form-input-bg);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+}
+
+.stamp-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(40, 167, 69, 0.2);
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.stamp-overlay.visible {
+    opacity: 1;
+}
+
+.stamp-overlay svg {
+    color: rgba(255, 255, 255, 0.8);
+    width: 50%;
+    max-width: 150px;
+    height: auto;
+    filter: drop-shadow(0px 4px 15px rgba(0, 0, 0, 0.3));
+    transform: scale(0.5);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s, opacity 0.3s ease-in-out 0.1s;
+}
+
+.stamp-overlay.visible svg {
+    transform: scale(1);
+    opacity: 1;
+}
+
+
+@keyframes fancy-scan {
+    0% {
+        top: -10px;
+    }
+    100% {
+        top: calc(100% + 10px);
+    }
+}
+
+.upload-area {
+    width: 100%;
+    max-width: 800px;
+    margin: 40px auto;
+    background-color: var(--form-input-bg);
+    border-radius: 15px;
+    padding: 60px;
+    text-align: center;
+    border: 3px dashed var(--text-color-dark);
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px var(--shadow-color);
+}
+
+.upload-area.drag-over {
+    border-color: var(--primary-color);
+    transform: scale(1.02);
+}
+
+.btn-next .loader {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--text-color-light);
+    animation: spin 1s ease-in-out infinite;
+    margin: 0 auto;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    flex-grow: 1;
+}
+
+.arrow-spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid rgba(40, 167, 69, 0.2);
+    border-left-color: var(--success-color);
+    border-radius: 50%;
+    animation: spin 1.2s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.modern-table th, .modern-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+.modern-table thead tr {
+    background-color: var(--primary-color);
+    color: var(--text-color-light);
+    font-weight: 600;
+}
+
+.modern-table tbody tr:nth-child(even) {
+    background-color: rgba(255,255,255,0.05);
+}
+
+.modern-table tbody tr:hover {
+    background-color: var(--accent-color);
+    color: var(--text-color-light);
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .sequential-docs-page .result-container {
+        grid-template-columns: 1fr;
+    }
+}
+/* === Stamp Scan Effect === */
+.scan-complete-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+}
+
+.scan-complete-overlay.visible {
+    opacity: 1;
+}
+
+.stamp-wrapper {
+    width: 120px;
+    height: 120px;
+}
+
+.stamp-icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 3;
+    stroke: #10B981;
+    stroke-miterlimit: 10;
+    box-shadow: inset 0px 0px 0px #10B981;
+    animation: scale .3s ease-in-out .9s both, fill .4s ease-in-out .9s both;
+}
+
+.stamp-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 3;
+    stroke-miterlimit: 10;
+    stroke: #10B981;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.stamp-check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes fill {
+    0% {
+        box-shadow: inset 0px 0px 0px #10B981;
+    }
+    50% {
+        box-shadow: inset 0px 0px 0px 90px #10B98133;
+    }
+    100% {
+        box-shadow: inset 0px 0px 0px 0px #10B98133;
+    }
+}
+
+@keyframes scale {
+    0%, 100% {
+        transform: none;
+    }
+    50% {
+        transform: scale3d(1.1, 1.1, 1);
+    }
+}
+
+.image-to-stamp.stamped {
+    filter: brightness(95%) saturate(90%);
+}

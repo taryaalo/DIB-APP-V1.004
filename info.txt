@@ -1,0 +1,37 @@
+daman-islamic-bank-app/
+├── public/
+│   └── index.html
+├── src/
+│   ├── assets/
+│   │   └── imagePaths.js
+│   ├── common/
+│   │   ├── Icons.js
+│   │   ├── LanguageSwitcher.js
+│   │   └── ThemeSwitcher.js
+│   ├── accountOpening/
+│   │   ├── CompaniesDocsPage_EN.js
+│   │   ├── CompanyContactPage_EN.js
+│   │   ├── CompanyInfoPage_EN.js
+│   │   ├── ContactInfoPage_EN.js
+│   │   ├── FinancialInfoPage_EN.js
+│   │   ├── LandingPage_EN.js
+│   │   ├── LegalRepInfoPage_EN.js
+│   │   ├── PersonalInfoPage_EN.js
+│   │   ├── SelectUserPage_EN.js
+│   │   ├── SequentialDocsPage_EN.js
+│   │   ├── SuccessPage_EN.js
+│   │   └── WorkInfoPage_EN.js
+│   ├── eServices/
+│   │   └── EServicesLandingPage.js
+│   ├── components/
+│   │   └── LanguageSelectionPage.js
+│   ├── contexts/
+│   │   └── ThemeContext.js
+│   ├── styles/
+│   │   └── GlobalStyles.js
+│   ├── utils/
+│   │   └── validation.js
+│   ├── i18n.js
+│   ├── App.js
+│   └── index.js
+└── package.json
