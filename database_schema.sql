@@ -128,3 +128,13 @@ BEGIN
     END IF;
 END;
 $$;
+
+-- Queue table for appointments
+CREATE TABLE IF NOT EXISTS customer_queue (
+    id SERIAL PRIMARY KEY,
+    branch VARCHAR(100) NOT NULL,
+    reference_number VARCHAR(100) REFERENCES personal_info(reference_number),
+    appointment_time TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(branch, appointment_time)
+);
