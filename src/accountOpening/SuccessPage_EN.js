@@ -6,6 +6,7 @@ import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { LOGO_WHITE } from '../assets/imagePaths';
+import '../styles/SuccessPageTheme.css';
 import { useFormData } from '../contexts/FormContext';
 
 const SuccessPage_EN = ({ onNavigate, state }) => {
@@ -22,7 +23,7 @@ const SuccessPage_EN = ({ onNavigate, state }) => {
 
   return (
     <div className="form-page success-page">
-      <header className="header docs-header">
+      <header className="header success-header">
         <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
         <div className="header-switchers">
           <ThemeSwitcher />

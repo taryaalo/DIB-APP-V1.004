@@ -5,6 +5,7 @@ import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
+import '../styles/LookupPageTheme.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ADMIN_NAME = process.env.REACT_APP_ADMIN_NAME || 'Admin';
@@ -212,7 +213,7 @@ const LookupPage_EN = ({ onNavigate }) => {
                         <input className="form-input" style={{maxWidth:'250px'}} placeholder="Search..." value={search} onChange={e=>setSearch(e.target.value)} />
                     </div>
                 </div>
-                <table className="confirmation-table" style={{width:'100%'}}>
+                <table className="lookup-table">
                     <thead>
                         <tr>
                             <th>Applicant Name</th>
@@ -253,8 +254,8 @@ const LookupPage_EN = ({ onNavigate }) => {
             </main>
             <Footer />
             {selected && (
-                <div className="modal-backdrop open" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) setSelected(null);}}>
-                    <div className="modal-content" style={{width:'90%',maxWidth:'800px'}}>
+                <div className="modal-backdrop" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) setSelected(null);}}>
+                    <div className="modal-content">
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                             <div>
                                 <h2 style={{margin:'0'}}>{selected.personalInfo.first_name} {selected.personalInfo.last_name}</h2>
@@ -287,7 +288,7 @@ const LookupPage_EN = ({ onNavigate }) => {
                 </div>
             )}
             {imageModalUrl && (
-                <div className="modal-backdrop open" onClick={() => setImageModalUrl(null)}>
+                <div className="modal-backdrop" onClick={() => setImageModalUrl(null)}>
                     <div className="modal-content" style={{maxWidth: '90vw', maxHeight: '90vh'}}>
                         <img src={imageModalUrl} alt="Enlarged document" style={{maxWidth: '100%', maxHeight: '100%', objectFit: 'contain'}} />
                     </div>
