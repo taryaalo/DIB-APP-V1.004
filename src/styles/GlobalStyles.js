@@ -416,10 +416,16 @@ const GlobalStyles = () => (
         width: 100%;
         padding: 15px;
         font-size: 1rem;
-        border: 1px solid #ccc;
+        border: 1px solid var(--primary-color);
         border-radius: 8px;
         background-color: var(--form-input-bg);
         color: var(--form-input-text);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        appearance: none;
+        background-image: url('data:image/svg+xml;utf8,<svg fill="%23628D97" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 18px;
     }
     .phone-input-group { display: flex; }
     .phone-prefix { padding: 15px; background-color: #e9ecef; border: 1px solid #ccc; font-size: 1rem; }
@@ -507,9 +513,12 @@ const GlobalStyles = () => (
     .confirmation-page .form-main {
         align-items: center;
     }
+    .confirmation-page .header {
+        width: 100%;
+    }
     .confirmation-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 30px;
         width: 100%;
         max-width: 1200px;
@@ -651,6 +660,36 @@ const GlobalStyles = () => (
         max-width: 90%;
         max-height: 90%;
         overflow: auto;
+    }
+    .verify-dialog {
+        max-width: 400px;
+        text-align: center;
+        padding: 30px;
+    }
+    .verify-dialog h3 {
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    .otp-input {
+        width: 100%;
+        max-width: 200px;
+        padding: 10px;
+        font-size: 1.2rem;
+        text-align: center;
+        border: 1px solid var(--primary-color);
+        border-radius: 8px;
+        margin: 10px auto;
+        box-sizing: border-box;
+    }
+    .verify-actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .otp-countdown {
+        margin: 5px 0;
     }
     .preview-image {
         display: block;
