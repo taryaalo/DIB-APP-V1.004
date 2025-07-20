@@ -467,8 +467,13 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                             <>
                                 <h3>{t('enterOtp', language)}</h3>
                                 <input className="otp-input" type="text" value={otp} maxLength="4" onChange={e => setOtp(e.target.value.replace(/\D/g,''))} />
-                                <p className="otp-countdown">{t('otpCountdown', language)}: {formatTime(otpTimer)}</p>
-                                {otpTimer === 0 && <button className="btn-back" onClick={resendOtp}>{t('resendOtp', language)}</button>}
+                                <div className="otp-timer">
+                                    {otpTimer > 0 ? (
+                                        <span className="otp-countdown">{t('otpCountdown', language)}: {formatTime(otpTimer)}</span>
+                                    ) : (
+                                        <button className="btn-next resend-btn" onClick={resendOtp}>{t('resendOtp', language)}</button>
+                                    )}
+                                </div>
                                 {otpError && <p className="error-message">{otpError}</p>}
                             </>
                         )}

@@ -688,8 +688,17 @@ const GlobalStyles = () => (
         justify-content: flex-end;
         gap: 10px;
     }
+    .otp-timer {
+        margin: 10px 0;
+    }
     .otp-countdown {
-        margin: 5px 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent-color);
+        font-variant-numeric: tabular-nums;
+    }
+    .resend-btn {
+        margin-top: 5px;
     }
     .preview-image {
         display: block;

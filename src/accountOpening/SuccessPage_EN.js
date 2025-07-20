@@ -6,7 +6,7 @@ import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { LOGO_WHITE } from '../assets/imagePaths';
-import '../styles/SuccessPageTheme.css';
+import '../styles/SuccessPage_EN.css';
 import { useFormData } from '../contexts/FormContext';
 
 const SuccessPage_EN = ({ onNavigate, state }) => {
