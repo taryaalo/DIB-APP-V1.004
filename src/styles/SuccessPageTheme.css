@@ -1,0 +1,21 @@
+.success-header {
+    background: linear-gradient(90deg, #4FB3C4, #2E6B76);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.success-header .logo {
+    height: 70px;
+}
+.success-page .success-icon {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 20px;
+}
+.success-page .success-message {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+}
+.success-page .btn-next {
+    padding: 12px 30px;
+    font-size: 1rem;
+    border-radius: 8px;
+}
