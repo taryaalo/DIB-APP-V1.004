@@ -613,8 +613,38 @@ const GlobalStyles = () => (
         align-items: center;
         z-index: 1000;
     }
+    .confirmation-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .confirmation-table th,
+    .confirmation-table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+    }
+    .confirmation-table th {
+        background-color: var(--secondary-color);
+        color: var(--text-color-dark);
+    }
+    .hover-row:hover {
+        background-color: var(--secondary-color);
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-color-light);
+        text-transform: capitalize;
+    }
+    .status-approved { background-color: var(--success-color); }
+    .status-rejected { background-color: var(--error-color); }
+    .status-pending { background-color: var(--accent-color); }
+
     .modal-content {
-        background-color: #fff;
+        background-color: var(--form-input-bg);
         border-radius: 8px;
         padding: 20px;
         position: relative;
@@ -634,7 +664,7 @@ const GlobalStyles = () => (
         right: 10px;
         background: none;
         border: none;
-        color: #555;
+        color: var(--text-color-dark);
         font-size: 1.2em;
         cursor: pointer;
         outline: none;
