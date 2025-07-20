@@ -165,15 +165,17 @@ const LookupPage_EN = ({ onNavigate }) => {
             <div className="confirmation-document" style={{marginBottom:'20px'}}>
                 <div className="confirmation-header">Uploaded Documents</div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'15px'}}>
-                    {docs.map(doc => (
+                    {docs.map(doc => {
+                        const path = `${API_BASE_URL}/${doc.file_name.replace(/\\/g,'/')}`;
+                        return (
                         <div key={doc.file_name} style={{textAlign:'center'}}>
-                           <img src={`${API_BASE_URL}/${doc.file_name}`} alt={doc.doc_type} style={{width:'100%',height:'120px',objectFit:'cover',borderRadius:'8px',marginBottom:'5px', cursor: 'pointer'}} onClick={() => setImageModalUrl(`${API_BASE_URL}/${doc.file_name}`)} />
+                           <img src={path} alt={doc.doc_type} style={{width:'100%',height:'120px',objectFit:'cover',borderRadius:'8px',marginBottom:'5px', cursor: 'pointer'}} onClick={() => setImageModalUrl(path)} />
                            {isEditing && (
                                <input type="file" onChange={(e) => handleFileChange(doc.doc_type, e.target.files[0])} />
                            )}
                             <p style={{fontSize:'0.9rem',fontWeight:'600'}}>{doc.doc_type}</p>
                         </div>
-                    ))}
+                    )})}
                 </div>
             </div>
         );

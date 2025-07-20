@@ -230,7 +230,7 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
                 {submitError && <p className="error-message">{submitError}</p>}
                 <div className="form-actions">
                     <button className="btn-export" onClick={handleExport}>{t('exportPdf', language)}</button>
-                    <button className="btn-next" onClick={handleConfirm}>{t('confirm', language)}</button>
+                    <button className="btn-next" onClick={handleConfirm} disabled={!branchId}>{t('confirm', language)}</button>
                 </div>
             </main>
             <Footer />

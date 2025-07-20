@@ -456,7 +456,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
             <Footer />
             {showVerify && (
                 <div className="modal-overlay" onClick={cancelVerification}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content verify-dialog" onClick={e => e.stopPropagation()}>
                         {verifyStep === 1 ? (
                             <>
                                 <h3>{t('verifyContact', language)}</h3>
@@ -466,13 +466,13 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                         ) : (
                             <>
                                 <h3>{t('enterOtp', language)}</h3>
-                                <input type="text" value={otp} maxLength="4" onChange={e => setOtp(e.target.value.replace(/\D/g,''))} style={{marginBottom:'10px'}} />
-                                <p style={{margin:'5px 0'}}>{t('otpCountdown', language)}: {formatTime(otpTimer)}</p>
+                                <input className="otp-input" type="text" value={otp} maxLength="4" onChange={e => setOtp(e.target.value.replace(/\D/g,''))} />
+                                <p className="otp-countdown">{t('otpCountdown', language)}: {formatTime(otpTimer)}</p>
                                 {otpTimer === 0 && <button className="btn-back" onClick={resendOtp}>{t('resendOtp', language)}</button>}
                                 {otpError && <p className="error-message">{otpError}</p>}
                             </>
                         )}
-                        <div style={{marginTop:'20px',display:'flex',justifyContent:'flex-end',gap:'10px'}}>
+                        <div className="verify-actions">
                             <button className="btn-back" onClick={cancelVerification}>{t('cancel', language)}</button>
                             <button className="btn-next" onClick={confirmVerification}>{t('confirm', language)}</button>
                         </div>
