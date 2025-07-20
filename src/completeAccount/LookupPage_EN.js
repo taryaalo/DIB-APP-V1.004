@@ -166,7 +166,8 @@ const LookupPage_EN = ({ onNavigate }) => {
                 <div className="confirmation-header">Uploaded Documents</div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'15px'}}>
                     {docs.map(doc => {
-                        const path = `${API_BASE_URL}/${doc.file_name.replace(/\\/g,'/')}`;
+                        const file = doc.file_name.replace(/\\/g,'/').split('/').pop();
+                        const path = `${API_BASE_URL}/user_document/${doc.reference_number}/${file}`;
                         return (
                         <div key={doc.file_name} style={{textAlign:'center'}}>
                            <img src={path} alt={doc.doc_type} style={{width:'100%',height:'120px',objectFit:'cover',borderRadius:'8px',marginBottom:'5px', cursor: 'pointer'}} onClick={() => setImageModalUrl(path)} />
