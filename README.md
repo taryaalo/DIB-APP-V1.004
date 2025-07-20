@@ -10,7 +10,7 @@ cp .env.example .env
 ```
 
 Edit `.env` and replace the placeholders with your actual keys. These values are consumed only by the Express server and never exposed to the browser. `REACT_APP_GEMINI_API_KEY` powers Google Gemini requests and `REACT_APP_OPENAI_API_KEY` is used for ChatGPT.
-`REACT_APP_API_BASE_URL` should point to the Express server URL. By default the server listens on `http://localhost:7003` and HTTPS is disabled, so the value should match that URL. You may override the default AI endpoints using `REACT_APP_OPENAI_URL` and `REACT_APP_GEMINI_URL` if needed.
+`REACT_APP_API_BASE_URL` should point to the Express server URL. By default the server listens on `http://localhost:7003`, so the value should match that URL. You may override the default AI endpoints using `REACT_APP_OPENAI_URL` and `REACT_APP_GEMINI_URL` if needed.
 
 For OTP delivery you must also provide SMS and SMTP settings:
 
@@ -34,20 +34,13 @@ npm install
 node server.js
 ```
 The React development server started with `npm start` runs on port `7102` in HTTP mode.
-To enable HTTPS for development set `HTTPS=true` before running `npm start`.
-If you run the backend on a different port (e.g. 7103), update `REACT_APP_API_BASE_URL` in your `.env` to match the protocol and port:
+If you run the backend on a different port, update `REACT_APP_API_BASE_URL` in your `.env` to match the new port:
 
 ```bash
 REACT_APP_API_BASE_URL=http://localhost:7003
 ```
 
-The Express backend tries to start both an HTTP server on `PORT` (default
-`7003`) and an HTTPS server on `HTTPS_PORT` (default `7103`). Certificate and
-key files are read from `src/ssl/cert.pem` and `src/ssl/key.pem` or from the
-`SSL_CERT_PATH` and `SSL_KEY_PATH` environment variables. If the HTTPS server
-fails to start the application continues running on HTTP only and a warning is
-written to the console and log file.
-Set `DISABLE_HTTPS=true` in your `.env` to skip starting the HTTPS server entirely.
+The Express backend listens on `PORT` (default `7003`) using HTTP only.
 
 The ChatGPT provider relies on a working internet connection. If requests fail with
 "Failed to fetch", ensure that your environment allows outbound HTTPS requests to
