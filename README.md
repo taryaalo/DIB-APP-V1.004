@@ -10,7 +10,7 @@ cp .env.example .env
 ```
 
 Edit `.env` and replace the placeholders with your actual keys. These values are consumed only by the Express server and never exposed to the browser. `REACT_APP_GEMINI_API_KEY` powers Google Gemini requests and `REACT_APP_OPENAI_API_KEY` is used for ChatGPT.
-`REACT_APP_API_BASE_URL` should point to the Express server URL (default `https://localhost:7103`). You may override the default AI endpoints using `REACT_APP_OPENAI_URL` and `REACT_APP_GEMINI_URL` if needed.
+`REACT_APP_API_BASE_URL` should point to the Express server URL. By default the server listens on `http://localhost:7003` and HTTPS is disabled, so the value should match that URL. You may override the default AI endpoints using `REACT_APP_OPENAI_URL` and `REACT_APP_GEMINI_URL` if needed.
 
 For OTP delivery you must also provide SMS and SMTP settings:
 
