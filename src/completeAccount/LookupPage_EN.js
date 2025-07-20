@@ -247,20 +247,20 @@ const LookupPage_EN = ({ onNavigate }) => {
                 </table>
                 <div style={{marginTop:'10px',display:'flex',justifyContent:'center',gap:'5px'}}>
                     {Array.from({length: totalPages}).map((_,i)=>(
-                        <button key={i} onClick={()=>setPage(i)} style={{padding:'6px 12px',borderRadius:'4px',background:i===page?'var(--primary-color)':'#ccc',color:i===page?'#fff':'#000',border:'none',cursor:'pointer'}}>{i+1}</button>
+                        <button key={i} onClick={()=>setPage(i)} style={{padding:'6px 12px',borderRadius:'4px',background:i===page?'var(--primary-color)':'var(--form-input-bg)',color:i===page?'var(--text-color-light)':'var(--text-color-dark)',border:'none',cursor:'pointer'}}>{i+1}</button>
                     ))}
                 </div>
             </main>
             <Footer />
             {selected && (
                 <div className="modal-backdrop open" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) setSelected(null);}}>
-                    <div className="modal-content" style={{width:'90%',maxWidth:'800px',padding:'20px'}}>
+                    <div className="modal-content" style={{width:'90%',maxWidth:'800px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                             <div>
                                 <h2 style={{margin:'0'}}>{selected.personalInfo.first_name} {selected.personalInfo.last_name}</h2>
                                 <p style={{margin:'0',opacity:0.7}}>{selected.personalInfo.reference_number}</p>
                             </div>
-                            <button onClick={()=>{setSelected(null); setIsEditing(false);}} style={{background:'none',border:'none',fontSize:'1.5rem',cursor:'pointer'}}>&times;</button>
+                            <button onClick={()=>{setSelected(null); setIsEditing(false);}} style={{background:'none',border:'none',fontSize:'1.5rem',cursor:'pointer',color:'var(--text-color-dark)'}}>&times;</button>
                         </div>
                         {infoSection('Personal Information', selected.personalInfo, 'personalInfo')}
                         {infoSection('Address Information', selected.addressInfo, 'addressInfo')}
@@ -268,16 +268,16 @@ const LookupPage_EN = ({ onNavigate }) => {
                         {docsSection(selected.uploadedDocuments)}
                         <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',marginTop:'20px'}}>
                             {isEditing ? (
-                                <button onClick={handleSave} className="btn-next" style={{backgroundColor:'#22c55e'}}>Save</button>
+                                <button onClick={handleSave} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>Save</button>
                             ) : (
                                 <>
-                                <button onClick={()=>updateStatus(selected.personalInfo.id,'Rejected')} className="btn-next" style={{backgroundColor:'#ef4444'}}>
+                                <button onClick={()=>updateStatus(selected.personalInfo.id,'Rejected')} className="btn-next" style={{backgroundColor:'var(--error-color)'}}>
                                     Reject
                                 </button>
-                                <button onClick={() => setIsEditing(true)} className="btn-next" style={{backgroundColor:'#fbbf24'}}>
+                                <button onClick={() => setIsEditing(true)} className="btn-next" style={{backgroundColor:'var(--accent-color)'}}>
                                     Edit
                                 </button>
-                                <button onClick={()=>updateStatus(selected.personalInfo.id,'Approved')} className="btn-next" style={{backgroundColor:'#22c55e'}}>
+                                <button onClick={()=>updateStatus(selected.personalInfo.id,'Approved')} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>
                                     Approve
                                 </button>
                                 </>
