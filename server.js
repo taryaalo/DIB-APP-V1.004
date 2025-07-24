@@ -169,6 +169,26 @@ app.get('/api/branches', async (req, res) => {
   }
 });
 
+app.get('/api/countries', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT code, name_en, name_ar FROM countries ORDER BY CASE WHEN code='LY' THEN 0 ELSE 1 END, name_en");
+    res.json(result.rows);
+  } catch (e) {
+    logError(`COUNTRIES_ERROR ${e.message}`);
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
+app.get('/api/income-sources', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name_en, name_ar FROM income_sources ORDER BY id');
+    res.json(result.rows);
+  } catch (e) {
+    logError(`INCOME_SOURCES_ERROR ${e.message}`);
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
 app.get('/api/cache-extracted/:docType', (req, res) => {
   res.json(cachedExtracted[req.params.docType] || {});
 });

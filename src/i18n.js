@@ -77,7 +77,13 @@ const translations = {
   employerPhone: { en: "Employer's Phone", ar: 'هاتف جهة العمل' },
   sourceOfIncome: { en: 'Main Source of Income', ar: 'المصدر الرئيسي للدخل' },
   monthlyIncome: { en: 'Average Monthly Income', ar: 'متوسط الدخل الشهري' },
+  incomeLess2000: { en: 'Less than 2000 LYD', ar: 'أقل من 2000 دينار' },
+  income2000to5000: { en: '2000 - 5000 LYD', ar: '2000 - 5000 دينار' },
+  incomeMore5000: { en: 'More than 5000 LYD', ar: 'أكثر من 5000 دينار' },
   workSector: { en: 'Work Sector', ar: 'قطاع العمل' },
+  workSectorPrivate: { en: 'Private', ar: 'خاص' },
+  workSectorPublic: { en: 'Public', ar: 'حكومي' },
+  workSectorFreelance: { en: 'Freelance', ar: 'عمل حر' },
   fieldOfWork: { en: 'Field of Work', ar: 'مجال العمل' },
   workStartDate: { en: 'Work Start Date', ar: 'تاريخ بدء العمل' },
   countryCode: { en: 'Country Code', ar: 'رمز البلد' },
@@ -89,7 +95,7 @@ const translations = {
   approvedNationalId: { en: 'Approved National ID', ar: 'صورة الرقم الوطني' },
   passportPhoto: { en: 'Passport Photo', ar: 'صورة جواز السفر' },
   accountOpeningLetter: { en: 'Account Opening Letter from Employer', ar: 'رسالة فتح حساب من جهة العمل' },
-  recentPersonalPhoto: { en: 'Recent Personal Photo', ar: 'صورة شخصية' },
+  recentPersonalPhoto: { en: 'Take a selfie Picture', ar: 'التقط صورة شخصية' },
   extractedData: { en: 'Extracted Data', ar: 'استخراج البيانات' },
   bankStatement: { en: 'Bank statement for the last months (if any)', ar: 'كشف حساب مصرفي للأشهر الماضية (إن وجد)' },
   taxCard: { en: 'Tax Card or Certificate', ar: 'بطاقة أو شهادة ضريبية' },
@@ -108,6 +114,7 @@ const translations = {
   upload_prompt: { en: 'Upload your document', ar: 'قم بتحميل المستند' },
   extracting_data: { en: 'Extracting data, please wait...', ar: 'جاري استخراج البيانات، يرجى الانتظار...' },
   invalidPassport: { en: 'Please upload a valid passport photo.', ar: 'يرجى تحميل صورة جواز سفر صالحة.' },
+  invalidNid: { en: 'Please upload a valid national ID image.', ar: 'يرجى تحميل صورة رقم وطني صالحة.' },
   incorrectOtp: { en: 'Incorrect OTP', ar: 'رمز التحقق خاطئ' },
   incorrectEmailOtp: { en: 'Incorrect email OTP', ar: 'رمز التحقق من البريد الإلكتروني خاطئ' },
   exportPdf: { en: 'Export PDF', ar: 'تصدير' },
@@ -154,7 +161,17 @@ const translations = {
   yes: { en: 'Yes', ar: 'نعم' },
   no: { en: 'No', ar: 'لا' },
   label: { en: 'Field', ar: 'الحقل' },
-  value: { en: 'Value', ar: 'القيمة' }
+  value: { en: 'Value', ar: 'القيمة' },
+  termsAndConditions: { en: 'Terms and Conditions', ar: 'الشروط والأحكام' },
+  agreePrefix: { en: 'I agree to the', ar: 'أوافق على' },
+  termsContent: {
+    en: 'By using Daman Islamic Bank digital services you allow the bank to use your data at any time.',
+    ar: 'باستخدامك لخدمات مصرف الضمان الإسلامي الرقمية فإنك تسمح للمصرف باستخدام بياناتك في أي وقت.'
+  },
+  close: { en: 'Close', ar: 'إغلاق' },
+  enterOtpPhone: { en: 'Enter the OTP sent to your phone', ar: 'أدخل رمز التحقق المرسل إلى هاتفك' },
+  enterOtpEmail: { en: 'Enter the OTP sent to your email', ar: 'أدخل رمز التحقق المرسل إلى بريدك الإلكتروني' },
+  take_picture: { en: 'Take a picture', ar: 'التقط صورة' }
 };
 
 export const t = (key, lang = 'en') => {

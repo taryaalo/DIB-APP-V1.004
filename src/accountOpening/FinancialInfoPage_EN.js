@@ -5,6 +5,7 @@ import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { t } from '../i18n';
 import { useLanguage } from '../contexts/LanguageContext';
+import TermsDialog from '../common/TermsDialog';
 
 const FinancialInfoPage_EN = ({ onNavigate, backPage }) => {
     const { language } = useLanguage();
@@ -17,6 +18,7 @@ const FinancialInfoPage_EN = ({ onNavigate, backPage }) => {
         agree: false
     });
     const [error, setError] = useState('');
+    const [showTerms, setShowTerms] = useState(false);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -77,7 +79,7 @@ const FinancialInfoPage_EN = ({ onNavigate, backPage }) => {
                                     <input name="agree" type="checkbox" checked={form.agree} onChange={handleChange} required/>
                                     <span className="checkmark"></span>
                                 </div>
-                                <span>{t('agreeTerms', language)}</span>
+                                <span>{t('agreePrefix', language)} <button type="button" className="terms-link" onClick={()=>setShowTerms(true)}>{t('termsAndConditions', language)}</button></span>
                             </label>
                         </div>
                         {error && <p className="error-message">{error}</p>}
@@ -86,6 +88,7 @@ const FinancialInfoPage_EN = ({ onNavigate, backPage }) => {
                 </form>
             </main>
             <Footer />
+            {showTerms && <TermsDialog onClose={() => setShowTerms(false)} />}
         </div>
     );
 };

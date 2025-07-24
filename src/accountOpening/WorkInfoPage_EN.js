@@ -15,6 +15,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
     const { language } = useLanguage();
     const { formData, setFormData } = useFormData();
+    const [sources, setSources] = useState([]);
     const [form, setForm] = useState({
         employmentStatus: '',
         jobTitle: '',
@@ -28,6 +29,10 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
         workStartDate: '',
         ...(formData.workInfo || {})
     });
+
+    useEffect(() => {
+        fetch(`${API_BASE_URL}/api/income-sources`).then(r=>r.json()).then(setSources).catch(()=>{});
+    }, []);
 
     useEffect(() => {
         const reference = formData.personalInfo?.referenceNumber || formData.personalInfo?.reference_number;
@@ -91,9 +96,9 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                         <div className="form-group">
                             <select name="workSector" value={form.workSector} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('workSector', language)}</option>
-                                <option value="private">Private</option>
-                                <option value="public">Public</option>
-                                <option value="freelance">Freelance</option>
+                                <option value="private">{t('workSectorPrivate', 'en')} - {t('workSectorPrivate', 'ar')}</option>
+                                <option value="public">{t('workSectorPublic', 'en')} - {t('workSectorPublic', 'ar')}</option>
+                                <option value="freelance">{t('workSectorFreelance', 'en')} - {t('workSectorFreelance', 'ar')}</option>
                             </select>
                         </div>
                         <div className="form-group"><input name="fieldOfWork" value={form.fieldOfWork} onChange={handleChange} type="text" required className="form-input" placeholder={t('fieldOfWork', language)} /></div>
@@ -108,23 +113,25 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                         <div className="form-group">
                             <select name="sourceOfIncome" value={form.sourceOfIncome} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('sourceOfIncome', language)}</option>
-                                <option value="salary">Salary</option>
-                                <option value="business">Business</option>
-                                <option value="investment">Investment</option>
+                                {sources.map(s => (
+                                    <option key={s.id} value={s.name_en}>{`${s.name_en} - ${s.name_ar}`}</option>
+                                ))}
                             </select>
                         </div>
                         <div className="form-group">
                             <select name="monthlyIncome" value={form.monthlyIncome} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('monthlyIncome', language)}</option>
-                                <option value="<2000">Less than 2000 LYD</option>
-                                <option value="2000-5000">2000 - 5000 LYD</option>
-                                <option value=">5000">More than 5000 LYD</option>
+                                <option value="<2000">{t('incomeLess2000', 'en')} - {t('incomeLess2000', 'ar')}</option>
+                                <option value="2000-5000">{t('income2000to5000', 'en')} - {t('income2000to5000', 'ar')}</option>
+                                <option value=">5000">{t('incomeMore5000', 'en')} - {t('incomeMore5000', 'ar')}</option>
                             </select>
                         </div>
+                        {formData.serviceType !== 'personal' && (
                         <div className="form-group">
                             <label>{t('residenceCertificate', language)}</label>
-                            <input type="file" accept="image/*" className="form-input" />
+                            <input type="file" accept="image/*" className="form-input" required={formData.serviceType === 'expat'} />
                         </div>
+                        )}
                     </div>
                     <div className="form-actions"><button type="submit" className="btn-next">{t('next', language)}</button></div>
                 </form>

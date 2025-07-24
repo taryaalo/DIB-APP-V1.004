@@ -94,17 +94,21 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
             if (DOCS[current].key === 'passport') {
                 result = await extractPassportData(file, provider);
                 result = mapExtractedFields('passport', result);
-                 if (result) {
+                 if (result && result.passportNo && (result.givenNameEng || result.fullNameArabic)) {
                   const names = (result.givenNameEng || '').trim().split(/\s+/);
                   const firstName = names[0] || '';
                   const middleName = names.slice(1).join(' ');
                   const genderVal = result.sex === 'M' ? 'male' : result.sex === 'F' ? 'female' : (result.sex || '');
                   setFormData((d) => ({ ...d, personalInfo: { ...(d.personalInfo || {}), fullName: result.fullNameArabic, firstNameEn: firstName, middleNameEn: middleName, lastNameEn: result.surnameEng, dob: result.dateOfBirth, gender: genderVal, nationality: normalizeNationality(result.nationality), passportNumber: result.passportNo, passportIssueDate: result.dateOfIssue, passportExpiryDate: result.expiryDate, birthPlace: result.placeOfBirth, }, passportData: result, }));
+                } else {
+                  setError(t('invalidPassport', language));
+                  setIsLoading(false);
+                  return;
                 }
             } else if (DOCS[current].key === 'nationalId') {
                 result = await extractNIDData(file, provider);
                 result = mapExtractedFields('nationalId', result);
-                if (result) {
+                if (result && result.nationalId && result.familyId) {
                   const nidDigits = result.nationalId ? result.nationalId.replace(/\D/g, '').slice(0, 12).split('') : [];
                   setFormData((d) => {
                     const genderVal = result.sex === 'M' ? 'male' : result.sex === 'F' ? 'female' : (result.sex || '');
@@ -113,6 +117,10 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                       : d.personalInfo?.dob || '';
                     return { ...d, personalInfo: { ...(d.personalInfo || {}), familyRecordNumber: result.familyId, nidDigits: nidDigits.length ? nidDigits : d.personalInfo?.nidDigits || Array(12).fill(''), gender: d.personalInfo?.gender || genderVal, dob: d.personalInfo?.dob || dob, }, nidData: result, };
                   });
+                } else {
+                  setError(t('invalidNid', language));
+                  setIsLoading(false);
+                  return;
                 }
             } else {
                 result = { uploaded: true };
@@ -166,7 +174,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                 </button>
             </header>
             <main className="form-main">
-                 <input type="file" ref={fileInputRef} onChange={(e) => handleUpload(e.target.files[0])} accept="image/*" style={{ display: 'none' }} />
+                 <input type="file" ref={fileInputRef} onChange={(e) => handleUpload(e.target.files[0])} accept="image/*" style={{ display: 'none' }} capture={doc.key==='photo' ? 'user' : undefined} />
 
                 <div className="controls-header">
                    <h2 className="page-title">{t(doc.labelKey)}</h2>
@@ -181,7 +189,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                 {!image ? (
                   <div className={`upload-area ${isDragging ? 'drag-over' : ''}`} onClick={() => fileInputRef.current.click()} onDragEnter={handleDragEvents} onDragOver={handleDragEvents} onDragLeave={handleDragEvents} onDrop={handleDrop}>
                     <div className="upload-icon"><UploadIcon /></div>
-                    <h2>{t('upload_prompt', language)}</h2>
+                    <h2>{doc.key==='photo' ? t('take_picture', language) : t('upload_prompt', language)}</h2>
                   </div>
                 ) : (
                   <div className="result-container">
