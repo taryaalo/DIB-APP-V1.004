@@ -14,6 +14,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
     const { language } = useLanguage();
     const { formData, setFormData } = useFormData();
+    const [countries, setCountries] = useState([]);
     const [form, setForm] = useState({
         country: '',
         city: '',
@@ -21,6 +22,10 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
         residentialAddress: '',
         ...(formData.addressInfo || {})
     });
+
+    useEffect(() => {
+        fetch(`${API_BASE_URL}/api/countries`).then(r=>r.json()).then(setCountries).catch(()=>{});
+    }, []);
 
     useEffect(() => {
         const reference = formData.personalInfo?.referenceNumber || formData.personalInfo?.reference_number;
@@ -84,9 +89,9 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                         <div className="form-group">
                             <select className="form-input" required name="country" value={form.country} onChange={handleChange}>
                                 <option value="">{t('country', language)}</option>
-                                <option value="libya">Libya</option>
-                                <option value="tunisia">Tunisia</option>
-                                <option value="egypt">Egypt</option>
+                                {countries.map(c => (
+                                    <option key={c.code} value={c.code}>{`${c.name_en} - ${c.name_ar}`}</option>
+                                ))}
                             </select>
                         </div>
                         <div className="form-group"><input name="city" value={form.city} onChange={handleChange} type="text" required className="form-input" placeholder={t('city', language)} /></div>

@@ -174,3 +174,31 @@ INSERT INTO message_templates (template_key, media, english_template, arabic_tem
     ('appointment', 'sms', 'Dear {{name}},\nYour appointment at {{branch}} branch of Daman Islamic Bank is on {{day_en}} {{date}} at {{time}} to complete opening your account.\nReference: {{reference}}\nFor inquiries: 0919875555\nWe look forward to welcoming you!', 'السلام عليكم أ. {{name}}\nموعدكم في فرع {{branch}} بمصرف الضمان الإسلامي\nيوم {{day_ar}} الموافق {{date}} الساعة {{time}}\nلإكمال فتح حسابكم\nمرجع: {{reference}}\nللاستفسار: 0919875555\nنتطلع لاستقبالكم!'),
     ('appointment', 'email', 'Dear {{name}},\nYour appointment at {{branch}} branch of Daman Islamic Bank is on {{day_en}} {{date}} at {{time}} to complete opening your account.\nReference: {{reference}}\nFor inquiries: 0919875555\nWe look forward to welcoming you!', 'السلام عليكم أ. {{name}}\nموعدكم في فرع {{branch}} بمصرف الضمان الإسلامي\nيوم {{day_ar}} الموافق {{date}} الساعة {{time}}\nلإكمال فتح حسابكم\nمرجع: {{reference}}\nللاستفسار: 0919875555\nنتطلع لاستقبالكم!')
 ON CONFLICT (template_key, media) DO NOTHING;
+
+-- Table for countries
+CREATE TABLE IF NOT EXISTS countries (
+    code VARCHAR(5) PRIMARY KEY,
+    name_en VARCHAR(100) NOT NULL,
+    name_ar VARCHAR(100) NOT NULL
+);
+
+INSERT INTO countries (code, name_en, name_ar) VALUES
+    ('LY', 'Libya', 'ليبيا'),
+    ('TN', 'Tunisia', 'تونس'),
+    ('EG', 'Egypt', 'مصر'),
+    ('US', 'United States', 'الولايات المتحدة'),
+    ('GB', 'United Kingdom', 'المملكة المتحدة')
+ON CONFLICT (code) DO NOTHING;
+
+-- Table for income sources
+CREATE TABLE IF NOT EXISTS income_sources (
+    id SERIAL PRIMARY KEY,
+    name_en VARCHAR(100) NOT NULL,
+    name_ar VARCHAR(100) NOT NULL
+);
+
+INSERT INTO income_sources (name_en, name_ar) VALUES
+    ('Salary', 'راتب'),
+    ('Business', 'أعمال'),
+    ('Investment', 'استثمار')
+ON CONFLICT DO NOTHING;

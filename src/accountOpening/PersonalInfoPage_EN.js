@@ -5,6 +5,7 @@ import { logToServer } from '../utils/logger';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
+import TermsDialog from '../common/TermsDialog';
 import { t } from '../i18n';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useFormData } from '../contexts/FormContext';
@@ -53,6 +54,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
     const [otp, setOtp] = useState('');
     const [otpError, setOtpError] = useState('');
     const [otpTimer, setOtpTimer] = useState(0);
+    const [showTerms, setShowTerms] = useState(false);
 
     useEffect(() => {
         async function loadExtracted() {
@@ -446,7 +448,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                     <div className="form-actions">
                         <div className="agreements">
                             <label className="agreement-item"><div className="custom-checkbox"><input name="agree1" type="checkbox" checked={agreements.agree1} onChange={handleChange} required/><span className="checkmark"></span></div><span>{t('certifyCorrect', language)}</span></label>
-                            <label className="agreement-item"><div className="custom-checkbox"><input name="agree2" type="checkbox" checked={agreements.agree2} onChange={handleChange} required/><span className="checkmark"></span></div><span>{t('agreeTerms', language)}</span></label>
+                            <label className="agreement-item"><div className="custom-checkbox"><input name="agree2" type="checkbox" checked={agreements.agree2} onChange={handleChange} required/><span className="checkmark"></span></div><span>{t('agreePrefix', language)} <button type="button" className="terms-link" onClick={()=>setShowTerms(true)}>{t('termsAndConditions', language)}</button></span></label>
                         </div>
                         {agreeError && <p className="error-message">{t('agreeError', language)}</p>}
                         <button className="btn-next" type="submit" disabled={!agreements.agree1 || !agreements.agree2}>{t('submitRequest', language)}</button>
@@ -454,6 +456,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                 </form>
             </main>
             <Footer />
+            {showTerms && <TermsDialog onClose={() => setShowTerms(false)} />}
             {showVerify && (
                 <div className="modal-overlay" onClick={cancelVerification}>
                     <div className="modal-content verify-dialog" onClick={e => e.stopPropagation()}>
@@ -465,7 +468,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                             </>
                         ) : (
                             <>
-                                <h3>{t('enterOtp', language)}</h3>
+                                <h3>{verifyStep === 2 ? t('enterOtpPhone', language) : t('enterOtpEmail', language)}</h3>
                                 <input className="otp-input" type="text" value={otp} maxLength="4" onChange={e => setOtp(e.target.value.replace(/\D/g,''))} />
                                 <div className="otp-timer">
                                     {otpTimer > 0 ? (
