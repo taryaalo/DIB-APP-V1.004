@@ -416,10 +416,9 @@ INSERT INTO countries (code, name_en, name_ar) VALUES
     ('ZW', 'Zimbabwe', 'زيمبابوي')
 ON CONFLICT (code) DO NOTHING;
 
--- Table for income sources
 CREATE TABLE IF NOT EXISTS income_sources (
     id SERIAL PRIMARY KEY,
-    name_en VARCHAR(100) NOT NULL,
+    name_en VARCHAR(100) UNIQUE NOT NULL,
     name_ar VARCHAR(100) NOT NULL
 );
 
