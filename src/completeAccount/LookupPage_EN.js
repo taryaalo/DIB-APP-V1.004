@@ -21,6 +21,7 @@ const LookupPage_EN = ({ onNavigate }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
     const [newFiles, setNewFiles] = useState({});
+    const [showApproveDialog, setShowApproveDialog] = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -131,7 +132,7 @@ const LookupPage_EN = ({ onNavigate }) => {
                 <div className="confirmation-document" style={{marginBottom:'20px'}}>
                     <div className="confirmation-header">{title}</div>
                     {Object.entries(data).map(([k,v]) => (
-                        (v !== null && typeof v !== 'object' && !['id', 'created_at', 'reference_number', 'ai_model', 'confirmed_by_admin', 'approved_by_admin_name', 'approved_by_admin_ip'].includes(k)) && (
+                        (v !== null && typeof v !== 'object' && !['id', 'created_at', 'reference_number', 'ai_model', 'confirmed_by_admin', 'approved_by_admin_name', 'approved_by_admin_ip', 'full_name'].includes(k)) && (
                             <div className="form-group" key={k}>
                                 <label>{k.replace(/_/g,' ')}</label>
                                 <input 
@@ -182,6 +183,38 @@ const LookupPage_EN = ({ onNavigate }) => {
         );
     };
 
+    const ApproveDialog = ({ onConfirm, onCancel }) => {
+        const [services, setServices] = useState({ mobileApp: true, sms: true, localCard: true, internationalCard: true });
+        const handleChange = (e) => {
+            const { name, checked } = e.target;
+            setServices(s => ({ ...s, [name]: checked }));
+        };
+        return (
+            <div className="modal-backdrop" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) onCancel();}}>
+                <div className="modal-content">
+                    <h3 style={{marginTop:0}}>Register e-Services</h3>
+                    <ul className="confirmation-list">
+                        {['mobileApp','sms','localCard','internationalCard'].map(key=> (
+                            <li key={key}>
+                                <label className="agreement-item">
+                                    <div className="custom-checkbox">
+                                        <input type="checkbox" name={key} checked={services[key]} onChange={handleChange} />
+                                        <span className="checkmark"></span>
+                                    </div>
+                                    <span>{key}</span>
+                                </label>
+                            </li>
+                        ))}
+                    </ul>
+                    <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',marginTop:'20px'}}>
+                        <button onClick={onCancel} className="btn-next" style={{backgroundColor:'var(--error-color)'}}>Cancel</button>
+                        <button onClick={()=>onConfirm(services)} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>OK</button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     const updateStatus = async (id, status) => {
         setApps(a => a.map(app => app.personalInfo.id === id ? { ...app, status } : app));
         setSelected(null);
@@ -192,6 +225,11 @@ const LookupPage_EN = ({ onNavigate }) => {
                 body: JSON.stringify({ id, status, adminName: ADMIN_NAME })
             });
         } catch (e) { console.error(e); }
+    };
+
+    const handleApproveConfirm = (services) => {
+        updateStatus(selected.personalInfo.id, 'Approved');
+        setShowApproveDialog(false);
     };
 
     return (
@@ -275,15 +313,19 @@ const LookupPage_EN = ({ onNavigate }) => {
                                 <button onClick={handleSave} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>Save</button>
                             ) : (
                                 <>
-                                <button onClick={()=>updateStatus(selected.personalInfo.id,'Rejected')} className="btn-next" style={{backgroundColor:'var(--error-color)'}}>
-                                    Reject
-                                </button>
-                                <button onClick={() => setIsEditing(true)} className="btn-next" style={{backgroundColor:'var(--accent-color)'}}>
-                                    Edit
-                                </button>
-                                <button onClick={()=>updateStatus(selected.personalInfo.id,'Approved')} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>
-                                    Approve
-                                </button>
+                                {selected.status !== 'Approved' && (
+                                    <>
+                                    <button onClick={()=>updateStatus(selected.personalInfo.id,'Rejected')} className="btn-next" style={{backgroundColor:'var(--error-color)'}}>
+                                        Reject
+                                    </button>
+                                    <button onClick={() => setIsEditing(true)} className="btn-next" style={{backgroundColor:'var(--accent-color)'}}>
+                                        Edit
+                                    </button>
+                                    <button onClick={()=>setShowApproveDialog(true)} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>
+                                        Approve
+                                    </button>
+                                    </>
+                                )}
                                 </>
                             )}
                         </div>
@@ -297,6 +339,7 @@ const LookupPage_EN = ({ onNavigate }) => {
                     </div>
                 </div>
             )}
+            {showApproveDialog && <ApproveDialog onConfirm={handleApproveConfirm} onCancel={()=>setShowApproveDialog(false)} />}
         </div>
     );
 };
