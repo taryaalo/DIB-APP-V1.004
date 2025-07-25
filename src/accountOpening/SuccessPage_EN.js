@@ -22,7 +22,7 @@ const SuccessPage_EN = ({ onNavigate, state }) => {
   }, [setFormData]);
 
   return (
-    <div className="form-page success-page">
+    <div className="form-page success-page sequential-docs-page">
       <header className="header docs-header">
         <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
         <div className="header-switchers">

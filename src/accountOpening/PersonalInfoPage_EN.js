@@ -210,6 +210,15 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
         onDoubleClick: (e) => unlockField(name, e)
     });
 
+    const isComplete = [
+        'firstNameAr','middleNameAr','lastNameAr','surnameAr','firstNameEn','middleNameEn','lastNameEn','surnameEn',
+        'motherFullName','dob','birthPlace','gender','maritalStatus','nationality','passportNumber',
+        'passportIssueDate','passportExpiryDate','familyRecordNumber','phone'
+    ].every(k => {
+        const val = k === 'phone' ? form[k] : form[k];
+        return Array.isArray(val) ? val.every(Boolean) : (val || '').toString().trim() !== '';
+    }) && (!form.enableEmail || form.email.trim() !== '');
+
     const handleSubmit = (e) => {
         if (e) e.preventDefault();
         if (!agreements.agree1 || !agreements.agree2) {
@@ -372,8 +381,8 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                     <div className="form-group"><label>{t('motherFullName', language)} *</label><div style={{position: 'relative'}}><input name="motherFullName" value={form.motherFullName} onChange={handleChange} required type="text" {...lockProps('motherFullName')} /><LockIcon className="lock-icon"/></div></div>
 
                     <div className="company-form-grid">
-                        <div className="form-group date-input-container"><label>{t('dateOfBirth', language)}</label><div style={{position: 'relative', width: '100%'}}><input name="dob" value={form.dob} onChange={handleChange} type="text" {...lockProps('dob')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
-                        <div className="form-group"><label>{t('birthPlace', language)}</label><div style={{position: 'relative'}}><input name="birthPlace" value={form.birthPlace} onChange={handleChange} type="text" {...lockProps('birthPlace')} /><LockIcon className="lock-icon" /></div></div>
+                        <div className="form-group date-input-container"><label>{t('dateOfBirth', language)} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="dob" value={form.dob} onChange={handleChange} type="text" required {...lockProps('dob')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
+                        <div className="form-group"><label>{t('birthPlace', language)} <span className="required-star">*</span></label><div style={{position: 'relative'}}><input name="birthPlace" value={form.birthPlace} onChange={handleChange} type="text" required {...lockProps('birthPlace')} /><LockIcon className="lock-icon" /></div></div>
                         <div className="form-group">
                             <label>{t('gender', language)} *</label>
                             <div style={{position: 'relative'}}>
@@ -399,9 +408,9 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                            </div>
                        </div>
                         <div className="form-group">
-                            <label>{t('nationality', language)} *</label>
+                            <label>{t('nationality', language)} <span className="required-star">*</span></label>
                             <div style={{position: 'relative'}}>
-                                <select name="nationality" value={form.nationality} onChange={handleChange} disabled={locked.nationality} {...lockProps('nationality')}>
+                                <select name="nationality" value={form.nationality} onChange={handleChange} disabled={locked.nationality} required {...lockProps('nationality')}>
                                     <option value="">{t('nationality', language)}</option>
                                     <option value="libyan">{t('libyan', language)}</option>
                                     <option value="other">{t('other', language)}</option>
@@ -409,13 +418,13 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                                 <LockIcon className="lock-icon" />
                             </div>
                         </div>
-                        <div className="form-group"><label>{t('passportNumber', language)}</label><div style={{position: 'relative'}}><input name="passportNumber" value={form.passportNumber} onChange={handleChange} type="text" {...lockProps('passportNumber')} /><LockIcon className="lock-icon"/></div></div>
-                        <div className="form-group date-input-container"><label>{t('passportIssueDate', language)}</label><div style={{position: 'relative', width: '100%'}}><input name="passportIssueDate" value={form.passportIssueDate} onChange={handleChange} type="text" {...lockProps('passportIssueDate')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
-                        <div className="form-group date-input-container"><label>{t('passportExpiryDate', language)}</label><div style={{position: 'relative', width: '100%'}}><input name="passportExpiryDate" value={form.passportExpiryDate} onChange={handleChange} type="text" {...lockProps('passportExpiryDate')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
+                        <div className="form-group"><label>{t('passportNumber', language)} <span className="required-star">*</span></label><div style={{position: 'relative'}}><input name="passportNumber" value={form.passportNumber} onChange={handleChange} type="text" required {...lockProps('passportNumber')} /><LockIcon className="lock-icon"/></div></div>
+                        <div className="form-group date-input-container"><label>{t('passportIssueDate', language)} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="passportIssueDate" value={form.passportIssueDate} onChange={handleChange} type="text" required {...lockProps('passportIssueDate')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
+                        <div className="form-group date-input-container"><label>{t('passportExpiryDate', language)} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="passportExpiryDate" value={form.passportExpiryDate} onChange={handleChange} type="text" required {...lockProps('passportExpiryDate')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
                     </div>
                     
                     <div className="form-group">
-                        <label>{t('familyRecordNumber', language)}</label>
+                        <label>{t('familyRecordNumber', language)} <span className="required-star">*</span></label>
                         <div style={{position: 'relative'}}>
                             <input name="familyRecordNumber" value={form.familyRecordNumber} onChange={handleChange} required type="text" {...lockProps('familyRecordNumber')} />
                             <LockIcon className="lock-icon" />
@@ -423,7 +432,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                     </div>
 
                     <div className="form-group">
-                        <label>{t('nid', language)}</label>
+                        <label>{t('nid', language)} <span className="required-star">*</span></label>
                         <div className="national-id-group" onDoubleClick={(e) => unlockField('nidDigits', e)}>
                             {form.nidDigits.map((d, idx) => (<input key={idx} name={`nidDigit${idx}`} value={d} onChange={(e)=>handleChange(e, idx)} onKeyDown={(e)=>handleNIDKeyDown(e, idx)} onPaste={(e)=>handleNIDPaste(e, idx)} required type="text" maxLength="1" className={`national-id-input${locked.nidDigits ? ' locked' : ''}`} readOnly={!!locked.nidDigits}/>
                             ))}
@@ -431,6 +440,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                     </div>
 
                     <div className="form-group">
+                        <label>{t('phoneNumber', language)} <span className="required-star">*</span></label>
                         <div className="phone-input-group">
                             <span className="phone-prefix">+218</span>
                             <input name="phone" value={form.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber', language)} className="form-input" />
@@ -440,6 +450,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                     <div className="form-group"><label><input type="checkbox" name="enableEmail" checked={form.enableEmail} onChange={handleChange} /> {t('enableEmail', language)}</label></div>
                     {form.enableEmail && (
                         <div className="form-group">
+                            <label>{t('email', language)} <span className="required-star">*</span></label>
                             <input name="email" value={form.email} onChange={handleChange} required type="email" {...lockProps('email')} placeholder={t('email', language)} />
                             <LockIcon className="lock-icon" />
                         </div>
@@ -451,7 +462,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                             <label className="agreement-item"><div className="custom-checkbox"><input name="agree2" type="checkbox" checked={agreements.agree2} onChange={handleChange} required/><span className="checkmark"></span></div><span>{t('agreePrefix', language)} <button type="button" className="terms-link" onClick={()=>setShowTerms(true)}>{t('termsAndConditions', language)}</button></span></label>
                         </div>
                         {agreeError && <p className="error-message">{t('agreeError', language)}</p>}
-                        <button className="btn-next" type="submit" disabled={!agreements.agree1 || !agreements.agree2}>{t('submitRequest', language)}</button>
+                        <button className="btn-next" type="submit" disabled={!isComplete || !agreements.agree1 || !agreements.agree2}>{t('submitRequest', language)}</button>
                     </div>
                 </form>
             </main>

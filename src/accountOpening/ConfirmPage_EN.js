@@ -201,7 +201,7 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
     };
 
     return (
-        <div className="form-page confirmation-page">
+        <div className="form-page confirmation-page sequential-docs-page">
             <header className="header docs-header">
                 <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
                 <div className="header-switchers">

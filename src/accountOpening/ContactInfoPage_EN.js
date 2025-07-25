@@ -87,6 +87,7 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                     <div className="form-section">
                         <h3>{t('addressInfoTitle', language)}</h3>
                         <div className="form-group">
+                            <label>{t('country', language)} <span className="required-star">*</span></label>
                             <select className="form-input" required name="country" value={form.country} onChange={handleChange}>
                                 <option value="">{t('country', language)}</option>
                                 {countries.map(c => (
@@ -96,11 +97,20 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                                 ))}
                             </select>
                         </div>
-                        <div className="form-group"><input name="city" value={form.city} onChange={handleChange} type="text" required className="form-input" placeholder={t('city', language)} /></div>
-                        <div className="form-group"><input name="area" value={form.area} onChange={handleChange} type="text" required className="form-input" placeholder={t('area', language)} /></div>
-                        <div className="form-group"><input name="residentialAddress" value={form.residentialAddress} onChange={handleChange} type="text" required className="form-input" placeholder={t('residentialAddress', language)} /></div>
+                        <div className="form-group">
+                            <label>{t('city', language)} <span className="required-star">*</span></label>
+                            <input name="city" value={form.city} onChange={handleChange} type="text" required className="form-input" placeholder={t('city', language)} />
+                        </div>
+                        <div className="form-group">
+                            <label>{t('area', language)} <span className="required-star">*</span></label>
+                            <input name="area" value={form.area} onChange={handleChange} type="text" required className="form-input" placeholder={t('area', language)} />
+                        </div>
+                        <div className="form-group">
+                            <label>{t('residentialAddress', language)} <span className="required-star">*</span></label>
+                            <input name="residentialAddress" value={form.residentialAddress} onChange={handleChange} type="text" required className="form-input" placeholder={t('residentialAddress', language)} />
+                        </div>
                     </div>
-                    <div className="form-actions"><button type="submit" className="btn-next">{t('next', language)}</button></div>
+                    <div className="form-actions"><button type="submit" className="btn-next" disabled={!form.country || !form.city || !form.area || !form.residentialAddress}>{t('next', language)}</button></div>
                 </form>
             </main>
             <Footer />

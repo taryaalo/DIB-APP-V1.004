@@ -5,6 +5,7 @@ import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
+import { MobileAppIcon, SmsIcon, CardIcon, VisaMasterIcon } from '../common/Icons';
 import '../styles/LookupPageTheme.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
@@ -189,6 +190,12 @@ const LookupPage_EN = ({ onNavigate }) => {
             const { name, checked } = e.target;
             setServices(s => ({ ...s, [name]: checked }));
         };
+        const icons = {
+            mobileApp: <MobileAppIcon />,
+            sms: <SmsIcon />,
+            localCard: <CardIcon />,
+            internationalCard: <VisaMasterIcon />
+        };
         return (
             <div className="modal-backdrop" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) onCancel();}}>
                 <div className="modal-content">
@@ -201,6 +208,7 @@ const LookupPage_EN = ({ onNavigate }) => {
                                         <input type="checkbox" name={key} checked={services[key]} onChange={handleChange} />
                                         <span className="checkmark"></span>
                                     </div>
+                                    {icons[key]}
                                     <span>{key}</span>
                                 </label>
                             </li>

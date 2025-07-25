@@ -74,6 +74,9 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
         onNavigate(nextPage);
     };
 
+    const isComplete = form.jobTitle && form.employer && form.workSector && form.fieldOfWork &&
+        form.workStartDate && form.sourceOfIncome && form.monthlyIncome;
+
     return (
         <div className="form-page">
             <header className="header docs-header">
@@ -91,9 +94,16 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                  <form className="form-container" onSubmit={e => {e.preventDefault(); handleSubmit();}} noValidate>
                     <div className="form-section">
                         <h3>{t('workInfoTitle', language)}</h3>
-                        <div className="form-group"><input name="jobTitle" value={form.jobTitle} onChange={handleChange} type="text" required className="form-input" placeholder={t('jobTitle', language)} /></div>
-                        <div className="form-group"><input name="employer" value={form.employer} onChange={handleChange} type="text" required className="form-input" placeholder={t('employer', language)} /></div>
                         <div className="form-group">
+                            <label>{t('jobTitle', language)} <span className="required-star">*</span></label>
+                            <input name="jobTitle" value={form.jobTitle} onChange={handleChange} type="text" required className="form-input" placeholder={t('jobTitle', language)} />
+                        </div>
+                        <div className="form-group">
+                            <label>{t('employer', language)} <span className="required-star">*</span></label>
+                            <input name="employer" value={form.employer} onChange={handleChange} type="text" required className="form-input" placeholder={t('employer', language)} />
+                        </div>
+                        <div className="form-group">
+                            <label>{t('workSector', language)} <span className="required-star">*</span></label>
                             <select name="workSector" value={form.workSector} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('workSector', language)}</option>
                                 <option value="private">{t('workSectorPrivate', language)}</option>
@@ -101,16 +111,26 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                                 <option value="freelance">{t('workSectorFreelance', language)}</option>
                             </select>
                         </div>
-                        <div className="form-group"><input name="fieldOfWork" value={form.fieldOfWork} onChange={handleChange} type="text" required className="form-input" placeholder={t('fieldOfWork', language)} /></div>
-                        <div className="form-group date-input-container"><input name="workStartDate" value={form.workStartDate} onChange={handleChange} type="text" required className="form-input" placeholder={t('workStartDate', language)} onFocus={(e) => e.target.type='date'} onBlur={(e) => e.target.type='text'}/><CalendarIcon/></div>
-                        <div className="form-group"><input name="employerAddress" value={form.employerAddress} onChange={handleChange} type="text" required className="form-input" placeholder={t('employerAddress', language)} /></div>
+                        <div className="form-group">
+                            <label>{t('fieldOfWork', language)} <span className="required-star">*</span></label>
+                            <input name="fieldOfWork" value={form.fieldOfWork} onChange={handleChange} type="text" required className="form-input" placeholder={t('fieldOfWork', language)} />
+                        </div>
+                        <div className="form-group date-input-container">
+                            <label>{t('workStartDate', language)} <span className="required-star">*</span></label>
+                            <input name="workStartDate" value={form.workStartDate} onChange={handleChange} type="text" required className="form-input" placeholder={t('workStartDate', language)} onFocus={(e) => e.target.type='date'} onBlur={(e) => e.target.type='text'}/><CalendarIcon/>
+                        </div>
+                        <div className="form-group">
+                            <label>{t('employerAddress', language)}</label>
+                            <input name="employerAddress" value={form.employerAddress} onChange={handleChange} type="text" className="form-input" placeholder={t('employerAddress', language)} />
+                        </div>
                         <div className="form-group">
                             <div className="phone-input-group">
                                <span className="phone-prefix">+218</span>
-                               <input name="employerPhone" value={form.employerPhone} onChange={handleChange} type="tel" required className="form-input" placeholder={t('employerPhone', language)} />
+                               <input name="employerPhone" value={form.employerPhone} onChange={handleChange} type="tel" className="form-input" placeholder={t('employerPhone', language)} />
                             </div>
                         </div>
                         <div className="form-group">
+                            <label>{t('sourceOfIncome', language)} <span className="required-star">*</span></label>
                             <select name="sourceOfIncome" value={form.sourceOfIncome} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('sourceOfIncome', language)}</option>
                                 {sources.map(s => (
@@ -121,6 +141,7 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                             </select>
                         </div>
                         <div className="form-group">
+                            <label>{t('monthlyIncome', language)} <span className="required-star">*</span></label>
                             <select name="monthlyIncome" value={form.monthlyIncome} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('monthlyIncome', language)}</option>
                                 <option value="<2000">{t('incomeLess2000', language)}</option>
@@ -135,7 +156,7 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                         </div>
                         )}
                     </div>
-                    <div className="form-actions"><button type="submit" className="btn-next">{t('next', language)}</button></div>
+                    <div className="form-actions"><button type="submit" className="btn-next" disabled={!isComplete}>{t('next', language)}</button></div>
                 </form>
             </main>
             <Footer />
