@@ -399,6 +399,23 @@ app.post('/api/update-personal-info', async (req, res) => {
   const { reference_number, ...fields } = req.body;
   if (!reference_number) return res.status(400).json({ error: 'missing_reference_number' });
 
+  const needNameUpdate = ['first_name_ar','middle_name_ar','last_name_ar','surname_ar'].some(f => fields[f] !== undefined);
+  if (needNameUpdate) {
+    try {
+      const cur = await pool.query('SELECT first_name_ar, middle_name_ar, last_name_ar, surname_ar FROM personal_info WHERE reference_number=$1', [reference_number]);
+      const existing = cur.rows[0] || {};
+      const fullArabicName = [
+        fields.first_name_ar !== undefined ? fields.first_name_ar : existing.first_name_ar,
+        fields.middle_name_ar !== undefined ? fields.middle_name_ar : existing.middle_name_ar,
+        fields.last_name_ar !== undefined ? fields.last_name_ar : existing.last_name_ar,
+        fields.surname_ar !== undefined ? fields.surname_ar : existing.surname_ar
+      ].filter(Boolean).join(' ');
+      fields.full_name = fullArabicName;
+    } catch (e) {
+      logError(`FULLNAME_FETCH_ERROR ${e.message}`);
+    }
+  }
+
   const allowedFields = Object.keys(fields).filter(k => !['id', 'created_at', 'reference_number', 'ai_model', 'confirmed_by_admin', 'approved_by_admin_name', 'approved_by_admin_ip'].includes(k));
   const setClauses = allowedFields.map((field, i) => `${field}=$${i + 1}`).join(', ');
   const values = allowedFields.map(field => {
@@ -669,8 +686,11 @@ app.post('/api/submit-form', async (req, res) => {
             return res.status(400).json({ error: 'Missing reference number' });
         }
 
+        const fullArabicName = [form.firstNameAr, form.middleNameAr, form.lastNameAr, form.surnameAr]
+          .filter(Boolean)
+          .join(' ');
         const values = [
-            form.fullName,
+            fullArabicName || form.fullName,
             form.firstNameEn || null,
             form.middleNameEn || null,
             form.lastNameEn || null,

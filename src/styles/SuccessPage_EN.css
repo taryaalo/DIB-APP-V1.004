@@ -22,3 +22,7 @@
     font-size: 1rem;
     border-radius: 8px;
 }
+
+.success-page .header {
+    width: 100%;
+}
