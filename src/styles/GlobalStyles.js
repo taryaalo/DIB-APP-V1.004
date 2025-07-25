@@ -403,8 +403,12 @@ const GlobalStyles = () => (
     }
     body[dir="rtl"] .lock-icon { left: 12px; }
     body[dir="ltr"] .lock-icon { right: 12px; }
-    .form-input.locked + .lock-icon, .locked-overlay + .lock-icon { 
-        display: block; 
+    .form-input.locked + .lock-icon, .locked-overlay + .lock-icon {
+        display: block;
+    }
+    .required-star {
+        color: var(--error-color);
+        margin-left: 4px;
     }
     .unlock-animation {
         animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
