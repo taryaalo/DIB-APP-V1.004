@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { LOGO_WHITE, LOGO_COLOR } from '../assets/imagePaths';
 import { OpenAccountIcon, CompleteAccountIcon } from '../common/Icons';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -7,10 +7,17 @@ import Footer from '../common/Footer';
 import { t } from '../i18n';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useFormData } from '../contexts/FormContext';
 
 const LandingPage_EN = ({ onNavigate }) => {
   const { language } = useLanguage();
   const { theme } = useTheme();
+  const { setFormData } = useFormData();
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/clear-cache`, { method: 'POST' }).catch(() => {});
+    setFormData({ provider: 'gemini' });
+  }, [setFormData]);
   return (
     <div className="landing-container">
       <div className="header-switchers" style={{ position: 'absolute', top: 20, right: 20 }}>

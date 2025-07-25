@@ -34,6 +34,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
     const [uploadedFile, setUploadedFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const [scanComplete, setScanComplete] = useState(false);
+    const [isValid, setIsValid] = useState(false);
     const [provider, setProvider] = useState(formData.provider || 'chatgpt');
     const fileInputRef = useRef(null);
 
@@ -45,6 +46,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
         setImage(null);
         setError('');
         setScanComplete(false);
+        setIsValid(false);
         setUploadedFile(null);
         setData({});
     };
@@ -69,6 +71,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
         if (!file) return;
         setUploadedFile(file);
         setScanComplete(false);
+        setIsValid(false);
         const reader = new FileReader();
         reader.onloadend = () => setImage(reader.result);
         reader.readAsDataURL(file);
@@ -100,11 +103,14 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                   const middleName = names.slice(1).join(' ');
                   const genderVal = result.sex === 'M' ? 'male' : result.sex === 'F' ? 'female' : (result.sex || '');
                   setFormData((d) => ({ ...d, personalInfo: { ...(d.personalInfo || {}), fullName: result.fullNameArabic, firstNameEn: firstName, middleNameEn: middleName, lastNameEn: result.surnameEng, dob: result.dateOfBirth, gender: genderVal, nationality: normalizeNationality(result.nationality), passportNumber: result.passportNo, passportIssueDate: result.dateOfIssue, passportExpiryDate: result.expiryDate, birthPlace: result.placeOfBirth, }, passportData: result, }));
-                } else {
+                  setIsValid(true);
+                 } else {
                   setError(t('invalidPassport', language));
+                  setIsValid(false);
+                  setScanComplete(true);
                   setIsLoading(false);
                   return;
-                }
+                 }
             } else if (DOCS[current].key === 'nationalId') {
                 result = await extractNIDData(file, provider);
                 result = mapExtractedFields('nationalId', result);
@@ -117,13 +123,17 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                       : d.personalInfo?.dob || '';
                     return { ...d, personalInfo: { ...(d.personalInfo || {}), familyRecordNumber: result.familyId, nidDigits: nidDigits.length ? nidDigits : d.personalInfo?.nidDigits || Array(12).fill(''), gender: d.personalInfo?.gender || genderVal, dob: d.personalInfo?.dob || dob, }, nidData: result, };
                   });
+                  setIsValid(true);
                 } else {
                   setError(t('invalidNid', language));
+                  setIsValid(false);
+                  setScanComplete(true);
                   setIsLoading(false);
                   return;
                 }
             } else {
                 result = { uploaded: true };
+                setIsValid(true);
             }
             
             setData((d) => ({ ...d, [DOCS[current].key]: result }));
@@ -196,11 +206,18 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                       <div className="image-preview-box">
                         <div className={`image-container ${isLoading ? 'scanning' : ''}` }>
                           <img src={image} alt="preview" className={`image-to-stamp ${scanComplete ? 'stamped' : ''}`} />
-                          <div className={`scan-complete-overlay ${scanComplete && !isLoading ? 'visible' : ''}`}>
+                          <div className={`scan-complete-overlay ${scanComplete && !isLoading ? 'visible' : ''} ${isValid ? '' : 'invalid'}`}>
                             <div className="stamp-wrapper">
-                                <svg className="stamp-icon" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
-                                    <circle className="stamp-circle" cx="26" cy="26" r="25" fill="none" />
-                                    <path className="stamp-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                                <svg className={`stamp-icon ${isValid ? '' : 'invalid'}`} viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+                                    <circle className={`stamp-circle ${isValid ? '' : 'invalid'}`} cx="26" cy="26" r="25" fill="none" />
+                                    {isValid ? (
+                                      <path className="stamp-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                                    ) : (
+                                      <>
+                                        <line className="stamp-cross" x1="16" y1="16" x2="36" y2="36" />
+                                        <line className="stamp-cross" x1="36" y1="16" x2="16" y2="36" />
+                                      </>
+                                    )}
                                 </svg>
                             </div>
                           </div>
@@ -247,7 +264,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                 {error && <p className="error-message">{error}</p>}
                 
                 <div className="form-actions" style={{marginTop: '30px'}}>
-                    <button className="btn-next" onClick={handleConfirm} disabled={!image || isLoading || isConfirming}>
+                    <button className="btn-next" onClick={handleConfirm} disabled={!image || isLoading || isConfirming || !isValid}>
                         {isConfirming ? <div className="loader"></div> : t('next', language)}
                     </button>
                 </div>
