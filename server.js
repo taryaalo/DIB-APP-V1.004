@@ -13,6 +13,11 @@ const { Pool } = require('pg');
 
 function normalizeDate(dateString) {
   if (!dateString || typeof dateString !== 'string') return null;
+  const direct = dateString.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+  if (direct) {
+    const [ , d, m, y ] = direct;
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
   const monthMap = {
     jan: '01', january: '01', 'يناير': '01',
     feb: '02', february: '02', 'فبراير': '02',
@@ -41,7 +46,13 @@ function normalizeDate(dateString) {
   } else if (!isNaN(p1) && !isNaN(p2) && isNaN(p3)) {
     return `${p3}-${p2.padStart(2, '0')}-${p1.padStart(2, '0')}`;
   } else if (!isNaN(p1) && !isNaN(p2) && !isNaN(p3)) {
-    return `${p1}-${p2.padStart(2, '0')}-${p3.padStart(2, '0')}`;
+    if (p1.length === 4) {
+      return `${p1}-${p2.padStart(2, '0')}-${p3.padStart(2, '0')}`;
+    } else if (p3.length === 4) {
+      return `${p3}-${p2.padStart(2, '0')}-${p1.padStart(2, '0')}`;
+    } else {
+      return null;
+    }
   } else {
     year = p1; month = p2; day = p3;
   }

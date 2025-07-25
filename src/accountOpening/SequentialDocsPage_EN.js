@@ -177,7 +177,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                  <input type="file" ref={fileInputRef} onChange={(e) => handleUpload(e.target.files[0])} accept="image/*" style={{ display: 'none' }} capture={doc.key==='photo' ? 'user' : undefined} />
 
                 <div className="controls-header">
-                   <h2 className="page-title">{t(doc.labelKey)}</h2>
+                   <h2 className="page-title">{t(doc.labelKey, language)}</h2>
                     {image && (
                       <button onClick={handleRefresh} className="btn-refresh">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0114.13-3.36L23 10"></path><path d="M20.49 15a9 9 0 01-14.13 3.36L1 14"></path></svg>
@@ -223,14 +223,14 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                             <table className="modern-table">
                                 <thead>
                                     <tr>
-                                        <th>Field</th>
-                                        <th>Value</th>
+                                        <th>{t('label', language)}</th>
+                                        <th>{t('value', language)}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {Object.entries(data[doc.key]).map(([key, value]) => (
                                         <tr key={key}>
-                                            <td>{key}</td>
+                                            <td>{t(key, language)}</td>
                                             <td>{String(value) || 'N/A'}</td>
                                         </tr>
                                     ))}
@@ -238,7 +238,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                             </table>
                         ) : (
                            <div className="loading-container">
-                               <p>{t('no_data_found', language)}</p>
+                               <p>{t('not_found', language)}</p>
                            </div>
                        )}
                     </div>

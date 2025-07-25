@@ -90,7 +90,9 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                             <select className="form-input" required name="country" value={form.country} onChange={handleChange}>
                                 <option value="">{t('country', language)}</option>
                                 {countries.map(c => (
-                                    <option key={c.code} value={c.code}>{`${c.name_en} - ${c.name_ar}`}</option>
+                                    <option key={c.code} value={c.code}>
+                                        {language === 'ar' ? c.name_ar : c.name_en}
+                                    </option>
                                 ))}
                             </select>
                         </div>

@@ -96,9 +96,9 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                         <div className="form-group">
                             <select name="workSector" value={form.workSector} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('workSector', language)}</option>
-                                <option value="private">{t('workSectorPrivate', 'en')} - {t('workSectorPrivate', 'ar')}</option>
-                                <option value="public">{t('workSectorPublic', 'en')} - {t('workSectorPublic', 'ar')}</option>
-                                <option value="freelance">{t('workSectorFreelance', 'en')} - {t('workSectorFreelance', 'ar')}</option>
+                                <option value="private">{t('workSectorPrivate', language)}</option>
+                                <option value="public">{t('workSectorPublic', language)}</option>
+                                <option value="freelance">{t('workSectorFreelance', language)}</option>
                             </select>
                         </div>
                         <div className="form-group"><input name="fieldOfWork" value={form.fieldOfWork} onChange={handleChange} type="text" required className="form-input" placeholder={t('fieldOfWork', language)} /></div>
@@ -114,16 +114,18 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                             <select name="sourceOfIncome" value={form.sourceOfIncome} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('sourceOfIncome', language)}</option>
                                 {sources.map(s => (
-                                    <option key={s.id} value={s.name_en}>{`${s.name_en} - ${s.name_ar}`}</option>
+                                    <option key={s.id} value={s.name_en}>
+                                        {language === 'ar' ? s.name_ar : s.name_en}
+                                    </option>
                                 ))}
                             </select>
                         </div>
                         <div className="form-group">
                             <select name="monthlyIncome" value={form.monthlyIncome} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('monthlyIncome', language)}</option>
-                                <option value="<2000">{t('incomeLess2000', 'en')} - {t('incomeLess2000', 'ar')}</option>
-                                <option value="2000-5000">{t('income2000to5000', 'en')} - {t('income2000to5000', 'ar')}</option>
-                                <option value=">5000">{t('incomeMore5000', 'en')} - {t('incomeMore5000', 'ar')}</option>
+                                <option value="<2000">{t('incomeLess2000', language)}</option>
+                                <option value="2000-5000">{t('income2000to5000', language)}</option>
+                                <option value=">5000">{t('incomeMore5000', language)}</option>
                             </select>
                         </div>
                         {formData.serviceType !== 'personal' && (

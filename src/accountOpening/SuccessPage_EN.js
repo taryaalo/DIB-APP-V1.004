@@ -23,7 +23,7 @@ const SuccessPage_EN = ({ onNavigate, state }) => {
 
   return (
     <div className="form-page success-page">
-      <header className="header success-header">
+      <header className="header docs-header">
         <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
         <div className="header-switchers">
           <ThemeSwitcher />
