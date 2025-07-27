@@ -350,6 +350,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
             </header>
             <main className="form-main">
                 <h2 className="form-title">{t('personalInfo', language)}</h2>
+                <p className="guide-message">{t('requiredFieldsHint', language)}</p>
                 {loading && (
                     <div style={{display:'flex',flexDirection:'column',alignItems:'center',marginBottom:'20px'}}>
                         <div className="loading-spinner"></div>

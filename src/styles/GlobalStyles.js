@@ -462,6 +462,11 @@ const GlobalStyles = () => (
         color: var(--success-color);
         font-weight: 600;
     }
+    .error-message {
+        color: var(--error-color);
+        font-weight: 600;
+        margin-top: 10px;
+    }
     .agreement-item { display: flex; align-items: center; gap: 15px; font-size: 1.1rem; font-weight: 600; color: var(--text-color-dark); }
     .agreement-item:first-child { margin-bottom: 15px; }
     .agreement-item a { color: var(--primary-dark); text-decoration: none; font-weight: 700; }
@@ -519,6 +524,8 @@ const GlobalStyles = () => (
     }
     .confirmation-page .header {
         width: 100%;
+        box-sizing: border-box;
+        flex-wrap: wrap;
     }
     .confirmation-grid {
         display: grid;

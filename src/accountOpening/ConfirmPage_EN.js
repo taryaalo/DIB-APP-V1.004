@@ -211,6 +211,7 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
             </header>
             <main className="form-main">
                 <h1 className="form-title">{t('confirmData', language)}</h1>
+                <p className="guide-message">{t('requiredFieldsHint', language)}</p>
                 <div className="confirmation-grid">
                     {renderSection('personalInfo', form.personalInfo, <UserIcon />)}
                     {renderSection('addressInfoTitle', form.addressInfo, <MapPinIcon />)}
