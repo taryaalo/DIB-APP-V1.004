@@ -151,6 +151,10 @@ const translations = {
     en: 'If any information is wrong, double-click the field to unlock and edit it.',
     ar: 'إذا كانت هناك أخطاء في البيانات، انقر مرتين على الحقل لفتحه وتعديله.'
   },
+  requiredFieldsHint: {
+    en: 'Fields marked with * must be completed.',
+    ar: 'الحقول المشار إليها بعلامة * يجب تعبئتها.'
+  },
   registerMobileApp: { en: 'Registration for Bank Mobile Application', ar: 'التسجيل في تطبيق المصرف' },
   registerSmsService: { en: 'Registration for Bank SMS Service', ar: 'التسجيل في خدمة الرسائل القصيرة' },
   registerLocalCard: { en: 'Registration for Local Card', ar: 'التسجيل للبطاقة المحلية' },

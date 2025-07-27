@@ -40,10 +40,21 @@ const LookupPage_EN = ({ onNavigate }) => {
     
     useEffect(() => {
         if (selected) {
+            const p = { ...selected.personalInfo };
+            const w = { ...selected.workInfo };
+            const fmt = (d) => {
+                if (!d) return '';
+                const dt = new Date(d);
+                return isNaN(dt) ? d : dt.toISOString().split('T')[0];
+            };
+            ['passport_issue_date','passport_expiry_date','dob','residence_expiry'].forEach(k=>{
+                if (p[k]) p[k] = fmt(p[k]);
+            });
+            if (w && w.work_start_date) w.work_start_date = fmt(w.work_start_date);
             setEditData({
-                personalInfo: { ...selected.personalInfo },
+                personalInfo: p,
                 addressInfo: { ...selected.addressInfo },
-                workInfo: { ...selected.workInfo }
+                workInfo: w
             });
         }
     }, [selected]);
@@ -65,10 +76,20 @@ const LookupPage_EN = ({ onNavigate }) => {
 
     const handleSave = async () => {
         try {
+            const fmt = (d) => {
+                if (!d) return '';
+                const dt = new Date(d);
+                return isNaN(dt) ? d : dt.toISOString().split('T')[0];
+            };
+            const p = { ...editData.personalInfo };
+            ['passport_issue_date','passport_expiry_date','dob','residence_expiry'].forEach(k=>{ if(p[k]) p[k]=fmt(p[k]); });
+            const w = { ...editData.workInfo };
+            if (w.work_start_date) w.work_start_date = fmt(w.work_start_date);
+
             await fetch(`${API_BASE_URL}/api/update-personal-info`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reference_number: selected.personalInfo.reference_number, ...editData.personalInfo })
+                body: JSON.stringify({ reference_number: selected.personalInfo.reference_number, ...p })
             });
             await fetch(`${API_BASE_URL}/api/update-address-info`, {
                 method: 'POST',
@@ -78,7 +99,7 @@ const LookupPage_EN = ({ onNavigate }) => {
             await fetch(`${API_BASE_URL}/api/update-work-info`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reference_number: selected.personalInfo.reference_number, ...editData.workInfo })
+                body: JSON.stringify({ reference_number: selected.personalInfo.reference_number, ...w })
             });
 
             for (const docType in newFiles) {
@@ -136,10 +157,11 @@ const LookupPage_EN = ({ onNavigate }) => {
                         (v !== null && typeof v !== 'object' && !['id', 'created_at', 'reference_number', 'ai_model', 'confirmed_by_admin', 'approved_by_admin_name', 'approved_by_admin_ip', 'full_name'].includes(k)) && (
                             <div className="form-group" key={k}>
                                 <label>{k.replace(/_/g,' ')}</label>
-                                <input 
-                                    className="form-input" 
-                                    value={editData[sectionName]?.[k] || ''} 
-                                    onChange={(e) => handleEditChange(sectionName, k, e.target.value)} 
+                                <input
+                                    className="form-input"
+                                    type={k.includes('date') ? 'date' : 'text'}
+                                    value={editData[sectionName]?.[k] || ''}
+                                    onChange={(e) => handleEditChange(sectionName, k, e.target.value)}
                                 />
                             </div>
                         )

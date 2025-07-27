@@ -86,6 +86,7 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                 <form className="form-container" onSubmit={e => {e.preventDefault(); handleSubmit();}} noValidate>
                     <div className="form-section">
                         <h3>{t('addressInfoTitle', language)}</h3>
+                        <p className="guide-message">{t('requiredFieldsHint', language)}</p>
                         <div className="form-group">
                             <label>{t('country', language)} <span className="required-star">*</span></label>
                             <select className="form-input" required name="country" value={form.country} onChange={handleChange}>

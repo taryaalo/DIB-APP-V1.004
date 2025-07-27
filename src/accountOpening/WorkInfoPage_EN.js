@@ -94,6 +94,7 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                  <form className="form-container" onSubmit={e => {e.preventDefault(); handleSubmit();}} noValidate>
                     <div className="form-section">
                         <h3>{t('workInfoTitle', language)}</h3>
+                        <p className="guide-message">{t('requiredFieldsHint', language)}</p>
                         <div className="form-group">
                             <label>{t('jobTitle', language)} <span className="required-star">*</span></label>
                             <input name="jobTitle" value={form.jobTitle} onChange={handleChange} type="text" required className="form-input" placeholder={t('jobTitle', language)} />

@@ -121,6 +121,7 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use((req, res, next) => {
   const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0];
+  req.sessionId = req.headers['x-session-id'] || ip;
   logActivity(`REQUEST ${req.method} ${req.originalUrl} ${ip}`);
   next();
 });
@@ -150,24 +151,29 @@ function fillTemplate(tpl, params) {
 }
 
 app.post('/api/cache-form', (req, res) => {
-  cachedForm = req.body || {};
+  const sid = req.sessionId;
+  cachedForm[sid] = req.body || {};
   res.json({ success: true });
 });
 
 app.get('/api/cache-form', (req, res) => {
-  res.json(cachedForm);
+  const sid = req.sessionId;
+  res.json(cachedForm[sid] || {});
 });
 
 app.post('/api/cache-upload', upload.single('file'), (req, res) => {
+  const sid = req.sessionId;
   const docType = req.body.docType;
   if (req.file && docType) {
-    cachedUploads[docType] = req.file.path;
+    if (!cachedUploads[sid]) cachedUploads[sid] = {};
+    cachedUploads[sid][docType] = req.file.path;
   }
   res.json({ uploaded: true });
 });
 
 app.get('/api/cached-uploads', (req, res) => {
-    res.json(cachedUploads || {});
+    const sid = req.sessionId;
+    res.json(cachedUploads[sid] || {});
 });
 
 app.get('/api/branches', async (req, res) => {
@@ -201,20 +207,24 @@ app.get('/api/income-sources', async (req, res) => {
 });
 
 app.get('/api/cache-extracted/:docType', (req, res) => {
-  res.json(cachedExtracted[req.params.docType] || {});
+  const sid = req.sessionId;
+  res.json((cachedExtracted[sid] && cachedExtracted[sid][req.params.docType]) || {});
 });
 
 app.post('/api/cache-extracted', (req, res) => {
+  const sid = req.sessionId;
   const { docType, data } = req.body || {};
   if (!docType) return res.status(400).json({ error: 'missing_doc_type' });
-  cachedExtracted[docType] = data || {};
+  if (!cachedExtracted[sid]) cachedExtracted[sid] = {};
+  cachedExtracted[sid][docType] = data || {};
   res.json({ success: true });
 });
 
 app.post('/api/clear-cache', (req, res) => {
-  cachedForm = {};
-  cachedUploads = {};
-  cachedExtracted = {};
+  const sid = req.sessionId;
+  delete cachedForm[sid];
+  delete cachedUploads[sid];
+  delete cachedExtracted[sid];
   res.json({ success: true });
 });
 
@@ -780,7 +790,8 @@ app.post('/api/submit-form', async (req, res) => {
             fs.mkdirSync(userDir, { recursive: true });
         }
 
-        for (const [docType, fileName] of Object.entries(cachedUploads)) {
+        const uploads = cachedUploads[req.sessionId] || {};
+        for (const [docType, fileName] of Object.entries(uploads)) {
             const newPath = path.join(userDir, path.basename(fileName));
             try {
                 fs.renameSync(fileName, newPath);
@@ -792,9 +803,9 @@ app.post('/api/submit-form', async (req, res) => {
                 [id, nid, docType, newPath, referenceNumber]
             );
         }
-        cachedForm = {};
-        cachedUploads = {};
-        cachedExtracted = {};
+        delete cachedForm[req.sessionId];
+        delete cachedUploads[req.sessionId];
+        delete cachedExtracted[req.sessionId];
         const branchId = form.branchId || 101;
         const appointmentTime = await scheduleAppointment(branchId, referenceNumber);
         let branchEn = 'Main Branch';
