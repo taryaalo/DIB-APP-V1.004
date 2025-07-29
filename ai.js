@@ -74,7 +74,7 @@ async function callGemini(payload) {
   }
   const geminiUrl =
     process.env.REACT_APP_GEMINI_URL ||
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
   const apiUrl = `${geminiUrl}?key=${apiKey}`;
   try {
     const resp = await fetch(apiUrl, {

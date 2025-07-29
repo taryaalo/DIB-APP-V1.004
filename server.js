@@ -196,6 +196,22 @@ app.get('/api/countries', async (req, res) => {
   }
 });
 
+app.get('/api/cities', async (req, res) => {
+  try {
+    const country = req.query.country;
+    let result;
+    if (country) {
+      result = await pool.query('SELECT city_code, name_en, name_ar FROM cities WHERE country_code=$1 ORDER BY name_en', [country]);
+    } else {
+      result = await pool.query('SELECT country_code, city_code, name_en, name_ar FROM cities ORDER BY country_code, name_en');
+    }
+    res.json(result.rows);
+  } catch (e) {
+    logError(`CITIES_ERROR ${e.message}`);
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
 app.get('/api/income-sources', async (req, res) => {
   try {
     const result = await pool.query('SELECT id, name_en, name_ar FROM income_sources ORDER BY id');

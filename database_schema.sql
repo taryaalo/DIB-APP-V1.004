@@ -416,6 +416,20 @@ INSERT INTO countries (code, name_en, name_ar) VALUES
     ('ZW', 'Zimbabwe', 'زيمبابوي')
 ON CONFLICT (code) DO NOTHING;
 
+-- Table for cities
+CREATE TABLE IF NOT EXISTS cities (
+    country_code VARCHAR(5) NOT NULL,
+    city_code VARCHAR(10) NOT NULL,
+    name_ar VARCHAR(100) NOT NULL,
+    name_en VARCHAR(100) NOT NULL,
+    PRIMARY KEY (country_code, city_code)
+);
+
+INSERT INTO cities(country_code, city_code, name_ar, name_en) VALUES
+    ('LY','BEN','بنغازي','Benghazi'),
+    ('LY','TRP','طرابلس','Tripoly')
+ON CONFLICT (country_code, city_code) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS income_sources (
     id SERIAL PRIMARY KEY,
     name_en VARCHAR(100) UNIQUE NOT NULL,

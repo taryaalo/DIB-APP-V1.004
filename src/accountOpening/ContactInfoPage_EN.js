@@ -15,6 +15,7 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
     const { language } = useLanguage();
     const { formData, setFormData } = useFormData();
     const [countries, setCountries] = useState([]);
+    const [cities, setCities] = useState([]);
     const [form, setForm] = useState({
         country: '',
         city: '',
@@ -26,6 +27,14 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
     useEffect(() => {
         fetch(`${API_BASE_URL}/api/countries`).then(r=>r.json()).then(setCountries).catch(()=>{});
     }, []);
+
+    useEffect(() => {
+        if (!form.country) { setCities([]); return; }
+        fetch(`${API_BASE_URL}/api/cities?country=${form.country}`)
+            .then(r=>r.json())
+            .then(data => setCities(data))
+            .catch(()=> setCities([]));
+    }, [form.country]);
 
     useEffect(() => {
         const reference = formData.personalInfo?.referenceNumber || formData.personalInfo?.reference_number;
@@ -100,7 +109,12 @@ const ContactInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                         </div>
                         <div className="form-group">
                             <label>{t('city', language)} <span className="required-star">*</span></label>
-                            <input name="city" value={form.city} onChange={handleChange} type="text" required className="form-input" placeholder={t('city', language)} />
+                            <select name="city" value={form.city} onChange={handleChange} required className="form-input">
+                                <option value="">{t('city', language)}</option>
+                                {cities.length > 0 ? cities.map(c => (
+                                    <option key={c.city_code} value={c.city_code}>{language === 'ar' ? c.name_ar : c.name_en}</option>
+                                )) : <option value="other">{t('other', language)}</option>}
+                            </select>
                         </div>
                         <div className="form-group">
                             <label>{t('area', language)} <span className="required-star">*</span></label>

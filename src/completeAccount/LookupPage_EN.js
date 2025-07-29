@@ -23,6 +23,8 @@ const LookupPage_EN = ({ onNavigate }) => {
     const [editData, setEditData] = useState({});
     const [newFiles, setNewFiles] = useState({});
     const [showApproveDialog, setShowApproveDialog] = useState(false);
+    const [countries, setCountries] = useState([]);
+    const [cities, setCities] = useState([]);
 
     useEffect(() => {
         const load = async () => {
@@ -37,6 +39,18 @@ const LookupPage_EN = ({ onNavigate }) => {
         };
         load();
     }, []);
+
+    useEffect(() => {
+        fetch(`${API_BASE_URL}/api/countries`).then(r=>r.json()).then(setCountries).catch(()=>{});
+    }, []);
+
+    useEffect(() => {
+        if (!editData.addressInfo?.country) { setCities([]); return; }
+        fetch(`${API_BASE_URL}/api/cities?country=${editData.addressInfo.country}`)
+            .then(r=>r.json())
+            .then(data => setCities(data))
+            .catch(()=> setCities([]));
+    }, [editData.addressInfo?.country]);
     
     useEffect(() => {
         if (selected) {
@@ -61,13 +75,13 @@ const LookupPage_EN = ({ onNavigate }) => {
 
 
     const handleEditChange = (section, field, value) => {
-        setEditData(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                [field]: value
+        setEditData(prev => {
+            const updated = { ...prev[section], [field]: value };
+            if (section === 'addressInfo' && field === 'country') {
+                updated.city = '';
             }
-        }));
+            return { ...prev, [section]: updated };
+        });
     };
     
     const handleFileChange = (docType, file) => {
@@ -157,12 +171,24 @@ const LookupPage_EN = ({ onNavigate }) => {
                         (v !== null && typeof v !== 'object' && !['id', 'created_at', 'reference_number', 'ai_model', 'confirmed_by_admin', 'approved_by_admin_name', 'approved_by_admin_ip', 'full_name'].includes(k)) && (
                             <div className="form-group" key={k}>
                                 <label>{k.replace(/_/g,' ')}</label>
-                                <input
-                                    className="form-input"
-                                    type={k.includes('date') ? 'date' : 'text'}
-                                    value={editData[sectionName]?.[k] || ''}
-                                    onChange={(e) => handleEditChange(sectionName, k, e.target.value)}
-                                />
+                                {sectionName === 'addressInfo' && k === 'country' ? (
+                                    <select className="form-input" value={editData.addressInfo?.country || ''} onChange={e=>{handleEditChange('addressInfo','country',e.target.value);}}>
+                                        <option value="">Country</option>
+                                        {countries.map(c => <option key={c.code} value={c.code}>{c.name_en}</option>)}
+                                    </select>
+                                ) : sectionName === 'addressInfo' && k === 'city' ? (
+                                    <select className="form-input" value={editData.addressInfo?.city || ''} onChange={e=>handleEditChange('addressInfo','city',e.target.value)}>
+                                        <option value="">City</option>
+                                        {cities.length > 0 ? cities.map(c => <option key={c.city_code} value={c.city_code}>{c.name_en}</option>) : <option value="other">Other</option>}
+                                    </select>
+                                ) : (
+                                    <input
+                                        className="form-input"
+                                        type={k.includes('date') ? 'date' : 'text'}
+                                        value={editData[sectionName]?.[k] || ''}
+                                        onChange={(e) => handleEditChange(sectionName, k, e.target.value)}
+                                    />
+                                )}
                             </div>
                         )
                     ))}
