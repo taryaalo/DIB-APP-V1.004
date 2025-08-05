@@ -60,4 +60,19 @@ automatically when the server runs. In addition to file logs, activities are
 inserted into an `activity_log` table and errors into an `error_log` table in the
 database.
 
+## Customer ID API
+
+When an application is approved on the lookup page the backend can create a
+customer ID by calling an external service. Provide the credentials in `.env`:
+
+```
+CUST_API_URL=http://10.1.100.204/Account_Statment/API/createCustID.php
+CUST_API_TOKEN=<api token>
+```
+
+The endpoint `POST /api/create-custid` accepts a reference number. It compiles
+the required customer data from the database, calls the external API and stores
+the returned `CUSTID` in a new `customer_details` table. The full API response is
+also recorded in the `activity_log` table for auditing.
+
 

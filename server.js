@@ -567,8 +567,8 @@ app.post('/api/work-info', async (req, res) => {
     const pid = personal.rows[0].id;
     const ref = reference || personal.rows[0].reference_number;
     await pool.query(
-      'INSERT INTO work_income_info (personal_id, national_id, reference_number, employment_status, job_title, employer, employer_address, employer_phone, source_of_income, monthly_income, work_sector, field_of_work, work_start_date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT (reference_number) DO UPDATE SET employment_status=EXCLUDED.employment_status, job_title=EXCLUDED.job_title, employer=EXCLUDED.employer, employer_address=EXCLUDED.employer_address, employer_phone=EXCLUDED.employer_phone, source_of_income=EXCLUDED.source_of_income, monthly_income=EXCLUDED.monthly_income, work_sector=EXCLUDED.work_sector, field_of_work=EXCLUDED.field_of_work, work_start_date=EXCLUDED.work_start_date',
-      [pid, nid || null, ref, fields.employmentStatus || null, fields.jobTitle || null, fields.employer || null, fields.employerAddress || null, fields.employerPhone || null, fields.sourceOfIncome || null, fields.monthlyIncome || null, fields.workSector || null, fields.fieldOfWork || null, normalizeDate(fields.workStartDate) || null]
+      'INSERT INTO work_income_info (personal_id, national_id, reference_number, employment_status, job_title, employer, employer_address, employer_phone, source_of_income, monthly_income, work_sector, field_of_work, work_start_date, work_country, work_city) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) ON CONFLICT (reference_number) DO UPDATE SET employment_status=EXCLUDED.employment_status, job_title=EXCLUDED.job_title, employer=EXCLUDED.employer, employer_address=EXCLUDED.employer_address, employer_phone=EXCLUDED.employer_phone, source_of_income=EXCLUDED.source_of_income, monthly_income=EXCLUDED.monthly_income, work_sector=EXCLUDED.work_sector, field_of_work=EXCLUDED.field_of_work, work_start_date=EXCLUDED.work_start_date, work_country=EXCLUDED.work_country, work_city=EXCLUDED.work_city',
+      [pid, nid || null, ref, fields.employmentStatus || null, fields.jobTitle || null, fields.employer || null, fields.employerAddress || null, fields.employerPhone || null, fields.sourceOfIncome || null, fields.monthlyIncome || null, fields.workSector || null, fields.fieldOfWork || null, normalizeDate(fields.workStartDate) || null, fields.workCountry || null, fields.workCity || null]
     );
     logActivity(`DB_SAVE work_info ${ref}`);
     res.json({ success: true });
@@ -796,8 +796,8 @@ app.post('/api/submit-form', async (req, res) => {
         if (form.workInfo) {
             const w = form.workInfo;
             await pool.query(
-                'INSERT INTO work_income_info (personal_id, national_id, reference_number, employment_status, job_title, employer, employer_address, employer_phone, source_of_income, monthly_income, work_sector, field_of_work, work_start_date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT (reference_number) DO UPDATE SET employment_status=EXCLUDED.employment_status, job_title=EXCLUDED.job_title, employer=EXCLUDED.employer, employer_address=EXCLUDED.employer_address, employer_phone=EXCLUDED.employer_phone, source_of_income=EXCLUDED.source_of_income, monthly_income=EXCLUDED.monthly_income, work_sector=EXCLUDED.work_sector, field_of_work=EXCLUDED.field_of_work, work_start_date=EXCLUDED.work_start_date',
-                [id, nid, referenceNumber, w.employmentStatus || null, w.jobTitle || null, w.employer || null, w.employerAddress || null, w.employerPhone || null, w.sourceOfIncome || null, w.monthlyIncome || null, w.workSector || null, w.fieldOfWork || null, normalizeDate(w.workStartDate) || null]
+                'INSERT INTO work_income_info (personal_id, national_id, reference_number, employment_status, job_title, employer, employer_address, employer_phone, source_of_income, monthly_income, work_sector, field_of_work, work_start_date, work_country, work_city) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) ON CONFLICT (reference_number) DO UPDATE SET employment_status=EXCLUDED.employment_status, job_title=EXCLUDED.job_title, employer=EXCLUDED.employer, employer_address=EXCLUDED.employer_address, employer_phone=EXCLUDED.employer_phone, source_of_income=EXCLUDED.source_of_income, monthly_income=EXCLUDED.monthly_income, work_sector=EXCLUDED.work_sector, field_of_work=EXCLUDED.field_of_work, work_start_date=EXCLUDED.work_start_date, work_country=EXCLUDED.work_country, work_city=EXCLUDED.work_city',
+                [id, nid, referenceNumber, w.employmentStatus || null, w.jobTitle || null, w.employer || null, w.employerAddress || null, w.employerPhone || null, w.sourceOfIncome || null, w.monthlyIncome || null, w.workSector || null, w.fieldOfWork || null, normalizeDate(w.workStartDate) || null, w.workCountry || null, w.workCity || null]
             );
         }
 
@@ -900,6 +900,71 @@ app.get('/api/test-db', async (req, res) => {
   } catch (e) {
     logError(`DB_TEST_ERROR ${e.message} ${e.stack}`);
     res.status(500).json({ connected: false, error: e.message });
+  }
+});
+
+app.post('/api/create-custid', async (req, res) => {
+  const { reference, admin } = req.body || {};
+  if (!reference) return res.status(400).json({ error: 'missing_reference' });
+  try {
+    const pres = await pool.query('SELECT * FROM personal_info WHERE reference_number=$1', [reference]);
+    if (pres.rows.length === 0) return res.status(404).json({ error: 'not_found' });
+    const p = pres.rows[0];
+    const ares = await pool.query('SELECT * FROM address_info WHERE personal_id=$1 ORDER BY id DESC LIMIT 1', [p.id]);
+    const wres = await pool.query('SELECT * FROM work_income_info WHERE personal_id=$1 ORDER BY id DESC LIMIT 1', [p.id]);
+    const a = ares.rows[0] || {};
+    const w = wres.rows[0] || {};
+    const cityAddr = a.city ? await pool.query('SELECT name_ar, name_en FROM cities WHERE city_code=$1', [a.city]) : { rows: [{}] };
+    const countryAddr = a.country ? await pool.query('SELECT name_ar FROM countries WHERE code=$1', [a.country]) : { rows: [{}] };
+    const workCity = w.work_city ? await pool.query('SELECT name_ar FROM cities WHERE city_code=$1', [w.work_city]) : { rows: [{}] };
+    const birthCountryRes = p.birth_place ? await pool.query('SELECT country_code FROM cities WHERE name_en=$1 LIMIT 1', [p.birth_place]) : { rows: [{}] };
+    const birthCountry = birthCountryRes.rows[0]?.country_code || a.country || '';
+    const digits = (p.phone || '').replace(/\D/g, '');
+    const mobisdno = digits.slice(0,3);
+    const mobnum = digits.slice(3);
+    const fmt = (d) => d ? new Date(d).toISOString().split('T')[0] : null;
+    const payload = {
+      branch: String(p.branch_id || ''),
+      private_customer: 'N',
+      name: p.full_name,
+      fullname: p.full_name,
+      sname: p.national_id || '',
+      nlty: a.country || '',
+      addrln1: cityAddr.rows[0]?.name_ar || '',
+      addrln4: countryAddr.rows[0]?.name_ar || '',
+      country: a.country || '',
+      ccateg: p.service_type === 'personal' ? 'INDIVIDUAL' : 'CORPORATE',
+      media: 'MAIL',
+      loc: a.city || '',
+      p_address_code: cityAddr.rows[0]?.name_en || '',
+      track_limits: 'Y',
+      lang: p.language === 'en' ? 'ENG' : 'ARB',
+      gendr: p.gender === 'F' ? 'F' : 'M',
+      dob: fmt(p.dob),
+      birth_country: birthCountry,
+      nationid: p.national_id || '',
+      cust_comm_mode: p.phone ? 'M' : 'E',
+      pptno: p.passport_number || '',
+      pptissdt: fmt(p.passport_issue_date),
+      pptexpdt: fmt(p.passport_expiry_date),
+      mobisdno,
+      mobnum,
+      emailid: p.email || '',
+      birthcountry: birthCountry,
+      mothermaidn_name: p.mother_full_name || '',
+      liab_ccy: 'LYD',
+      work_place: workCity.rows[0]?.name_ar || ''
+    };
+    const respApi = await axios.post(process.env.CUST_API_URL, payload, { headers: { Authorization: `Bearer ${process.env.CUST_API_TOKEN}` } });
+    const data = respApi.data;
+    if (data && data.CUSTID) {
+      await pool.query('INSERT INTO customer_details (personal_info_id, customer_id, created_by) VALUES ($1,$2,$3)', [p.id, data.CUSTID, admin || 'admin']);
+    }
+    logActivity(`CUSTOMER_API_RESPONSE ${JSON.stringify(data)}`);
+    res.json(data);
+  } catch (e) {
+    logError(`CREATE_CUSTID_ERROR ${e.message}`);
+    res.status(500).json({ error: 'server_error' });
   }
 });
 
