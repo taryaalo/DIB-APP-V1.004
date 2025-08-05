@@ -123,6 +123,8 @@ const ReviewWorkInfoPage_EN = ({ onNavigate, state }) => {
             <div className="form-group"><input name="employer_phone" value={form.employer_phone || ''} onChange={e=>setForm({...form, employer_phone:e.target.value})} className="form-input" placeholder={t('employerPhone', language)} /></div>
             <div className="form-group"><input name="source_of_income" value={form.source_of_income || ''} onChange={e=>setForm({...form, source_of_income:e.target.value})} className="form-input" placeholder={t('sourceOfIncome', language)} /></div>
             <div className="form-group"><input name="monthly_income" value={form.monthly_income || ''} onChange={e=>setForm({...form, monthly_income:e.target.value})} className="form-input" placeholder={t('monthlyIncome', language)} /></div>
+            <div className="form-group"><input name="work_country" value={form.work_country || ''} onChange={e=>setForm({...form, work_country:e.target.value})} className="form-input" placeholder={t('work_country', language)} /></div>
+            <div className="form-group"><input name="work_city" value={form.work_city || ''} onChange={e=>setForm({...form, work_city:e.target.value})} className="form-input" placeholder={t('work_city', language)} /></div>
           </form>
         ) : (
           <>

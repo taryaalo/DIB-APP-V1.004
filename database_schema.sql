@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS work_income_info (
     employer_phone VARCHAR(20),
     source_of_income VARCHAR(100),
     monthly_income VARCHAR(100),
+    work_country VARCHAR(50),
+    work_city VARCHAR(50),
     confirmed_by_admin BOOLEAN DEFAULT FALSE
 );
 
@@ -73,6 +75,8 @@ CREATE TABLE IF NOT EXISTS work_income_info (
 ALTER TABLE work_income_info ADD COLUMN IF NOT EXISTS work_sector VARCHAR(100);
 ALTER TABLE work_income_info ADD COLUMN IF NOT EXISTS field_of_work VARCHAR(100);
 ALTER TABLE work_income_info ADD COLUMN IF NOT EXISTS work_start_date DATE;
+ALTER TABLE work_income_info ADD COLUMN IF NOT EXISTS work_country VARCHAR(50);
+ALTER TABLE work_income_info ADD COLUMN IF NOT EXISTS work_city VARCHAR(50);
 
 CREATE TABLE IF NOT EXISTS uploaded_documents (
     id SERIAL PRIMARY KEY,
@@ -97,6 +101,14 @@ CREATE TABLE IF NOT EXISTS error_log (
     id SERIAL PRIMARY KEY,
     error TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS customer_details (
+    id SERIAL PRIMARY KEY,
+    personal_info_id INT REFERENCES personal_info(id) ON DELETE CASCADE,
+    customer_id VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100)
 );
 
 -- Add constraints if they do not exist

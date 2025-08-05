@@ -283,7 +283,14 @@ const LookupPage_EN = ({ onNavigate }) => {
         } catch (e) { console.error(e); }
     };
 
-    const handleApproveConfirm = (services) => {
+    const handleApproveConfirm = async (services) => {
+        try {
+            await fetch(`${API_BASE_URL}/api/create-custid`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reference: selected.personalInfo.reference_number, admin: ADMIN_NAME })
+            });
+        } catch (e) { console.error(e); }
         updateStatus(selected.personalInfo.id, 'Approved');
         setShowApproveDialog(false);
     };

@@ -16,6 +16,8 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
     const { language } = useLanguage();
     const { formData, setFormData } = useFormData();
     const [sources, setSources] = useState([]);
+    const [countries, setCountries] = useState([]);
+    const [cities, setCities] = useState([]);
     const [form, setForm] = useState({
         employmentStatus: '',
         jobTitle: '',
@@ -27,12 +29,23 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
         workSector: '',
         fieldOfWork: '',
         workStartDate: '',
+        workCountry: '',
+        workCity: '',
         ...(formData.workInfo || {})
     });
 
     useEffect(() => {
         fetch(`${API_BASE_URL}/api/income-sources`).then(r=>r.json()).then(setSources).catch(()=>{});
+        fetch(`${API_BASE_URL}/api/countries`).then(r=>r.json()).then(setCountries).catch(()=>{});
     }, []);
+
+    useEffect(() => {
+        if (!form.workCountry) { setCities([]); return; }
+        fetch(`${API_BASE_URL}/api/cities?country=${form.workCountry}`)
+            .then(r=>r.json())
+            .then(data => setCities(data))
+            .catch(()=> setCities([]));
+    }, [form.workCountry]);
 
     useEffect(() => {
         const reference = formData.personalInfo?.referenceNumber || formData.personalInfo?.reference_number;
@@ -47,8 +60,22 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                         if (data.work_start_date) {
                             data.workStartDate = new Date(data.work_start_date).toISOString().split('T')[0];
                         }
-                        setForm(f => ({ ...f, ...data }));
-                        setFormData(d => ({ ...d, workInfo: data }));
+                        const mapped = {
+                            employmentStatus: data.employment_status || '',
+                            jobTitle: data.job_title || '',
+                            employer: data.employer || '',
+                            employerAddress: data.employer_address || '',
+                            employerPhone: data.employer_phone || '',
+                            sourceOfIncome: data.source_of_income || '',
+                            monthlyIncome: data.monthly_income || '',
+                            workSector: data.work_sector || '',
+                            fieldOfWork: data.field_of_work || '',
+                            workStartDate: data.work_start_date ? new Date(data.work_start_date).toISOString().split('T')[0] : '',
+                            workCountry: data.work_country || '',
+                            workCity: data.work_city || ''
+                        };
+                        setForm(f => ({ ...f, ...mapped }));
+                        setFormData(d => ({ ...d, workInfo: mapped }));
                     }
                 }
             } catch (e) { console.error(e); }
@@ -75,7 +102,7 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
     };
 
     const isComplete = form.jobTitle && form.employer && form.workSector && form.fieldOfWork &&
-        form.workStartDate && form.sourceOfIncome && form.monthlyIncome;
+        form.workStartDate && form.sourceOfIncome && form.monthlyIncome && form.workCountry && form.workCity;
 
     return (
         <div className="form-page">
@@ -123,6 +150,24 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                         <div className="form-group">
                             <label>{t('employerAddress', language)}</label>
                             <input name="employerAddress" value={form.employerAddress} onChange={handleChange} type="text" className="form-input" placeholder={t('employerAddress', language)} />
+                        </div>
+                        <div className="form-group">
+                            <label>{t('country', language)} <span className="required-star">*</span></label>
+                            <select name="workCountry" value={form.workCountry} onChange={handleChange} required className="form-input">
+                                <option value="">{t('country', language)}</option>
+                                {countries.map(c => (
+                                    <option key={c.code} value={c.code}>{language === 'ar' ? c.name_ar : c.name_en}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>{t('city', language)} <span className="required-star">*</span></label>
+                            <select name="workCity" value={form.workCity} onChange={handleChange} required className="form-input">
+                                <option value="">{t('city', language)}</option>
+                                {cities.length > 0 ? cities.map(c => (
+                                    <option key={c.city_code} value={c.city_code}>{language === 'ar' ? c.name_ar : c.name_en}</option>
+                                )) : <option value="other">{t('other', language)}</option>}
+                            </select>
                         </div>
                         <div className="form-group">
                             <div className="phone-input-group">
