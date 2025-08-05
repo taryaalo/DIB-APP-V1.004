@@ -132,6 +132,13 @@ if (!fs.existsSync(userDocsBase)) {
 }
 app.use('/user_document', express.static(userDocsBase));
 
+app.post('/api/log-activity', (req, res) => {
+  const { message } = req.body || {};
+  if (!message) return res.status(400).json({ error: 'missing_message' });
+  logActivity(`CLIENT_LOG ${message}`);
+  res.json({ success: true });
+});
+
 let cachedForm = {};
 let cachedUploads = {};
 let cachedExtracted = {};

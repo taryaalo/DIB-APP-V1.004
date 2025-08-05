@@ -16,6 +16,8 @@ const ReviewWorkInfoPage_EN = ({ onNavigate, state }) => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [approved, setApproved] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -66,16 +68,35 @@ const ReviewWorkInfoPage_EN = ({ onNavigate, state }) => {
 
   const toggleApproved = async () => {
     const ref = state?.personalInfo?.reference_number;
-    if (!ref) return;
+    if (!ref || approving) return;
     const newVal = !approved;
-    setApproved(newVal);
+    setApproving(true);
+    setApiError('');
     try {
-      await fetch(`${API_BASE_URL}/api/work-validation`, {
+      const resp = await fetch(`${API_BASE_URL}/api/work-validation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reference: ref, approved: newVal, adminName: ADMIN_NAME })
       });
-    } catch (e) { console.error(e); }
+      const data = await resp.json().catch(() => ({}));
+      console.debug('WORK_VALIDATE_RESPONSE', data);
+      try {
+        await fetch(`${API_BASE_URL}/api/log-activity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `WORK_VALIDATE_RESPONSE ${JSON.stringify(data)}` })
+        });
+      } catch (_) {}
+      if (resp.ok && data && data.success) {
+        setApproved(newVal);
+      } else {
+        setApiError(data.error || 'server_error');
+      }
+    } catch (e) {
+      console.debug('WORK_VALIDATE_ERROR', e);
+      setApiError(e.message);
+    }
+    setApproving(false);
   };
 
   const renderTable = (obj) => (
@@ -134,9 +155,11 @@ const ReviewWorkInfoPage_EN = ({ onNavigate, state }) => {
         )}
         <div className="form-actions" style={{display:'flex',alignItems:'center',gap:'10px'}}>
           <label style={{display:'flex',alignItems:'center',gap:'5px'}}>
-            <input type="checkbox" checked={approved} onChange={toggleApproved} />
+            <input type="checkbox" checked={approved} onChange={toggleApproved} disabled={approving} />
             {t('valid', language)}
+            {approving && <div className="loading-spinner"></div>}
           </label>
+          {apiError && <p className="error-message">{apiError}</p>}
           <button className="btn-next" onClick={() => onNavigate('reviewAddressInfo', state)}>{t('approve', language)}</button>
         </div>
       </main>

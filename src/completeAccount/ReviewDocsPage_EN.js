@@ -25,6 +25,8 @@ const ReviewDocsPage_EN = ({ onNavigate, state }) => {
   const [docs, setDocs] = useState([]);
   const [valid, setValid] = useState({});
   const [uploading, setUploading] = useState({});
+  const [saving, setSaving] = useState({});
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const uploaded = state?.uploadedDocuments || [];
@@ -39,14 +41,33 @@ const ReviewDocsPage_EN = ({ onNavigate, state }) => {
 
   const toggleValid = async (id) => {
     const newVal = !valid[id];
-    setValid(v => ({ ...v, [id]: newVal }));
+    setSaving(s => ({ ...s, [id]: true }));
+    setErrors(e => ({ ...e, [id]: '' }));
     try {
-      await fetch(`${API_BASE_URL}/api/approve-document`, {
+      const resp = await fetch(`${API_BASE_URL}/api/approve-document`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, approved: newVal, adminName: ADMIN_NAME })
       });
-    } catch (e) { console.error(e); }
+      const data = await resp.json().catch(() => ({}));
+      console.debug('DOC_APPROVE_RESPONSE', data);
+      try {
+        await fetch(`${API_BASE_URL}/api/log-activity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `DOC_APPROVE_RESPONSE ${JSON.stringify(data)}` })
+        });
+      } catch (_) {}
+      if (resp.ok && data && data.success) {
+        setValid(v => ({ ...v, [id]: newVal }));
+      } else {
+        setErrors(e => ({ ...e, [id]: data.error || 'server_error' }));
+      }
+    } catch (e) {
+      console.debug('DOC_APPROVE_ERROR', e);
+      setErrors(err => ({ ...err, [id]: e.message }));
+    }
+    setSaving(s => ({ ...s, [id]: false }));
   };
 
   const handleFileChange = async (docId, file) => {
@@ -111,9 +132,11 @@ const ReviewDocsPage_EN = ({ onNavigate, state }) => {
                 {valid[doc.id] && <div className="stamp-overlay"><SuccessIcon /></div>}
                 <div style={{marginTop:'10px', fontWeight:'600'}}>{t(DOC_LABELS[doc.doc_type] || doc.doc_type, language)}</div>
                 <label style={{marginTop:'10px', display:'flex', alignItems:'center', gap:'5px'}}>
-                  <input type="checkbox" checked={!!valid[doc.id]} onChange={() => toggleValid(doc.id)} />
+                  <input type="checkbox" checked={!!valid[doc.id]} onChange={() => toggleValid(doc.id)} disabled={saving[doc.id]} />
                   {t('valid', language)}
+                  {saving[doc.id] && <div className="loading-spinner"></div>}
                 </label>
+                {errors[doc.id] && <div className="error-message">{errors[doc.id]}</div>}
                 <div style={{marginTop:'10px'}}>
                   <input type="file" onChange={e => handleFileChange(doc.id, e.target.files[0])} />
                 </div>
