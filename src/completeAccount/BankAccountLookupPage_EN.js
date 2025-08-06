@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -12,24 +12,23 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const BankAccountLookupPage_EN = ({ onNavigate }) => {
   const { language } = useLanguage();
   const [term, setTerm] = useState('');
-  const [customer, setCustomer] = useState(null);
+  const [customers, setCustomers] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async () => {
-    if (!term.trim()) {
-      setError(t('missing_identifier', language));
-      return;
-    }
+  const fetchCustomers = async () => {
     setLoading(true);
     setError('');
-    setCustomer(null);
     try {
-      const query = /^\d{12,}$/.test(term.trim()) ? `nid=${term.trim()}` : `reference=${term.trim()}`;
-      const resp = await fetch(`${API_BASE_URL}/api/customer?${query}`);
+      let url = `${API_BASE_URL}/api/customers-no-bank`;
+      if (term.trim()) {
+        const param = /^\d{12,}$/.test(term.trim()) ? `nid=${term.trim()}` : `customerId=${term.trim()}`;
+        url += `?${param}`;
+      }
+      const resp = await fetch(url);
       if (resp.ok) {
         const data = await resp.json();
-        setCustomer(data);
+        setCustomers(data);
       } else {
         const d = await resp.json().catch(() => ({ error: 'server_error' }));
         setError(t(d.error || 'server_error', language));
@@ -40,10 +39,13 @@ const BankAccountLookupPage_EN = ({ onNavigate }) => {
     setLoading(false);
   };
 
-  const startProcess = () => {
-    if (!customer) return;
-    const photo = customer.uploadedDocuments.find(d => d.doc_type === 'personal_photo')?.file_name;
-    onNavigate('bankAccount', { personalInfo: customer.personalInfo, photo, custId: customer.personalInfo.cust_id });
+  useEffect(() => {
+    fetchCustomers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const startProcess = (c) => {
+    onNavigate('bankAccount', { nid: c.national_id, custId: c.customer_id, personalId: c.id });
   };
 
   return (
@@ -67,18 +69,34 @@ const BankAccountLookupPage_EN = ({ onNavigate }) => {
             className="form-input"
             value={term}
             onChange={e => setTerm(e.target.value)}
-            placeholder={t('referenceOrNid', language)}
+            placeholder={t('nidOrCustomerId', language)}
           />
-          <button className="btn-next" onClick={handleSearch}>{t('search', language)}</button>
+          <button className="btn-next" onClick={fetchCustomers}>{t('search', language)}</button>
         </div>
         {error && <p className="error-text" style={{color:'red',marginTop:'10px'}}>{error}</p>}
-        {customer && !error && (
-          <div style={{marginTop:'20px'}}>
-            <div style={{fontWeight:'600'}}>{customer.personalInfo.full_name}</div>
-            <div style={{opacity:0.7}}>{customer.personalInfo.national_id}</div>
-            <button className="btn-next" style={{marginTop:'20px'}} onClick={startProcess}>{t('next', language)}</button>
-          </div>
-        )}
+        <table className="table" style={{marginTop:'20px',width:'100%'}}>
+          <thead>
+            <tr>
+              <th>{t('fullName', language)}</th>
+              <th>{t('nid', language)}</th>
+              <th>{t('customerId', language)}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {customers.map(c => (
+              <tr key={c.id}>
+                <td>{c.full_name}</td>
+                <td>{c.national_id}</td>
+                <td>{c.customer_id}</td>
+                <td><button className="btn-next" onClick={() => startProcess(c)}>{t('open', language)}</button></td>
+              </tr>
+            ))}
+            {customers.length === 0 && !loading && (
+              <tr><td colSpan="4" style={{textAlign:'center'}}>{t('noResults', language)}</td></tr>
+            )}
+          </tbody>
+        </table>
       </main>
       <Footer />
       {loading && <FullPageLoader message="Loading..." />}

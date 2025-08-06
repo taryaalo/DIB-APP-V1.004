@@ -1,5 +1,5 @@
 // src/completeAccount/BankAccountPage_EN.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LOGO_WHITE } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -12,11 +12,17 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 const BankAccountPage_EN = ({ onNavigate, state }) => {
   const { language } = useLanguage();
-  const personalInfo = state?.personalInfo || {};
-  const photo = state?.photo;
+  const nid = state?.nid;
   const custId = state?.custId;
+  const personalId = state?.personalId;
+  const [customer, setCustomer] = useState(null);
+  const [branchDate, setBranchDate] = useState('');
   const [signatureUrl, setSignatureUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [accountNumber, setAccountNumber] = useState('');
+  const [error, setError] = useState('');
   const [checks, setChecks] = useState({
     mobile: false,
     sms: false,
@@ -35,7 +41,9 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('reference', personalInfo.reference_number);
+      if (customer?.reference_number) {
+        formData.append('reference', customer.reference_number);
+      }
       formData.append('docType', 'signature');
       const resp = await fetch(`${API_BASE_URL}/api/add-document`, { method: 'POST', body: formData });
       if (resp.ok) {
@@ -45,6 +53,67 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
       console.error(err);
     }
     setUploading(false);
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/customer?nid=${nid}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          setCustomer(data.personalInfo);
+          if (data.personalInfo?.branch_id) {
+            const br = await fetch(`${API_BASE_URL}/api/branch-date`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ branch: data.personalInfo.branch_id })
+            });
+            if (br.ok) {
+              const bd = await br.json();
+              setBranchDate(bd.branch_date || bd.date || '');
+            }
+          }
+        }
+      } catch (err) {}
+      setLoading(false);
+    };
+    load();
+  }, [nid]);
+
+  const createAccount = async () => {
+    if (!customer || !branchDate) return;
+    setCreating(true);
+    setError('');
+    try {
+      const payload = {
+        personalId,
+        name: customer.full_name,
+        branch: customer.branch_id,
+        accId: custId,
+        acc_class: 'CAIN',
+        ccy: 'LYD',
+        ACCLSTYP: 'S',
+        ACCOPENDT: branchDate,
+        LOC: customer.city_code,
+        MEDIA: 'MAIL',
+        ACSTATUS: 'NORM',
+        PASS_SUBMISSION_DATE: customer.passport_expiry_date
+      };
+      const resp = await fetch(`${API_BASE_URL}/api/create-bank-account`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        setAccountNumber(data.accountNumber);
+      } else {
+        setError(data.error || t('server_error', language));
+      }
+    } catch (err) {
+      setError(t('server_error', language));
+    }
+    setCreating(false);
   };
 
   return (
@@ -61,15 +130,22 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
         </button>
       </header>
       <main className="form-main" style={{maxWidth:'800px'}}>
-        <h2 className="form-title">Bank Account Opening</h2>
-        <p className="guide-message">Customer ID: {custId}</p>
-        <div style={{display:'flex',gap:'20px',alignItems:'center',marginBottom:'20px'}}>
-          {photo && <img src={`${API_BASE_URL}/${photo}`} alt="Customer" style={{width:'120px',height:'120px',objectFit:'cover',borderRadius:'8px'}} />}
-          <div>
-            <div style={{fontWeight:'600'}}>{personalInfo.full_name}</div>
-            <div style={{opacity:0.7}}>{personalInfo.national_id}</div>
-          </div>
-        </div>
+        <h2 className="form-title">{t('bankAccountOpening', language)}</h2>
+        <p className="guide-message">{t('customerId', language)}: {custId}</p>
+        {customer && (
+          <table className="table" style={{marginBottom:'20px'}}>
+            <tbody>
+              <tr><td>{t('fullName', language)}</td><td>{customer.full_name}</td></tr>
+              <tr><td>{t('branch', language)}</td><td>{customer.branch_id}</td></tr>
+              <tr><td>{t('branchName', language)}</td><td>{customer.branch_name}</td></tr>
+              <tr><td>{t('cityCode', language)}</td><td>{customer.city_code}</td></tr>
+              <tr><td>{t('city', language)}</td><td>{customer.city_name}</td></tr>
+              <tr><td>{t('passportNumber', language)}</td><td>{customer.passport_number}</td></tr>
+              <tr><td>{t('passportExpiryDate', language)}</td><td>{customer.passport_expiry_date}</td></tr>
+              <tr><td>Branch Date</td><td>{branchDate}</td></tr>
+            </tbody>
+          </table>
+        )}
         <div className="form-group">
           <label>Customer Signature</label>
           <input type="file" accept="image/*" onChange={handleSignature} />
@@ -113,10 +189,14 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             </label>
           </li>
         </ul>
-        {signatureUrl && <button className="btn-next" style={{marginTop:'20px'}} onClick={() => alert('Bank account created')}>Create Bank Account</button>}
+        {signatureUrl && !accountNumber && (
+          <button className="btn-next" style={{marginTop:'20px'}} onClick={createAccount}>{t('createAccount', language)}</button>
+        )}
+        {accountNumber && <div style={{marginTop:'20px',fontWeight:'600'}}>{t('accountNumber', language)}: {accountNumber}</div>}
+        {error && <p className="error-text" style={{color:'red',marginTop:'10px'}}>{error}</p>}
       </main>
       <Footer />
-      {uploading && <FullPageLoader message="Uploading..." />}
+      {(uploading || loading || creating) && <FullPageLoader message={creating ? t('creating', language) : 'Loading...'} />}
     </div>
   );
 };
