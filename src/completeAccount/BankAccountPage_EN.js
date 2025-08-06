@@ -63,6 +63,7 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
           const data = await resp.json();
           setCustomer(data.personalInfo);
           if (data.personalInfo?.branch_id) {
+            console.log('Posting to /api/branch-date', { branch: data.personalInfo.branch_id });
             const br = await fetch(`${API_BASE_URL}/api/branch-date`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -70,7 +71,11 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             });
             if (br.ok) {
               const bd = await br.json();
+              console.log('Branch date response', bd);
               setBranchDate(bd.branch_date || bd.date || '');
+            } else {
+              const text = await br.text();
+              console.error('Branch date error', br.status, text);
             }
           }
         }

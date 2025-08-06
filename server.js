@@ -1077,7 +1077,10 @@ app.post('/api/branch-date', async (req, res) => {
   try {
     const url = process.env.BRANCH_DATE_API_URL;
     const token = process.env.BRANCH_DATE_API_TOKEN;
+    logActivity(`BRANCH_DATE_POST ${url}`);
+    logActivity(`BRANCH_DATE_PAYLOAD ${JSON.stringify({ branch })}`);
     const resp = await axios.post(url, { branch }, { headers: { Authorization: `Bearer ${token}` } });
+    logActivity(`BRANCH_DATE_RESPONSE ${resp.status} ${JSON.stringify(resp.data)}`);
     res.json(resp.data);
   } catch (e) {
     logError(`BRANCH_DATE_ERROR ${e.message}`);
