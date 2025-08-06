@@ -964,12 +964,21 @@ app.post('/api/create-custid', async (req, res) => {
     };
     const respApi = await axios.post(process.env.CUST_API_URL, payload, { headers: { Authorization: `Bearer ${process.env.CUST_API_TOKEN}` } });
     const data = respApi.data;
-    if (data && data.CUSTID) {
-      await pool.query('INSERT INTO customer_details (personal_info_id, customer_id, created_at, created_by) VALUES ($1,$2,NOW(),$3)', [p.id, data.CUSTID, admin || 'admin']);
-      logActivity(`CUSTOMER_API_RESPONSE ${JSON.stringify(data)}`);
-      res.json(data);
+    let custId;
+    if (data && typeof data === 'object' && data.CUSTID) {
+      custId = data.CUSTID;
+    } else if (typeof data === 'string') {
+      const match = data.match(/<CUSTID>\s*([^<]+)<\/CUSTID>/i);
+      if (match) {
+        custId = match[1].trim().replace(/^>/, '');
+      }
+    }
+    if (custId) {
+      await pool.query('INSERT INTO customer_details (personal_info_id, customer_id, created_at, created_by) VALUES ($1,$2,NOW(),$3)', [p.id, custId, admin || 'admin']);
+      logActivity(`CUSTOMER_API_RESPONSE ${JSON.stringify({ CUSTID: custId })}`);
+      res.json({ CUSTID: custId });
     } else {
-      logError(`CREATE_CUSTID_INVALID_RESPONSE ${JSON.stringify(data)}`);
+      logError(`CREATE_CUSTID_INVALID_RESPONSE ${typeof data === 'string' ? data : JSON.stringify(data)}`);
       res.status(500).json({ error: 'custid_missing' });
     }
   } catch (e) {
