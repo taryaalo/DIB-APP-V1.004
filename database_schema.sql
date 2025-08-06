@@ -111,6 +111,17 @@ CREATE TABLE IF NOT EXISTS customer_details (
     created_by VARCHAR(100)
 );
 
+CREATE TABLE IF NOT EXISTS bank_accounts (
+    id SERIAL PRIMARY KEY,
+    personal_info_id INT REFERENCES personal_info(id) ON DELETE CASCADE,
+    customer_id VARCHAR(100),
+    request_data JSONB,
+    response_data JSONB,
+    account_number VARCHAR(50),
+    status VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Add constraints if they do not exist
 DO $$
 BEGIN

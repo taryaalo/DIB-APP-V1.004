@@ -8,6 +8,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
+const xml2js = require('xml2js');
 const { callChatGPT, callGemini } = require('./ai');
 const { Pool } = require('pg');
 
@@ -1001,6 +1002,35 @@ app.post('/api/create-custid', async (req, res) => {
   }
 });
 
+app.get('/api/customers-no-bank', async (req, res) => {
+  const { nid, customerId } = req.query;
+  try {
+    const params = [];
+    let where = 'ba.id IS NULL';
+    if (nid) {
+      params.push(nid);
+      where += ` AND p.national_id=$${params.length}`;
+    }
+    if (customerId) {
+      params.push(customerId);
+      where += ` AND cd.customer_id=$${params.length}`;
+    }
+    const result = await pool.query(
+      `SELECT p.id, p.full_name, p.national_id, cd.customer_id
+       FROM personal_info p
+       LEFT JOIN customer_details cd ON cd.personal_info_id=p.id
+       LEFT JOIN bank_accounts ba ON ba.personal_info_id=p.id
+       WHERE ${where}
+       ORDER BY p.created_at DESC`,
+      params
+    );
+    res.json(result.rows);
+  } catch (e) {
+    logError(`NO_BANK_ACCOUNTS_ERROR ${e.message}`);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
 app.get('/api/customer', async (req, res) => {
   const { reference, nid } = req.query;
   if (!reference && !nid) {
@@ -1018,8 +1048,19 @@ app.get('/api/customer', async (req, res) => {
     const address = await pool.query('SELECT * FROM address_info WHERE personal_id=$1 LIMIT 1', [p.id]);
     const work = await pool.query('SELECT * FROM work_income_info WHERE personal_id=$1 LIMIT 1', [p.id]);
     const docs = await pool.query('SELECT id, doc_type, file_name, reference_number, confirmed_by_admin FROM uploaded_documents WHERE personal_id=$1', [p.id]);
+    const branchRow = p.branch_id ? await pool.query('SELECT name_en FROM bank_branches WHERE branch_id=$1', [p.branch_id]) : null;
+    const branchName = branchRow?.rows?.[0]?.name_en || null;
+    let cityCode = null;
+    let cityName = address.rows[0]?.city || null;
+    if (cityName) {
+      const cityRow = await pool.query('SELECT city_code, name_en FROM cities WHERE name_en=$1 OR name_ar=$1', [cityName]);
+      if (cityRow.rows.length > 0) {
+        cityCode = cityRow.rows[0].city_code;
+        cityName = cityRow.rows[0].name_en;
+      }
+    }
     res.json({
-      personalInfo: p,
+      personalInfo: { ...p, branch_name: branchName, city_code: cityCode, city_name: cityName },
       addressInfo: address.rows[0] || null,
       workInfo: work.rows[0] || null,
       uploadedDocuments: docs.rows
@@ -1027,6 +1068,62 @@ app.get('/api/customer', async (req, res) => {
   } catch (e) {
     logError(`GET_CUSTOMER_ERROR ${e.message}`);
     res.status(500).json({ error: 'server_error' });
+  }
+});
+
+app.post('/api/branch-date', async (req, res) => {
+  const { branch } = req.body || {};
+  if (!branch) return res.status(400).json({ error: 'missing_branch' });
+  try {
+    const url = process.env.BRANCH_DATE_API_URL;
+    const token = process.env.BRANCH_DATE_API_TOKEN;
+    const resp = await axios.post(url, { branch }, { headers: { Authorization: `Bearer ${token}` } });
+    res.json(resp.data);
+  } catch (e) {
+    logError(`BRANCH_DATE_ERROR ${e.message}`);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
+app.post('/api/create-bank-account', async (req, res) => {
+  const { personalId, ...payload } = req.body || {};
+  if (!personalId) return res.status(400).json({ error: 'missing_personal_id' });
+  try {
+    const url = process.env.BANK_ACC_API_URL;
+    const token = process.env.BANK_ACC_API_TOKEN;
+    logActivity(`BANK_ACC_POST ${url}`);
+    logActivity(`BANK_ACC_PAYLOAD ${JSON.stringify(payload)}`);
+    const resp = await axios.post(url, payload, { headers: { Authorization: `Bearer ${token}` } });
+    logActivity(`BANK_ACC_RESPONSE ${resp.status}`);
+    const xml = resp.data;
+    let parsed;
+    try {
+      parsed = await xml2js.parseStringPromise(xml, { explicitArray: false });
+    } catch (err) {
+      parsed = null;
+    }
+    const body = parsed?.['S:Envelope']?.['S:Body']?.['CREATEIACUSTACC_FSFS_RES'];
+    const status = body?.FCUBS_HEADER?.MSGSTAT || '';
+    const accountNumber = body?.FCUBS_BODY?.['Cust-Account-Full']?.ACC || null;
+    await pool.query(
+      'INSERT INTO bank_accounts (personal_info_id, customer_id, request_data, response_data, account_number, status) VALUES ($1,$2,$3,$4,$5,$6)',
+      [personalId, payload.accId || null, payload, parsed, accountNumber, status]
+    );
+    res.json({ success: status === 'SUCCESS', accountNumber, data: body });
+  } catch (e) {
+    let parsed;
+    if (e.response?.data) {
+      try {
+        parsed = await xml2js.parseStringPromise(e.response.data, { explicitArray: false });
+      } catch {}
+    }
+    await pool.query(
+      'INSERT INTO bank_accounts (personal_info_id, customer_id, request_data, response_data, status) VALUES ($1,$2,$3,$4,$5)',
+      [personalId, payload.accId || null, payload, parsed, 'FAILURE']
+    );
+    const errMsg = parsed?.['S:Envelope']?.['S:Body']?.['CREATEIACUSTACC_FSFS_RES']?.FCUBS_ERROR_RESP?.ERROR?.EDESC || 'server_error';
+    logError(`CREATE_BANK_ACC_ERROR ${e.message}`);
+    res.status(500).json({ error: errMsg });
   }
 });
 
