@@ -213,8 +213,14 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             </label>
           </li>
         </ul>
-        {signatureUrl && !accountNumber && (
-          <button className="btn-next" style={{marginTop:'20px'}} onClick={createAccount}>{t('createAccount', language)}</button>
+        {signatureUrl && (
+          <button
+            className="btn-next"
+            style={{ marginTop: '20px' }}
+            onClick={createAccount}
+          >
+            {t('createAccount', language)}
+          </button>
         )}
         {error && <p className="error-text" style={{color:'red',marginTop:'10px'}}>{error}</p>}
       </main>
