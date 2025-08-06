@@ -4,6 +4,7 @@ import { CalendarIcon, LockIcon } from '../common/Icons';
 import { logToServer } from '../utils/logger';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
+import FullPageLoader from '../common/FullPageLoader';
 import Footer from '../common/Footer';
 import TermsDialog from '../common/TermsDialog';
 import { t } from '../i18n';
@@ -351,12 +352,6 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
             <main className="form-main">
                 <h2 className="form-title">{t('personalInfo', language)}</h2>
                 <p className="guide-message">{t('requiredFieldsHint', language)}</p>
-                {loading && (
-                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',marginBottom:'20px'}}>
-                        <div className="loading-spinner"></div>
-                        <p style={{marginTop:'20px'}}>{t('extracting_data', language)}</p>
-                    </div>
-                )}
                 {error && <p className="error-message">{error}</p>}
                 <form className="form-container" style={{maxWidth: '900px'}} onSubmit={handleSubmit} noValidate>
                     <p className="guide-message">{t('editHint', language)}</p>
@@ -499,6 +494,7 @@ const PersonalInfoPage_EN = ({ onNavigate, backPage, flow, state }) => {
                     </div>
                 </div>
             )}
+            {loading && <FullPageLoader message={t('extracting_data', language)} />}
         </div>
     );
 };
