@@ -8,6 +8,7 @@ import Footer from '../common/Footer';
 import { MobileAppIcon, SmsIcon, CardIcon, VisaMasterIcon } from '../common/Icons';
 import '../styles/LookupPageTheme.css';
 import { logErrorToServer } from '../utils/logger';
+import FullPageLoader from '../common/FullPageLoader';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ADMIN_NAME = process.env.REACT_APP_ADMIN_NAME || 'Admin';
@@ -267,7 +268,6 @@ const LookupPage_EN = ({ onNavigate }) => {
                     </ul>
                     {apiError && <div className="error-message">{apiError}</div>}
                     <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',marginTop:'20px',alignItems:'center'}}>
-                        {approving && <div className="loading-spinner"></div>}
                         <button onClick={onCancel} className="btn-next" style={{backgroundColor:'var(--error-color)'}} disabled={approving}>Cancel</button>
                         <button onClick={()=>onConfirm(services)} className="btn-next" style={{backgroundColor:'var(--success-color)'}} disabled={approving}>OK</button>
                     </div>
@@ -302,6 +302,8 @@ const LookupPage_EN = ({ onNavigate }) => {
             if (resp.ok && data && data.CUSTID) {
                 updateStatus(selected.personalInfo.id, 'Approved');
                 setShowApproveDialog(false);
+                const photoDoc = selected.uploadedDocuments.find(d => d.doc_type === 'photo');
+                onNavigate('bankAccount', { personalInfo: selected.personalInfo, photo: photoDoc?.file_name, custId: data.CUSTID });
             } else {
                 const errMsg = data.error || 'server_error';
                 setApiError(errMsg);
@@ -376,6 +378,7 @@ const LookupPage_EN = ({ onNavigate }) => {
                 </div>
             </main>
             <Footer />
+            {(loading || approving) && <FullPageLoader message={loading ? 'Loading...' : 'Processing...'} />}
             {selected && (
                 <div className="modal-backdrop" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) setSelected(null);}}>
                     <div className="modal-content">

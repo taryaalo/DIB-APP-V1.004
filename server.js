@@ -978,12 +978,26 @@ app.post('/api/create-custid', async (req, res) => {
       logActivity(`CUSTOMER_API_RESPONSE ${JSON.stringify({ CUSTID: custId })}`);
       res.json({ CUSTID: custId });
     } else {
+      let errText = 'custid_missing';
+      if (typeof data === 'string') {
+        const matches = [...data.matchAll(/<error>([^<]+)<\/error>/gi)];
+        if (matches.length) {
+          errText = matches.map(m => m[1].trim()).join('; ');
+        }
+      }
       logError(`CREATE_CUSTID_INVALID_RESPONSE ${typeof data === 'string' ? data : JSON.stringify(data)}`);
-      res.status(500).json({ error: 'custid_missing' });
+      res.status(500).json({ error: errText });
     }
   } catch (e) {
+    let errText = 'server_error';
+    if (e.response?.data && typeof e.response.data === 'string') {
+      const matches = [...e.response.data.matchAll(/<error>([^<]+)<\/error>/gi)];
+      if (matches.length) {
+        errText = matches.map(m => m[1].trim()).join('; ');
+      }
+    }
     logError(`CREATE_CUSTID_ERROR ${e.message}`);
-    res.status(500).json({ error: 'server_error' });
+    res.status(500).json({ error: errText });
   }
 });
 
