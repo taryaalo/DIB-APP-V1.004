@@ -965,10 +965,13 @@ app.post('/api/create-custid', async (req, res) => {
     const respApi = await axios.post(process.env.CUST_API_URL, payload, { headers: { Authorization: `Bearer ${process.env.CUST_API_TOKEN}` } });
     const data = respApi.data;
     if (data && data.CUSTID) {
-      await pool.query('INSERT INTO customer_details (personal_info_id, customer_id, created_by) VALUES ($1,$2,$3)', [p.id, data.CUSTID, admin || 'admin']);
+      await pool.query('INSERT INTO customer_details (personal_info_id, customer_id, created_at, created_by) VALUES ($1,$2,NOW(),$3)', [p.id, data.CUSTID, admin || 'admin']);
+      logActivity(`CUSTOMER_API_RESPONSE ${JSON.stringify(data)}`);
+      res.json(data);
+    } else {
+      logError(`CREATE_CUSTID_INVALID_RESPONSE ${JSON.stringify(data)}`);
+      res.status(500).json({ error: 'custid_missing' });
     }
-    logActivity(`CUSTOMER_API_RESPONSE ${JSON.stringify(data)}`);
-    res.json(data);
   } catch (e) {
     logError(`CREATE_CUSTID_ERROR ${e.message}`);
     res.status(500).json({ error: 'server_error' });
