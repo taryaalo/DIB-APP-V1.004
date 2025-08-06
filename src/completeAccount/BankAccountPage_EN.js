@@ -62,23 +62,30 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
         if (resp.ok) {
           const data = await resp.json();
           setCustomer(data.personalInfo);
-          if (data.personalInfo?.branch_id) {
-            const br = await fetch(`${API_BASE_URL}/api/branch-date`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ branch: data.personalInfo.branch_id })
-            });
-            if (br.ok) {
-              const bd = await br.json();
-              setBranchDate(bd.branch_date || bd.date || '');
-            }
-          }
         }
       } catch (err) {}
       setLoading(false);
     };
     load();
   }, [nid]);
+
+  useEffect(() => {
+    const fetchBranchDate = async () => {
+      if (!customer?.branch_id) return;
+      try {
+        const br = await fetch(`${API_BASE_URL}/api/branch-date`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ branch: customer.branch_id })
+        });
+        if (br.ok) {
+          const bd = await br.json();
+          setBranchDate(bd.branch_date || bd.date || '');
+        }
+      } catch (err) {}
+    };
+    fetchBranchDate();
+  }, [customer?.branch_id]);
 
   const createAccount = async () => {
     if (!customer || !branchDate) return;
