@@ -7,6 +7,7 @@ import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { MobileAppIcon, SmsIcon, CardIcon, VisaMasterIcon } from '../common/Icons';
 import '../styles/LookupPageTheme.css';
+import { logErrorToServer } from '../utils/logger';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ADMIN_NAME = process.env.REACT_APP_ADMIN_NAME || 'Admin';
@@ -25,6 +26,8 @@ const LookupPage_EN = ({ onNavigate }) => {
     const [showApproveDialog, setShowApproveDialog] = useState(false);
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
+    const [approving, setApproving] = useState(false);
+    const [apiError, setApiError] = useState('');
 
     useEffect(() => {
         const load = async () => {
@@ -239,9 +242,9 @@ const LookupPage_EN = ({ onNavigate }) => {
             setServices(s => ({ ...s, [name]: checked }));
         };
         const icons = {
-            mobileApp: <MobileAppIcon />,
-            sms: <SmsIcon />,
-            localCard: <CardIcon />,
+            mobileApp: <MobileAppIcon />, 
+            sms: <SmsIcon />, 
+            localCard: <CardIcon />, 
             internationalCard: <VisaMasterIcon />
         };
         return (
@@ -262,9 +265,11 @@ const LookupPage_EN = ({ onNavigate }) => {
                             </li>
                         ))}
                     </ul>
-                    <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',marginTop:'20px'}}>
-                        <button onClick={onCancel} className="btn-next" style={{backgroundColor:'var(--error-color)'}}>Cancel</button>
-                        <button onClick={()=>onConfirm(services)} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>OK</button>
+                    {apiError && <div className="error-message">{apiError}</div>}
+                    <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',marginTop:'20px',alignItems:'center'}}>
+                        {approving && <div className="loading-spinner"></div>}
+                        <button onClick={onCancel} className="btn-next" style={{backgroundColor:'var(--error-color)'}} disabled={approving}>Cancel</button>
+                        <button onClick={()=>onConfirm(services)} className="btn-next" style={{backgroundColor:'var(--success-color)'}} disabled={approving}>OK</button>
                     </div>
                 </div>
             </div>
@@ -284,15 +289,29 @@ const LookupPage_EN = ({ onNavigate }) => {
     };
 
     const handleApproveConfirm = async (services) => {
+        if (!selected?.personalInfo?.reference_number) return;
+        setApproving(true);
+        setApiError('');
         try {
-            await fetch(`${API_BASE_URL}/api/create-custid`, {
+            const resp = await fetch(`${API_BASE_URL}/api/create-custid`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reference: selected.personalInfo.reference_number, admin: ADMIN_NAME })
             });
-        } catch (e) { console.error(e); }
-        updateStatus(selected.personalInfo.id, 'Approved');
-        setShowApproveDialog(false);
+            const data = await resp.json().catch(() => ({}));
+            if (resp.ok && data && data.CUSTID) {
+                updateStatus(selected.personalInfo.id, 'Approved');
+                setShowApproveDialog(false);
+            } else {
+                const errMsg = data.error || 'server_error';
+                setApiError(errMsg);
+                logErrorToServer(`CREATE_CUSTID_ERROR ${resp.status} ${errMsg}`);
+            }
+        } catch (e) {
+            setApiError(e.message);
+            logErrorToServer(`CREATE_CUSTID_ERROR ${e.message}`);
+        }
+        setApproving(false);
     };
 
     return (
