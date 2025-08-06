@@ -131,6 +131,7 @@ const translations = {
   gemini: { en: 'Gemini', ar: 'Gemini' },
   chatgpt: { en: 'ChatGPT', ar: 'شات جي بي تي' },
   change_document: { en: 'Change Document', ar: 'تغيير المستند' },
+  loading: { en: 'Loading...', ar: 'جارٍ التحميل...' },
   search: { en: 'Search', ar: 'بحث' },
   referenceOrNid: { en: 'Reference Number or National ID', ar: 'رقم المرجع أو الرقم الوطني' },
   not_found: { en: 'No data found.', ar: 'لم يتم العثور على بيانات.' },
