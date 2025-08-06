@@ -14,14 +14,13 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
   const { language } = useLanguage();
   const nid = state?.nid;
   const custId = state?.custId;
-  const personalId = state?.personalId;
+  const personalId = state?.personalId || state?.personalInfo?.id;
   const [customer, setCustomer] = useState(null);
   const [branchDate, setBranchDate] = useState('');
   const [signatureUrl, setSignatureUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [accountNumber, setAccountNumber] = useState('');
   const [error, setError] = useState('');
   const [checks, setChecks] = useState({
     mobile: false,
@@ -58,12 +57,31 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
   useEffect(() => {
     const load = async () => {
       try {
+        if (state?.personalInfo) {
+          setCustomer(state.personalInfo);
+          if (state.personalInfo.branch_id) {
+            const br = await fetch(`${API_BASE_URL}/api/branch-date`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ branch: state.personalInfo.branch_id })
+            });
+            if (br.ok) {
+              const bd = await br.json();
+              setBranchDate(bd.branch_date || bd.date || '');
+            }
+          }
+          setLoading(false);
+          return;
+        }
+        if (!nid) {
+          setLoading(false);
+          return;
+        }
         const resp = await fetch(`${API_BASE_URL}/api/customer?nid=${nid}`);
         if (resp.ok) {
           const data = await resp.json();
           setCustomer(data.personalInfo);
           if (data.personalInfo?.branch_id) {
-            console.log('Posting to /api/branch-date', { branch: data.personalInfo.branch_id });
             const br = await fetch(`${API_BASE_URL}/api/branch-date`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -71,11 +89,7 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             });
             if (br.ok) {
               const bd = await br.json();
-              console.log('Branch date response', bd);
               setBranchDate(bd.branch_date || bd.date || '');
-            } else {
-              const text = await br.text();
-              console.error('Branch date error', br.status, text);
             }
           }
         }
@@ -83,7 +97,7 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
       setLoading(false);
     };
     load();
-  }, [nid]);
+  }, [nid, state]);
 
   const createAccount = async () => {
     if (!customer || !branchDate) return;
@@ -111,7 +125,12 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
       });
       const data = await resp.json();
       if (resp.ok && data.success) {
-        setAccountNumber(data.accountNumber);
+        onNavigate('completeAccountSuccess', {
+          accountNumber: data.accountNumber,
+          customer,
+          custId,
+          photo: state?.photo
+        });
       } else {
         setError(data.error || t('server_error', language));
       }
@@ -197,7 +216,6 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
         {signatureUrl && !accountNumber && (
           <button className="btn-next" style={{marginTop:'20px'}} onClick={createAccount}>{t('createAccount', language)}</button>
         )}
-        {accountNumber && <div style={{marginTop:'20px',fontWeight:'600'}}>{t('accountNumber', language)}: {accountNumber}</div>}
         {error && <p className="error-text" style={{color:'red',marginTop:'10px'}}>{error}</p>}
       </main>
       <Footer />

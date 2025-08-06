@@ -30,6 +30,7 @@ import ReviewAddressInfoPage_EN from './completeAccount/ReviewAddressInfoPage_EN
 import EServicesRegistrationPage_EN from './completeAccount/EServicesRegistrationPage_EN';
 import AccountSummaryPage_EN from './completeAccount/AccountSummaryPage_EN';
 import BankAccountPage_EN from './completeAccount/BankAccountPage_EN';
+import CompleteAccountSuccessPage_EN from './completeAccount/CompleteAccountSuccessPage_EN';
 
 
 // ---=== Main App Component ===---
@@ -76,6 +77,7 @@ const AppContent = () => {
             case 'eServicesReg': return <EServicesRegistrationPage_EN onNavigate={handleNavigation} state={state} />;
             case 'accountSummary': return <AccountSummaryPage_EN onNavigate={handleNavigation} state={state} />;
             case 'bankAccount': return <BankAccountPage_EN onNavigate={handleNavigation} state={state} />;
+            case 'completeAccountSuccess': return <CompleteAccountSuccessPage_EN onNavigate={handleNavigation} state={state} />;
             
             case 'personalDocs':
             case 'businessmenDocs':
