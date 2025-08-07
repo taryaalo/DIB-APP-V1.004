@@ -187,7 +187,32 @@ const translations = {
   branch: { en: 'Branch ID', ar: 'رقم الفرع' },
   branchName: { en: 'Branch Name', ar: 'اسم الفرع' },
   cityCode: { en: 'City Code', ar: 'رمز المدينة' },
+  branchDate: { en: 'Branch Date', ar: 'تاريخ الفرع' },
   createAccount: { en: 'Create Bank Account', ar: 'إنشاء حساب بنكي' },
+  reprintDocuments: { en: 'Re-print Documents', ar: 'إعادة طباعة المستندات' },
+  customerSignature: { en: 'Customer Signature', ar: 'توقيع العميل' },
+  uploadFile: { en: 'Upload File', ar: 'تحميل ملف' },
+  contractMustBeSigned: { en: 'Contract must be signed by Customer', ar: 'نماذج يجب على العميل توقيعها' },
+  docMobileApp: {
+    en: 'Document the Mobile APP registration form signed by the customer',
+    ar: 'تم توقيع نموذج تسجيل تطبيق الموبايل من قبل العميل'
+  },
+  docSmsService: {
+    en: 'Document the SMS service registration form signed by the customer',
+    ar: 'تم توقيع نموذج تسجيل خدمة الرسائل القصيرة من قبل العميل'
+  },
+  docLocalCard: {
+    en: 'Document the Local Card registration form signed by the customer',
+    ar: 'تم توقيع نموذج تسجيل البطاقة المحلية من قبل العميل'
+  },
+  docInternationalCard: {
+    en: 'Document the International Card registration form signed by the customer',
+    ar: 'تم توقيع نموذج تسجيل البطاقة الدولية من قبل العميل'
+  },
+  docBankAgreement: {
+    en: 'Document the bank agreement form signed by the customer',
+    ar: 'تم توقيع اتفاقية البنك الموقعة من قبل العميل'
+  },
   accountNumber: { en: 'Account Number', ar: 'رقم الحساب' },
   creating: { en: 'Creating...', ar: 'جارٍ الإنشاء...' },
   dateOfIssue: { en: 'Passport Issuing Date', ar: 'تاريخ اصدار جواز السفر' },

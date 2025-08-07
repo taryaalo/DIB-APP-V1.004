@@ -1,39 +1,40 @@
-// src/completeAccount/BankAccountPage_EN.js
 import React, { useState, useEffect } from 'react';
-import { LOGO_WHITE } from '../assets/imagePaths';
-import ThemeSwitcher from '../common/ThemeSwitcher';
-import LanguageSwitcher from '../common/LanguageSwitcher';
-import Footer from '../common/Footer';
 import FullPageLoader from '../common/FullPageLoader';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
+import '../styles/BankAccountPage_EN.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 const BankAccountPage_EN = ({ onNavigate, state }) => {
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
+  const isArabic = language === 'ar';
+
   const nid = state?.nid;
   const custId = state?.custId;
   const personalId = state?.personalId || state?.personalInfo?.id;
+
   const [customer, setCustomer] = useState(null);
   const [branchDate, setBranchDate] = useState('');
   const [signatureUrl, setSignatureUrl] = useState('');
+  const [signatureName, setSignatureName] = useState('');
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [checks, setChecks] = useState({
-    mobile: false,
-    sms: false,
-    localCard: false,
-    internationalCard: false
+    doc1: false,
+    doc2: false,
+    doc3: false,
+    doc4: false,
+    doc5: false
   });
 
-  const handleCheck = (key) => (e) => {
+  const handleCheck = key => e => {
     setChecks({ ...checks, [key]: e.target.checked });
   };
 
-  const handleSignature = async (e) => {
+  const handleSignature = async e => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
@@ -47,6 +48,7 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
       const resp = await fetch(`${API_BASE_URL}/api/add-document`, { method: 'POST', body: formData });
       if (resp.ok) {
         setSignatureUrl(URL.createObjectURL(file));
+        setSignatureName(file.name);
       }
     } catch (err) {
       console.error(err);
@@ -93,11 +95,16 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             }
           }
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error(err);
+      }
       setLoading(false);
     };
     load();
   }, [nid, state]);
+
+  const allChecked = Object.values(checks).every(Boolean);
+  const canCreate = signatureUrl && allChecked;
 
   const createAccount = async () => {
     if (!customer || !branchDate) return;
@@ -141,91 +148,146 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
   };
 
   return (
-    <div className="form-page">
-      <header className="header docs-header">
-        <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
-        <div className="header-switchers">
-          <ThemeSwitcher />
-          <LanguageSwitcher />
-        </div>
-        <button onClick={() => onNavigate('completeAccount')} className="btn-back">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          <span>{t('back', language)}</span>
-        </button>
-      </header>
-      <main className="form-main" style={{maxWidth:'800px'}}>
-        <h2 className="form-title">{t('bankAccountOpening', language)}</h2>
-        <p className="guide-message">{t('customerId', language)}: {custId}</p>
-        {customer && (
-          <table className="table" style={{marginBottom:'20px'}}>
-            <tbody>
-              <tr><td>{t('fullName', language)}</td><td>{customer.full_name}</td></tr>
-              <tr><td>{t('branch', language)}</td><td>{customer.branch_id}</td></tr>
-              <tr><td>{t('branchName', language)}</td><td>{customer.branch_name}</td></tr>
-              <tr><td>{t('cityCode', language)}</td><td>{customer.city_code}</td></tr>
-              <tr><td>{t('city', language)}</td><td>{customer.city_name}</td></tr>
-              <tr><td>{t('passportNumber', language)}</td><td>{customer.passport_number}</td></tr>
-              <tr><td>{t('passportExpiryDate', language)}</td><td>{customer.passport_expiry_date}</td></tr>
-              <tr><td>Branch Date</td><td>{branchDate}</td></tr>
-            </tbody>
-          </table>
-        )}
-        <div className="form-group">
-          <label>Customer Signature</label>
-          <input type="file" accept="image/*" onChange={handleSignature} />
-          {signatureUrl && <img src={signatureUrl} alt="Signature" style={{maxWidth:'200px',marginTop:'10px'}} />}
-        </div>
-        <ul className="confirmation-list">
-          <li>
-            <label className="agreement-item">
-              <div className="custom-checkbox">
-                <input type="checkbox" checked={checks.mobile} onChange={handleCheck('mobile')} />
-                <span className="checkmark"></span>
-              </div>
-              <span>Document the Mobile APP registration form signed by the customer</span>
-            </label>
-          </li>
-          <li>
-            <label className="agreement-item">
-              <div className="custom-checkbox">
-                <input type="checkbox" checked={checks.sms} onChange={handleCheck('sms')} />
-                <span className="checkmark"></span>
-              </div>
-              <span>Document the SMS service registration form signed by the customer</span>
-            </label>
-          </li>
-          <li>
-            <label className="agreement-item">
-              <div className="custom-checkbox">
-                <input type="checkbox" checked={checks.localCard} onChange={handleCheck('localCard')} />
-                <span className="checkmark"></span>
-              </div>
-              <span>Document the Local Card registration form signed by the customer</span>
-            </label>
-          </li>
-          <li>
-            <label className="agreement-item">
-              <div className="custom-checkbox">
-                <input type="checkbox" checked={checks.internationalCard} onChange={handleCheck('internationalCard')} />
-                <span className="checkmark"></span>
-              </div>
-              <span>Document the international Card registration form signed by the customer</span>
-            </label>
-          </li>
-        </ul>
-        {signatureUrl && (
-          <button
-            className="btn-next"
-            style={{ marginTop: '20px' }}
-            onClick={createAccount}
-          >
-            {t('createAccount', language)}
+    <div className={`bank-account-page ${isArabic ? 'font-arabic' : 'font-english'}`} dir={isArabic ? 'rtl' : 'ltr'}>
+      <header className="bank-account-header">
+        <div className="bank-account-header-inner">
+          <button onClick={() => onNavigate('completeAccount')} className="back-btn">
+            {isArabic ? (
+              <>
+                <span>{t('back', language)}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="arrow rtl"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="arrow ltr"
+                >
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+                <span>{t('back', language)}</span>
+              </>
+            )}
           </button>
-        )}
-        {error && <p className="error-text" style={{color:'red',marginTop:'10px'}}>{error}</p>}
+          <div className="lang-switcher">
+            <button onClick={() => setLanguage('ar')} className={isArabic ? 'active' : ''}>
+              {t('arabic', 'ar')}
+            </button>
+            <button onClick={() => setLanguage('en')} className={!isArabic ? 'active' : ''}>
+              {t('english', 'en')}
+            </button>
+          </div>
+        </div>
+      </header>
+      <main className="bank-account-main">
+        <div className="bank-account-content">
+          <h1 className="page-title">{t('bankAccountOpening', language)}</h1>
+          <div>
+            <span className="customer-badge">{`${t('customerId', language)}: ${custId || ''}`}</span>
+          </div>
+          {customer && (
+            <div className="info-grid">
+              <div>
+                <p className="field-label">{t('fullName', language)}</p>
+                <p className="field-value">{customer.full_name}</p>
+              </div>
+              <div>
+                <p className="field-label">{t('branch', language)}</p>
+                <p className="field-value">{customer.branch_id}</p>
+              </div>
+              <div>
+                <p className="field-label">{t('branchName', language)}</p>
+                <p className="field-value">{customer.branch_name}</p>
+              </div>
+              <div>
+                <p className="field-label">{t('cityCode', language)}</p>
+                <p className="field-value">{customer.city_code}</p>
+              </div>
+              <div>
+                <p className="field-label">{t('city', language)}</p>
+                <p className="field-value">{customer.city_name}</p>
+              </div>
+              <div>
+                <p className="field-label">{t('passportNumber', language)}</p>
+                <p className="field-value">{customer.passport_number}</p>
+              </div>
+              <div>
+                <p className="field-label">{t('passportExpiryDate', language)}</p>
+                <p className="field-value" dir="ltr">{customer.passport_expiry_date}</p>
+              </div>
+              <div>
+                <p className="field-label">{t('branchDate', language)}</p>
+                <p className="field-value" dir="ltr">{branchDate}</p>
+              </div>
+            </div>
+          )}
+          <div className="signature-section">
+            <p className="field-label">{t('customerSignature', language)}</p>
+            <div className={`signature-controls ${isArabic ? 'rtl' : ''}`}>
+              <input type="file" id="signature-upload" className="hidden" onChange={handleSignature} />
+              <label htmlFor="signature-upload" className="secondary-btn">{t('uploadFile', language)}</label>
+              <span className="field-label">{signatureName}</span>
+            </div>
+          </div>
+          <div className="doc-list">
+            <h2 className="doc-title">{t('contractMustBeSigned', language)}</h2>
+            <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
+              <input type="checkbox" id="doc1" className="document-checkbox" checked={checks.doc1} onChange={handleCheck('doc1')} />
+              <label htmlFor="doc1">{t('docMobileApp', language)}</label>
+            </div>
+            <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
+              <input type="checkbox" id="doc2" className="document-checkbox" checked={checks.doc2} onChange={handleCheck('doc2')} />
+              <label htmlFor="doc2">{t('docSmsService', language)}</label>
+            </div>
+            <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
+              <input type="checkbox" id="doc3" className="document-checkbox" checked={checks.doc3} onChange={handleCheck('doc3')} />
+              <label htmlFor="doc3">{t('docLocalCard', language)}</label>
+            </div>
+            <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
+              <input type="checkbox" id="doc4" className="document-checkbox" checked={checks.doc4} onChange={handleCheck('doc4')} />
+              <label htmlFor="doc4">{t('docInternationalCard', language)}</label>
+            </div>
+            <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
+              <input type="checkbox" id="doc5" className="document-checkbox" checked={checks.doc5} onChange={handleCheck('doc5')} />
+              <label htmlFor="doc5">{t('docBankAgreement', language)}</label>
+            </div>
+          </div>
+          <div className="action-buttons">
+            <button
+              id="create-account-button"
+              onClick={createAccount}
+              disabled={!canCreate}
+              className="primary-btn"
+            >
+              {t('createAccount', language)}
+            </button>
+            <button className="secondary-btn">{t('reprintDocuments', language)}</button>
+          </div>
+          {error && <p className="error-message">{error}</p>}
+        </div>
       </main>
-      <Footer />
-      {(uploading || loading || creating) && <FullPageLoader message={creating ? t('creating', language) : 'Loading...'} />}
+      {(uploading || loading || creating) && <FullPageLoader message={creating ? t('creating', language) : t('loading', language)} />}
     </div>
   );
 };

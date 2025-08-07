@@ -1,0 +1,226 @@
+.bank-account-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--docs-bg);
+  color: var(--text-color-dark);
+}
+
+.bank-account-header {
+  padding: 16px;
+}
+
+.bank-account-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color-dark);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.back-btn:hover {
+  color: var(--primary-dark);
+}
+
+.back-btn .arrow.ltr {
+  margin-right: 8px;
+}
+
+.back-btn .arrow.rtl {
+  margin-left: 8px;
+}
+
+.lang-switcher button {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color-dark);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.lang-switcher button.active {
+  text-decoration: underline;
+  color: var(--primary-color);
+}
+
+.bank-account-main {
+  flex-grow: 1;
+  padding: 16px;
+}
+
+.bank-account-content {
+  max-width: 1024px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(4px);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-color-dark);
+}
+
+.customer-badge {
+  display: inline-block;
+  background-color: var(--docs-bg);
+  color: var(--primary-dark);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  margin-bottom: 32px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px 32px;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 640px) {
+  .info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .info-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.field-label {
+  font-size: 0.875rem;
+  color: var(--text-color-dark);
+  opacity: 0.6;
+  margin-bottom: 4px;
+}
+
+.field-value {
+  font-weight: 600;
+}
+
+.signature-section {
+  margin-bottom: 32px;
+}
+
+.signature-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.signature-controls.rtl {
+  flex-direction: row-reverse;
+}
+
+.doc-list {
+  margin-bottom: 40px;
+}
+
+.doc-title {
+  font-weight: 600;
+  color: var(--text-color-dark);
+  margin-bottom: 16px;
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+}
+
+.doc-item.rtl {
+  flex-direction: row-reverse;
+}
+
+.doc-item label {
+  margin: 0 12px;
+}
+
+.document-checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary-color);
+}
+
+.action-buttons {
+  margin-top: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.primary-btn {
+  background-color: var(--primary-color);
+  color: var(--text-color-light);
+  font-weight: 700;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary-btn:not(:disabled):hover {
+  background-color: var(--primary-dark);
+}
+
+.secondary-btn {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  font-weight: 700;
+  padding: 12px 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.secondary-btn:hover {
+  background-color: var(--docs-bg);
+}
+
+.error-message {
+  color: var(--error-color);
+  margin-top: 16px;
+}
+
+.font-english {
+  font-family: var(--font-primary-en);
+}
+
+.font-arabic {
+  font-family: var(--font-primary-ar);
+}
+
+.hidden {
+  display: none;
+}
+
