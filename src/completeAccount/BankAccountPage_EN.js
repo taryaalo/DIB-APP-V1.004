@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import FullPageLoader from '../common/FullPageLoader';
+import ThemeSwitcher from '../common/ThemeSwitcher';
+import LanguageSwitcher from '../common/LanguageSwitcher';
+import Footer from '../common/Footer';
+import { LOGO_COLOR } from '../assets/imagePaths';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 import '../styles/BankAccountPage_EN.css';
@@ -7,7 +11,7 @@ import '../styles/BankAccountPage_EN.css';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 const BankAccountPage_EN = ({ onNavigate, state }) => {
-  const { language, setLanguage } = useLanguage();
+  const { language } = useLanguage();
   const isArabic = language === 'ar';
 
   const nid = state?.nid;
@@ -149,56 +153,28 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
 
   return (
     <div className={`bank-account-page ${isArabic ? 'font-arabic' : 'font-english'}`} dir={isArabic ? 'rtl' : 'ltr'}>
-      <header className="bank-account-header">
-        <div className="bank-account-header-inner">
-          <button onClick={() => onNavigate('completeAccount')} className="back-btn">
-            {isArabic ? (
-              <>
-                <span>{t('back', language)}</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="arrow rtl"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </>
-            ) : (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="arrow ltr"
-                >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-                <span>{t('back', language)}</span>
-              </>
-            )}
-          </button>
-          <div className="lang-switcher">
-            <button onClick={() => setLanguage('ar')} className={isArabic ? 'active' : ''}>
-              {t('arabic', 'ar')}
-            </button>
-            <button onClick={() => setLanguage('en')} className={!isArabic ? 'active' : ''}>
-              {t('english', 'en')}
-            </button>
-          </div>
+      <header className="header docs-header">
+        <img src={LOGO_COLOR} alt="Bank Logo" className="logo" />
+        <div className="header-switchers">
+          <ThemeSwitcher />
+          <LanguageSwitcher />
         </div>
+        <button onClick={() => onNavigate('completeAccount')} className="btn-back">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span>{t('back', language)}</span>
+        </button>
       </header>
       <main className="bank-account-main">
         <div className="bank-account-content">
@@ -287,7 +263,10 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
           {error && <p className="error-message">{error}</p>}
         </div>
       </main>
-      {(uploading || loading || creating) && <FullPageLoader message={creating ? t('creating', language) : t('loading', language)} />}
+      <Footer />
+      {(uploading || loading || creating) && (
+        <FullPageLoader message={creating ? t('creating', language) : t('loading', language)} />
+      )}
     </div>
   );
 };
