@@ -67,7 +67,7 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             });
             if (br.ok) {
               const bd = await br.json();
-              setBranchDate(bd.branch_date || bd.date || '');
+              setBranchDate(typeof bd === 'string' ? bd : (bd.branch_date || bd.date || ''));
             }
           }
           setLoading(false);
@@ -89,7 +89,7 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             });
             if (br.ok) {
               const bd = await br.json();
-              setBranchDate(bd.branch_date || bd.date || '');
+              setBranchDate(typeof bd === 'string' ? bd : (bd.branch_date || bd.date || ''));
             }
           }
         }
