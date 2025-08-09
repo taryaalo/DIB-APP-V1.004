@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import * as faceapi from 'face-api.js';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useFormData } from '../contexts/FormContext';
@@ -35,12 +35,13 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
   const currentChallengeIndex = useRef(0);
   const initialNosePosition = useRef(null);
   const allLivenessData = useRef({});
+  const initializedRef = useRef(false);
 
   const [status, setStatus] = useState(t('loadingModels', language));
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
 
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     try {
       const mediaDevices = navigator.mediaDevices;
       let stream;
@@ -78,9 +79,12 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
       console.error('Camera error', err);
       return false;
     }
-  };
+  }, [language]);
 
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     const init = async () => {
       setStatus(t('requestingCameraPermission', language));
       if (!(await startCamera())) return;
@@ -96,7 +100,7 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
     };
 
     init();
-  }, []);
+  }, [language, startCamera]);
 
   useEffect(() => {
     if (permissionDenied) {
