@@ -45,7 +45,10 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
       const mediaDevices = navigator.mediaDevices;
       let stream;
       if (mediaDevices && typeof mediaDevices.getUserMedia === 'function') {
-        stream = await mediaDevices.getUserMedia({ video: true });
+        stream = await mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false,
+        });
       } else {
         const legacyGetUserMedia =
           navigator.getUserMedia ||
@@ -56,12 +59,18 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
           throw new Error('MediaDevices API or getUserMedia not supported');
         }
         stream = await new Promise((resolve, reject) =>
-          legacyGetUserMedia.call(navigator, { video: true }, resolve, reject)
+          legacyGetUserMedia.call(
+            navigator,
+            { video: { facingMode: 'user' }, audio: false },
+            resolve,
+            reject
+          )
         );
       }
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
+      setPermissionDenied(false);
       return true;
     } catch (err) {
       setPermissionDenied(true);
