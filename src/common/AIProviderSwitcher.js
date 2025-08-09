@@ -18,6 +18,12 @@ const AIProviderSwitcher = ({ provider, onChange }) => {
       >
         {t('chatgpt', language)}
       </span>
+      <span
+        className={provider === 'tesseract' ? 'active' : ''}
+        onClick={() => onChange('tesseract')}
+      >
+        {t('tesseract', language)}
+      </span>
     </div>
   );
 };
