@@ -21,6 +21,7 @@ import SuccessPage_EN from './accountOpening/SuccessPage_EN';
 import ConfirmPage_EN from './accountOpening/ConfirmPage_EN';
 import EServicesLanding from './eServices/EServicesLandingPage';
 import SequentialDocsPage_EN from './accountOpening/SequentialDocsPage_EN';
+import SelfiePage_EN from './accountOpening/SelfiePage_EN';
 import LookupPage_EN from './completeAccount/LookupPage_EN';
 import SelectApplicationPage_EN from './completeAccount/SelectApplicationPage_EN';
 import BankAccountLookupPage_EN from './completeAccount/BankAccountLookupPage_EN';
@@ -83,7 +84,10 @@ const AppContent = () => {
             case 'businessmenDocs':
             case 'guaranteedDocs':
             case 'expatDocs':
-              return <SequentialDocsPage_EN onNavigate={handleNavigation} backPage="selectUser" nextPage="contactInfo" />;
+              return <SequentialDocsPage_EN onNavigate={handleNavigation} backPage="selectUser" nextPage="contactInfo" selfPage={page} />;
+
+            case 'faceRegistration':
+              return <SelfiePage_EN onNavigate={handleNavigation} backPage={state?.backPage || 'selectUser'} nextPage={state?.nextPage || 'contactInfo'} />;
 
             case 'companiesDocs': return <CompaniesDocsPage_EN onNavigate={handleNavigation} backPage="selectUser" nextPage="companyInfo" />;
             case 'companyInfo': return <CompanyInfoPage_EN onNavigate={handleNavigation} backPage="companiesDocs" nextPage="companyContact" />;

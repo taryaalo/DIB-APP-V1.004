@@ -9,7 +9,7 @@ import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import AIProviderSwitcher from '../common/AIProviderSwitcher';
 import Footer from '../common/Footer';
-import { UploadIcon, SuccessIcon } from '../common/Icons';
+import { UploadIcon } from '../common/Icons';
 import { LOGO_WHITE } from '../assets/imagePaths';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useFormData } from '../contexts/FormContext';
@@ -19,10 +19,9 @@ const DOCS = [
   { key: 'passport', labelKey: 'passportPhoto' },
   { key: 'nationalId', labelKey: 'approvedNationalId' },
   { key: 'letter', labelKey: 'accountOpeningLetter' },
-  { key: 'photo', labelKey: 'recentPersonalPhoto' },
 ];
 
-const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
+const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => {
     const { language } = useLanguage();
     const { setFormData, formData } = useFormData();
     const [current, setCurrent] = useState(0);
@@ -155,7 +154,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                 setCurrent(c => c + 1);
                 resetComponentState();
             } else {
-                onNavigate(nextPage);
+                onNavigate('faceRegistration', { backPage: selfPage, nextPage });
             }
             setIsConfirming(false);
         }, 500);
@@ -184,7 +183,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                 </button>
             </header>
             <main className="form-main">
-                 <input type="file" ref={fileInputRef} onChange={(e) => handleUpload(e.target.files[0])} accept="image/*" style={{ display: 'none' }} capture={doc.key==='photo' ? 'user' : undefined} />
+                 <input type="file" ref={fileInputRef} onChange={(e) => handleUpload(e.target.files[0])} accept="image/*" style={{ display: 'none' }} />
 
                 <div className="controls-header">
                    <h2 className="page-title">{t(doc.labelKey, language)}</h2>
@@ -199,7 +198,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage }) => {
                 {!image ? (
                   <div className={`upload-area ${isDragging ? 'drag-over' : ''}`} onClick={() => fileInputRef.current.click()} onDragEnter={handleDragEvents} onDragOver={handleDragEvents} onDragLeave={handleDragEvents} onDrop={handleDrop}>
                     <div className="upload-icon"><UploadIcon /></div>
-                    <h2>{doc.key==='photo' ? t('take_picture', language) : t('upload_prompt', language)}</h2>
+                    <h2>{t('upload_prompt', language)}</h2>
                   </div>
                 ) : (
                   <div className="result-container">
