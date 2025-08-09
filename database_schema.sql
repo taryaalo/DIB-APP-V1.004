@@ -103,6 +103,14 @@ CREATE TABLE IF NOT EXISTS error_log (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS selfie_data (
+    id SERIAL PRIMARY KEY,
+    reference_number VARCHAR(100) UNIQUE NOT NULL,
+    photo_paths JSONB,
+    descriptors JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS customer_details (
     id SERIAL PRIMARY KEY,
     personal_info_id INT REFERENCES personal_info(id) ON DELETE CASCADE,

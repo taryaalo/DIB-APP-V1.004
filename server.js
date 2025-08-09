@@ -184,6 +184,33 @@ app.get('/api/cached-uploads', (req, res) => {
     res.json(cachedUploads[sid] || {});
 });
 
+app.post('/api/save-selfie', async (req, res) => {
+  const { referenceNumber, photos, data } = req.body || {};
+  if (!referenceNumber || !photos || !data) return res.status(400).json({ error: 'missing_data' });
+  try {
+    const dir = path.join(userDocsBase, referenceNumber, 'selfie');
+    fs.mkdirSync(dir, { recursive: true });
+    const photoPaths = {};
+    for (const [key, dataUrl] of Object.entries(photos)) {
+      const base64 = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(base64, 'base64');
+      const filePath = path.join(dir, `${key}.jpg`);
+      fs.writeFileSync(filePath, buffer);
+      photoPaths[key] = path.relative(userDocsBase, filePath).replace(/\\/g, '/');
+    }
+    const jsonPath = path.join(dir, 'facial_analysis_all_stages.json');
+    fs.writeFileSync(jsonPath, JSON.stringify(data));
+    await pool.query(
+      'INSERT INTO selfie_data(reference_number, photo_paths, descriptors) VALUES($1,$2,$3) ON CONFLICT (reference_number) DO UPDATE SET photo_paths=$2, descriptors=$3',
+      [referenceNumber, photoPaths, data]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    logError(`SAVE_SELFIE_ERROR ${e.message}`);
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
 app.get('/api/branches', async (req, res) => {
   try {
     const result = await pool.query('SELECT branch_id, name_en, name_ar, city, location FROM bank_branches ORDER BY branch_id');
