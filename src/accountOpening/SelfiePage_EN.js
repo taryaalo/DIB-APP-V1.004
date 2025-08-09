@@ -38,37 +38,44 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
 
   const [status, setStatus] = useState(t('loadingModels', language));
   const [buttonDisabled, setButtonDisabled] = useState(true);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   useEffect(() => {
-    setStatus(t('loadingModels', language));
-    Promise.all([
-      faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
-      faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
-      faceapi.nets.ssdMobilenetv1.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
-      faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/')
-    ]).then(startCamera).catch(err => {
-      console.error('Model loading error', err);
-      setStatus('Error loading models.');
-    });
+    const init = async () => {
+      setStatus(t('requestingCameraPermission', language));
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setStatus(t('loadingModels', language));
+        await Promise.all([
+          faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
+          faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
+          faceapi.nets.ssdMobilenetv1.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
+          faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/')
+        ]);
+        setStatus(t('cameraReady', language));
+        setButtonDisabled(false);
+      } catch (err) {
+        setPermissionDenied(true);
+        setStatus(t('cameraPermissionDenied', language));
+        console.error('Camera error', err);
+      }
+    };
+
+    init();
   }, []);
 
   useEffect(() => {
-    setStatus(t('cameraReady', language));
-  }, [language]);
-
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setStatus(t('cameraReady', language));
-        setButtonDisabled(false);
-      }
-    } catch (err) {
-      setStatus('Could not access cameras.');
-      console.error('Camera error', err);
+    if (permissionDenied) {
+      setStatus(t('cameraPermissionDenied', language));
+    } else if (buttonDisabled) {
+      setStatus(t('loadingModels', language));
+    } else {
+      setStatus(t('cameraReady', language));
     }
-  };
+  }, [language, buttonDisabled, permissionDenied]);
 
   const updateGuide = (challenge) => {
     const guideText = guideTextRef.current;
