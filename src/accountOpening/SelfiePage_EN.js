@@ -40,28 +40,34 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
 
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      return true;
+    } catch (err) {
+      setPermissionDenied(true);
+      setStatus(t('cameraPermissionDenied', language));
+      console.error('Camera error', err);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       setStatus(t('requestingCameraPermission', language));
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-        setStatus(t('loadingModels', language));
-        await Promise.all([
-          faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
-          faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
-          faceapi.nets.ssdMobilenetv1.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
-          faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/')
-        ]);
-        setStatus(t('cameraReady', language));
-        setButtonDisabled(false);
-      } catch (err) {
-        setPermissionDenied(true);
-        setStatus(t('cameraPermissionDenied', language));
-        console.error('Camera error', err);
-      }
+      if (!(await startCamera())) return;
+      setStatus(t('loadingModels', language));
+      await Promise.all([
+        faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
+        faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
+        faceapi.nets.ssdMobilenetv1.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
+        faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/')
+      ]);
+      setStatus(t('cameraReady', language));
+      setButtonDisabled(false);
     };
 
     init();
@@ -194,14 +200,24 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
   };
 
   const startVerification = () => {
-    overlayRef.current.classList.add('success');
     verificationInterval.current = setInterval(async () => {
-      const detection = await faceapi.detectSingleFace(videoRef.current).withFaceLandmarks().withFaceDescriptor();
+      const detection = await faceapi
+        .detectSingleFace(videoRef.current)
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
       if (detection && registeredDescriptor.current) {
-        const distance = faceapi.euclideanDistance(registeredDescriptor.current, detection.descriptor);
+        const distance = faceapi.euclideanDistance(
+          registeredDescriptor.current,
+          detection.descriptor
+        );
+
         if (distance < 0.6) {
           clearInterval(verificationInterval.current);
-          setStatus(t('identityVerified', language) + ` (Distance: ${distance.toFixed(2)})`);
+          overlayRef.current.classList.add('success');
+          setStatus(
+            t('identityVerified', language) + ` (Distance: ${distance.toFixed(2)})`
+          );
           drawDetections(detection);
           capturePhoto(videoRef.current, photoRefs.verified.current);
         }
