@@ -7,8 +7,11 @@ import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { MobileAppIcon, SmsIcon, CardIcon, VisaMasterIcon } from '../common/Icons';
 import '../styles/LookupPageTheme.css';
+import '../styles/LookupPage_EN.css';
 import { logErrorToServer } from '../utils/logger';
 import FullPageLoader from '../common/FullPageLoader';
+import { t } from '../i18n';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ADMIN_NAME = process.env.REACT_APP_ADMIN_NAME || 'Admin';
@@ -29,6 +32,7 @@ const LookupPage_EN = ({ onNavigate }) => {
     const [cities, setCities] = useState([]);
     const [approving, setApproving] = useState(false);
     const [apiError, setApiError] = useState('');
+    const { language } = useLanguage();
 
     useEffect(() => {
         const load = async () => {
@@ -169,7 +173,7 @@ const LookupPage_EN = ({ onNavigate }) => {
         if (!data) return null;
         if (isEditing) {
             return (
-                <div className="confirmation-document" style={{marginBottom:'20px'}}>
+                <div className="confirmation-document">
                     <div className="confirmation-header">{title}</div>
                     {Object.entries(data).map(([k,v]) => (
                         (v !== null && typeof v !== 'object' && !['id', 'created_at', 'reference_number', 'ai_model', 'confirmed_by_admin', 'approved_by_admin_name', 'approved_by_admin_ip', 'full_name'].includes(k)) && (
@@ -177,13 +181,13 @@ const LookupPage_EN = ({ onNavigate }) => {
                                 <label>{k.replace(/_/g,' ')}</label>
                                 {sectionName === 'addressInfo' && k === 'country' ? (
                                     <select className="form-input" value={editData.addressInfo?.country || ''} onChange={e=>{handleEditChange('addressInfo','country',e.target.value);}}>
-                                        <option value="">Country</option>
+                                        <option value="">{t('country', language)}</option>
                                         {countries.map(c => <option key={c.code} value={c.code}>{c.name_en}</option>)}
                                     </select>
                                 ) : sectionName === 'addressInfo' && k === 'city' ? (
                                     <select className="form-input" value={editData.addressInfo?.city || ''} onChange={e=>handleEditChange('addressInfo','city',e.target.value)}>
-                                        <option value="">City</option>
-                                        {cities.length > 0 ? cities.map(c => <option key={c.city_code} value={c.city_code}>{c.name_en}</option>) : <option value="other">Other</option>}
+                                        <option value="">{t('city', language)}</option>
+                                        {cities.length > 0 ? cities.map(c => <option key={c.city_code} value={c.city_code}>{c.name_en}</option>) : <option value="other">{t('other', language)}</option>}
                                     </select>
                                 ) : (
                                     <input
@@ -200,7 +204,7 @@ const LookupPage_EN = ({ onNavigate }) => {
             )
         }
         return (
-            <div className="confirmation-document" style={{marginBottom:'20px'}}>
+            <div className="confirmation-document">
                 <div className="confirmation-header">{title}</div>
                 <ul className="confirmation-list">
                     {Object.entries(data).map(([k,v]) => (
@@ -216,19 +220,19 @@ const LookupPage_EN = ({ onNavigate }) => {
     const docsSection = (docs) => {
         if (!docs || docs.length === 0) return null;
         return (
-            <div className="confirmation-document" style={{marginBottom:'20px'}}>
-                <div className="confirmation-header">Uploaded Documents</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'15px'}}>
+            <div className="confirmation-document">
+                <div className="confirmation-header">{t('uploadedDocuments', language)}</div>
+                <div className="doc-grid">
                     {docs.map(doc => {
                         const file = doc.file_name.replace(/\\/g,'/').split('/').pop();
                         const path = `${API_BASE_URL}/user_document/${doc.reference_number}/${file}`;
                         return (
-                        <div key={doc.file_name} style={{textAlign:'center'}}>
-                           <img src={path} alt={doc.doc_type} style={{width:'100%',height:'120px',objectFit:'cover',borderRadius:'8px',marginBottom:'5px', cursor: 'pointer'}} onClick={() => setImageModalUrl(path)} />
+                        <div key={doc.file_name} className="doc-item">
+                           <img src={path} alt={doc.doc_type} className="doc-img" onClick={() => setImageModalUrl(path)} />
                            {isEditing && (
                                <input type="file" onChange={(e) => handleFileChange(doc.doc_type, e.target.files[0])} />
                            )}
-                            <p style={{fontSize:'0.9rem',fontWeight:'600'}}>{doc.doc_type}</p>
+                            <p className="doc-label">{doc.doc_type}</p>
                         </div>
                     )})}
                 </div>
@@ -243,15 +247,21 @@ const LookupPage_EN = ({ onNavigate }) => {
             setServices(s => ({ ...s, [name]: checked }));
         };
         const icons = {
-            mobileApp: <MobileAppIcon />, 
-            sms: <SmsIcon />, 
-            localCard: <CardIcon />, 
+            mobileApp: <MobileAppIcon />,
+            sms: <SmsIcon />,
+            localCard: <CardIcon />,
             internationalCard: <VisaMasterIcon />
+        };
+        const serviceLabels = {
+            mobileApp: t('registerMobileApp', language),
+            sms: t('registerSmsService', language),
+            localCard: t('registerLocalCard', language),
+            internationalCard: t('registerInternationalCard', language)
         };
         return (
             <div className="modal-backdrop" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) onCancel();}}>
                 <div className="modal-content">
-                    <h3 style={{marginTop:0}}>Register e-Services</h3>
+                    <h3 className="modal-title">{t('registerEServices', language)}</h3>
                     <ul className="confirmation-list">
                         {['mobileApp','sms','localCard','internationalCard'].map(key=> (
                             <li key={key}>
@@ -261,15 +271,15 @@ const LookupPage_EN = ({ onNavigate }) => {
                                         <span className="checkmark"></span>
                                     </div>
                                     {icons[key]}
-                                    <span>{key}</span>
+                                    <span>{serviceLabels[key]}</span>
                                 </label>
                             </li>
                         ))}
                     </ul>
-                    {apiError && <div className="error-message">{apiError}</div>}
-                    <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',marginTop:'20px',alignItems:'center'}}>
-                        <button onClick={onCancel} className="btn-next" style={{backgroundColor:'var(--error-color)'}} disabled={approving}>Cancel</button>
-                        <button onClick={()=>onConfirm(services)} className="btn-next" style={{backgroundColor:'var(--success-color)'}} disabled={approving}>OK</button>
+                    {apiError && <div className="error-message">{t(apiError, language)}</div>}
+                    <div className="modal-actions">
+                        <button onClick={onCancel} className="btn-next btn-cancel" disabled={approving}>{t('cancel', language)}</button>
+                        <button onClick={()=>onConfirm(services)} className="btn-next btn-confirm" disabled={approving}>{t('confirm', language)}</button>
                     </div>
                 </div>
             </div>
@@ -325,89 +335,88 @@ const LookupPage_EN = ({ onNavigate }) => {
                     <LanguageSwitcher />
                 </div>
             </header>
-            <main className="form-main" style={{width:'100%',maxWidth:'1000px',margin:'0 auto'}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px',width:'100%'}}>
-                    <h2 style={{fontSize:'1.5rem',fontWeight:'700'}}>Pending Applications</h2>
-                    <div style={{display:'flex',gap:'10px'}}>
+            <main className="form-main lookup-main">
+                <div className="lookup-header">
+                    <h2 className="lookup-title">{t('pendingApplications', language)}</h2>
+                    <div className="header-actions">
                         <select className="form-input" value={statusFilter} onChange={e=>{setStatusFilter(e.target.value);setPage(0);}}>
-                            <option value="Pending">Pending</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="All">All</option>
+                            {['Pending','Approved','Rejected','All'].map(opt => (
+                                <option key={opt} value={opt}>{t(opt.toLowerCase(), language)}</option>
+                            ))}
                         </select>
-                        <input className="form-input" style={{maxWidth:'250px'}} placeholder="Search..." value={search} onChange={e=>setSearch(e.target.value)} />
+                        <input className="form-input search-input" placeholder={t('search', language) + '...'} value={search} onChange={e=>setSearch(e.target.value)} />
                     </div>
                 </div>
                 <table className="lookup-table">
                     <thead>
                         <tr>
-                            <th>Applicant Name</th>
-                            <th>Reference No.</th>
-                            <th>Service Type</th>
-                            <th>Submission Date</th>
-                            <th>Status</th>
+                            <th>{t('applicantName', language)}</th>
+                            <th>{t('referenceLabel', language)}</th>
+                            <th>{t('serviceType', language)}</th>
+                            <th>{t('submissionDate', language)}</th>
+                            <th>{t('status', language)}</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading && (
-                            <tr><td colSpan="6" style={{textAlign:'center',padding:'20px'}}>Loading...</td></tr>
+                            <tr><td colSpan="6" className="info-row">{t('loading', language)}</td></tr>
                         )}
                         {paged.map(app => (
                             <tr key={app.personalInfo.id} className="hover-row">
                                 <td>
-                                    <div style={{fontWeight:'600'}}>{app.personalInfo.first_name} {app.personalInfo.last_name}</div>
-                                    <div style={{fontSize:'0.9rem',opacity:0.7}}>{app.personalInfo.full_name}</div>
+                                    <div className="app-name">{app.personalInfo.first_name} {app.personalInfo.last_name}</div>
+                                    <div className="app-fullname">{app.personalInfo.full_name}</div>
                                 </td>
                                 <td>{app.personalInfo.reference_number}</td>
                                 <td>{app.personalInfo.service_type}</td>
                                 <td>{new Date(app.personalInfo.created_at).toLocaleDateString()}</td>
-                                <td><span className={`status-badge status-${(app.status || '').toLowerCase()}`}>{app.status || 'Pending'}</span></td>
-                                <td><button onClick={() => setSelected(app)}>Review</button></td>
+                                <td><span className={`status-badge status-${(app.status || 'Pending').toLowerCase()}`}>{t((app.status || 'Pending').toLowerCase(), language)}</span></td>
+                                <td><button onClick={() => setSelected(app)}>{t('review', language)}</button></td>
                             </tr>
                         ))}
                         {!loading && filtered.length === 0 && (
-                            <tr><td colSpan="6" style={{textAlign:'center',padding:'20px'}}>No applications found.</td></tr>
+                            <tr><td colSpan="6" className="info-row">{t('noResults', language)}</td></tr>
                         )}
                     </tbody>
                 </table>
-                <div style={{marginTop:'10px',display:'flex',justifyContent:'center',gap:'5px'}}>
+                <div className="pagination">
                     {Array.from({length: totalPages}).map((_,i)=>(
-                        <button key={i} onClick={()=>setPage(i)} style={{padding:'6px 12px',borderRadius:'4px',background:i===page?'var(--primary-color)':'var(--form-input-bg)',color:i===page?'var(--text-color-light)':'var(--text-color-dark)',border:'none',cursor:'pointer'}}>{i+1}</button>
+                        <button key={i} onClick={()=>setPage(i)} className={`page-btn ${i===page?'active':''}`}>{i+1}</button>
                     ))}
                 </div>
             </main>
             <Footer />
-            {(loading || approving) && <FullPageLoader message={loading ? 'Loading...' : 'Processing...'} />}
+            {(loading || approving) && <FullPageLoader message={t(loading ? 'loading' : 'processing', language)} />}
             {selected && (
                 <div className="modal-backdrop" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) setSelected(null);}}>
                     <div className="modal-content">
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                        <div className="detail-header">
                             <div>
-                                <h2 style={{margin:'0'}}>{selected.personalInfo.first_name} {selected.personalInfo.last_name}</h2>
-                                <p style={{margin:'0',opacity:0.7}}>{selected.personalInfo.reference_number}</p>
+                                <h2 className="detail-title">{selected.personalInfo.first_name} {selected.personalInfo.last_name}</h2>
+                                <p className="detail-ref">{selected.personalInfo.reference_number}</p>
                             </div>
-                            <button onClick={()=>{setSelected(null); setIsEditing(false);}} style={{background:'none',border:'none',fontSize:'1.5rem',cursor:'pointer',color:'var(--text-color-dark)'}}>&times;</button>
+                            <button onClick={()=>{setSelected(null); setIsEditing(false);}} className="close-btn">&times;</button>
                         </div>
-                        {infoSection('Personal Information', selected.personalInfo, 'personalInfo')}
-                        {infoSection('Address Information', selected.addressInfo, 'addressInfo')}
-                        {infoSection('Work & Income', selected.workInfo, 'workInfo')}
+                        {infoSection(t('personalInfo', language), selected.personalInfo, 'personalInfo')}
+                        {infoSection(t('addressInfoTitle', language), selected.addressInfo, 'addressInfo')}
+                        {infoSection(t('workInfoTitle', language), selected.workInfo, 'workInfo')}
                         {docsSection(selected.uploadedDocuments)}
-                        <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',marginTop:'20px'}}>
+                        <div className="detail-actions">
                             {isEditing ? (
-                                <button onClick={handleSave} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>Save</button>
+                                <button onClick={handleSave} className="btn-next btn-save">{t('save', language)}</button>
                             ) : (
                                 <>
                                 {selected.status !== 'Approved' && (
                                     <>
-                                    <button onClick={()=>updateStatus(selected.personalInfo.id,'Rejected')} className="btn-next" style={{backgroundColor:'var(--error-color)'}}>
-                                        Reject
+                                    <button onClick={()=>updateStatus(selected.personalInfo.id,'Rejected')} className="btn-next btn-reject">
+                                        {t('reject', language)}
                                     </button>
-                                    <button onClick={() => setIsEditing(true)} className="btn-next" style={{backgroundColor:'var(--accent-color)'}}>
-                                        Edit
+                                    <button onClick={() => setIsEditing(true)} className="btn-next btn-edit">
+                                        {t('edit', language)}
                                     </button>
-                                    <button onClick={()=>setShowApproveDialog(true)} className="btn-next" style={{backgroundColor:'var(--success-color)'}}>
-                                        Approve
+                                    <button onClick={()=>setShowApproveDialog(true)} className="btn-next btn-approve">
+                                        {t('approve', language)}
                                     </button>
                                     </>
                                 )}
@@ -419,8 +428,8 @@ const LookupPage_EN = ({ onNavigate }) => {
             )}
             {imageModalUrl && (
                 <div className="modal-backdrop" onClick={() => setImageModalUrl(null)}>
-                    <div className="modal-content" style={{maxWidth: '90vw', maxHeight: '90vh'}}>
-                        <img src={imageModalUrl} alt="Enlarged document" style={{maxWidth: '100%', maxHeight: '100%', objectFit: 'contain'}} />
+                    <div className="modal-content image-modal-content">
+                        <img src={imageModalUrl} alt="Enlarged document" className="image-modal-img" />
                     </div>
                 </div>
             )}

@@ -1,1 +1,175 @@
+/* Styles specific to LookupPage_EN */
+
+.lookup-main {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.lookup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.lookup-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.search-input {
+  max-width: 250px;
+}
+
+.lookup-table {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.info-row {
+  text-align: center;
+  padding: 20px;
+}
+
+.pagination {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.page-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: var(--form-input-bg);
+  color: var(--text-color-dark);
+  border: none;
+  cursor: pointer;
+}
+
+.page-btn.active {
+  background: var(--primary-color);
+  color: var(--text-color-light);
+}
+
+.confirmation-document {
+  margin-bottom: 20px;
+}
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.doc-item {
+  text-align: center;
+}
+
+.doc-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.doc-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.modal-title {
+  margin-top: 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  align-items: center;
+}
+
+.btn-cancel {
+  background-color: var(--error-color);
+}
+
+.btn-confirm {
+  background-color: var(--success-color);
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.detail-title {
+  margin: 0;
+}
+
+.detail-ref {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-color-dark);
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-save {
+  background-color: var(--success-color);
+}
+
+.btn-reject {
+  background-color: var(--error-color);
+}
+
+.btn-edit {
+  background-color: var(--accent-color);
+}
+
+.btn-approve {
+  background-color: var(--success-color);
+}
+
+.image-modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.image-modal-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.app-name {
+  font-weight: 600;
+}
+
+.app-fullname {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
 
