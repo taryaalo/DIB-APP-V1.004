@@ -6,6 +6,7 @@ import Footer from '../common/Footer';
 import { LOGO_COLOR } from '../assets/imagePaths';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
+import { LockIcon } from '../common/Icons';
 import '../styles/BankAccountPage_EN.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
@@ -20,6 +21,7 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
 
   const [customer, setCustomer] = useState(null);
   const [branchDate, setBranchDate] = useState('');
+  const [locked, setLocked] = useState({});
   const [signatureUrl, setSignatureUrl] = useState('');
   const [signatureName, setSignatureName] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -65,6 +67,11 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
       try {
         if (state?.personalInfo) {
           setCustomer(state.personalInfo);
+          const initLocks = {};
+          ['full_name','branch_id','branch_name','city_code','city_name','passport_number','passport_expiry_date'].forEach(f=>{
+            if(state.personalInfo[f]) initLocks[f] = true;
+          });
+          setLocked(initLocks);
           if (state.personalInfo.branch_id) {
             const br = await fetch(`${API_BASE_URL}/api/branch-date`, {
               method: 'POST',
@@ -73,7 +80,9 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             });
             if (br.ok) {
               const bd = await br.json();
-              setBranchDate(typeof bd === 'string' ? bd : (bd.branch_date || bd.date || ''));
+              const bdVal = typeof bd === 'string' ? bd : (bd.branch_date || bd.date || '');
+              setBranchDate(bdVal);
+              setLocked(l => ({ ...l, branchDate: !!bdVal }));
             }
           }
           setLoading(false);
@@ -87,6 +96,11 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
         if (resp.ok) {
           const data = await resp.json();
           setCustomer(data.personalInfo);
+          const initLocks = {};
+          ['full_name','branch_id','branch_name','city_code','city_name','passport_number','passport_expiry_date'].forEach(f=>{
+            if(data.personalInfo[f]) initLocks[f] = true;
+          });
+          setLocked(initLocks);
           if (data.personalInfo?.branch_id) {
             const br = await fetch(`${API_BASE_URL}/api/branch-date`, {
               method: 'POST',
@@ -95,7 +109,9 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             });
             if (br.ok) {
               const bd = await br.json();
-              setBranchDate(typeof bd === 'string' ? bd : (bd.branch_date || bd.date || ''));
+              const bdVal = typeof bd === 'string' ? bd : (bd.branch_date || bd.date || '');
+              setBranchDate(bdVal);
+              setLocked(l => ({ ...l, branchDate: !!bdVal }));
             }
           }
         }
@@ -109,6 +125,28 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
 
   const allChecked = Object.values(checks).every(Boolean);
   const canCreate = signatureUrl && allChecked;
+
+  const handleChange = e => {
+    const { name, value } = e.target;
+    if (locked[name]) return;
+    if (name === 'branchDate') setBranchDate(value);
+    else setCustomer(c => ({ ...c, [name]: value }));
+  };
+
+  const toggleLock = (name, e) => {
+    setLocked(l => ({ ...l, [name]: !l[name] }));
+    const el = e.currentTarget.closest('.form-group');
+    if (el) {
+      el.classList.add('unlock-animation');
+      setTimeout(() => el.classList.remove('unlock-animation'), 500);
+    }
+  };
+
+  const lockProps = name => ({
+    readOnly: !!locked[name],
+    className: `form-input${locked[name] ? ' locked' : ''}`,
+    onDoubleClick: e => toggleLock(name, e)
+  });
 
   const createAccount = async () => {
     if (!customer || !branchDate) return;
@@ -184,37 +222,61 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
           </div>
           {customer && (
             <div className="info-grid">
-              <div>
+              <div className="form-group">
                 <p className="field-label">{t('fullName', language)}</p>
-                <p className="field-value">{customer.full_name}</p>
+                <div style={{position:'relative'}}>
+                  <input name="full_name" value={customer.full_name || ''} onChange={handleChange} {...lockProps('full_name')} />
+                  <LockIcon className="lock-icon" />
+                </div>
               </div>
-              <div>
+              <div className="form-group">
                 <p className="field-label">{t('branch', language)}</p>
-                <p className="field-value">{customer.branch_id}</p>
+                <div style={{position:'relative'}}>
+                  <input name="branch_id" value={customer.branch_id || ''} onChange={handleChange} {...lockProps('branch_id')} />
+                  <LockIcon className="lock-icon" />
+                </div>
               </div>
-              <div>
+              <div className="form-group">
                 <p className="field-label">{t('branchName', language)}</p>
-                <p className="field-value">{customer.branch_name}</p>
+                <div style={{position:'relative'}}>
+                  <input name="branch_name" value={customer.branch_name || ''} onChange={handleChange} {...lockProps('branch_name')} />
+                  <LockIcon className="lock-icon" />
+                </div>
               </div>
-              <div>
+              <div className="form-group">
                 <p className="field-label">{t('cityCode', language)}</p>
-                <p className="field-value">{customer.city_code}</p>
+                <div style={{position:'relative'}}>
+                  <input name="city_code" value={customer.city_code || ''} onChange={handleChange} {...lockProps('city_code')} />
+                  <LockIcon className="lock-icon" />
+                </div>
               </div>
-              <div>
+              <div className="form-group">
                 <p className="field-label">{t('city', language)}</p>
-                <p className="field-value">{customer.city_name}</p>
+                <div style={{position:'relative'}}>
+                  <input name="city_name" value={customer.city_name || ''} onChange={handleChange} {...lockProps('city_name')} />
+                  <LockIcon className="lock-icon" />
+                </div>
               </div>
-              <div>
+              <div className="form-group">
                 <p className="field-label">{t('passportNumber', language)}</p>
-                <p className="field-value">{customer.passport_number}</p>
+                <div style={{position:'relative'}}>
+                  <input name="passport_number" value={customer.passport_number || ''} onChange={handleChange} {...lockProps('passport_number')} />
+                  <LockIcon className="lock-icon" />
+                </div>
               </div>
-              <div>
+              <div className="form-group">
                 <p className="field-label">{t('passportExpiryDate', language)}</p>
-                <p className="field-value" dir="ltr">{customer.passport_expiry_date}</p>
+                <div style={{position:'relative'}}>
+                  <input name="passport_expiry_date" value={customer.passport_expiry_date || ''} onChange={handleChange} {...lockProps('passport_expiry_date')} dir="ltr" />
+                  <LockIcon className="lock-icon" />
+                </div>
               </div>
-              <div>
+              <div className="form-group">
                 <p className="field-label">{t('branchDate', language)}</p>
-                <p className="field-value" dir="ltr">{branchDate}</p>
+                <div style={{position:'relative'}}>
+                  <input name="branchDate" value={branchDate} onChange={handleChange} {...lockProps('branchDate')} dir="ltr" />
+                  <LockIcon className="lock-icon" />
+                </div>
               </div>
             </div>
           )}
