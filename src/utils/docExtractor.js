@@ -1,5 +1,6 @@
 import { t } from '../i18n';
 import { logToServer } from './logger';
+import { extractText as ocrExtractText } from './ocrEngine';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 // Convert a file to base64 string
@@ -106,6 +107,9 @@ export async function extractDocumentData(file, docType, provider = 'gemini') {
   const base64Data = await fileToBase64(file);
   if (provider === 'chatgpt') {
     return callChatGPT(config.instruction, base64Data, file.type || 'image/png');
+  } else if (provider === 'tesseract') {
+    const text = await ocrExtractText(file);
+    return { rawText: text };
   }
   const payload = {
     contents: [{
