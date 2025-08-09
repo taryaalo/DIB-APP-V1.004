@@ -1,4 +1,5 @@
 import { logToServer } from './logger';
+import { extractText as ocrExtractText } from './ocrEngine';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 export const fileToBase64 = (file) => new Promise((resolve, reject) => {
@@ -95,6 +96,9 @@ export async function extractPassportData(file, provider = 'gemini') {
   const prompt = 'Extract the following fields from the passport image: Full Name (Arabic), Given Name (English), Surname (English), Passport No, Date of Birth, Place of Birth, Date of Issue, Issuing Place, Sex, Nationality, and Expiry Date. If any field is unclear, leave it blank and do not guess. Return the data in the specified JSON format.';
   if (provider === 'chatgpt') {
     return callChatGPT(prompt, base64Data, file.type || 'image/png');
+  } else if (provider === 'tesseract') {
+    const text = await ocrExtractText(file);
+    return { rawText: text };
   }
   const payload = {
     contents: [{
@@ -116,6 +120,9 @@ export async function extractNIDData(file, provider = 'gemini') {
   const prompt = 'Extract the following fields from the NID document image: Family Record Number (\u0631\u0642\u0645 \u0642\u064a\u062f \u0627\u0644\u0639\u0627\u0626\u0644\u0629), National ID (\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u0648\u0637\u0646\u064a), Sex (\u0627\u0644\u062c\u0646\u0633), Day of Birth, Month of Birth, Year of Birth, Mother\'s Full Name, and Marital Status. If any field is unclear, leave it blank and do not guess. Return the data in the specified JSON format.';
   if (provider === 'chatgpt') {
     return callChatGPT(prompt, base64Data, file.type || 'image/png');
+  } else if (provider === 'tesseract') {
+    const text = await ocrExtractText(file);
+    return { rawText: text };
   }
   const payload = {
     contents: [{
