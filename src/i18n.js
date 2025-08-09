@@ -118,6 +118,8 @@ const translations = {
   selfieTitle: { en: 'Face Registration & Verification', ar: 'تسجيل وتحقق الوجه' },
   startLivenessCheck: { en: 'Start Liveness Check', ar: 'بدء فحص الحيوية' },
   loadingModels: { en: 'Loading models... Please wait.', ar: 'جاري تحميل النماذج... يرجى الانتظار.' },
+  requestingCameraPermission: { en: 'Requesting camera permission...', ar: 'جارٍ طلب إذن الكاميرا...' },
+  cameraPermissionDenied: { en: 'Camera permission denied.', ar: 'تم رفض إذن الكاميرا.' },
   cameraReady: { en: 'Camera ready. Click the button to start.', ar: 'الكاميرا جاهزة. انقر على الزر للبدء.' },
   followInstructions: { en: 'Follow the instructions on the screen...', ar: 'اتبع التعليمات التي تظهر على الشاشة...' },
   livenessConfirmed: { en: '✅ Liveness Confirmed! Capturing profile...', ar: '✅ تم تأكيد الحيوية! جاري التقاط ملفك الشخصي...' },
