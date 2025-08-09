@@ -6,12 +6,12 @@ import { BoundingBox } from './geometry';
  * Extract text from an image using Tesseract.js
  * @param {File|string} file - image File or URL/base64 string
  * @param {Object} options
- * @param {string} [options.lang='eng'] - language code
+ * @param {string} [options.lang='eng+ara'] - language code
  * @param {BoundingBox} [options.rect] - optional region of interest
  * @returns {Promise<string>} recognized text
  */
 export async function extractText(file, options = {}) {
-  const { lang = 'eng', rect } = options;
+  const { lang = 'eng+ara', rect } = options;
   const image = file instanceof File ? URL.createObjectURL(file) : file;
   try {
     const recognitionOptions = {};
