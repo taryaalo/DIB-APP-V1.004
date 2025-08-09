@@ -114,7 +114,7 @@ const translations = {
   approvedNationalId: { en: 'Approved National ID', ar: 'صورة الرقم الوطني' },
   passportPhoto: { en: 'Passport Photo', ar: 'صورة جواز السفر' },
   accountOpeningLetter: { en: 'Account Opening Letter from Employer', ar: 'رسالة فتح حساب من جهة العمل' },
-  recentPersonalPhoto: { en: 'Take a selfie Picture', ar: 'التقط صورة شخصية' },
+  recentPersonalPhoto: { en: 'Face Registration Page', ar: 'صفحة تسجيل الوجه' },
   selfieTitle: { en: 'Face Registration & Verification', ar: 'تسجيل وتحقق الوجه' },
   startLivenessCheck: { en: 'Start Liveness Check', ar: 'بدء فحص الحيوية' },
   loadingModels: { en: 'Loading models... Please wait.', ar: 'جاري تحميل النماذج... يرجى الانتظار.' },

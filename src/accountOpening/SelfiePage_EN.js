@@ -290,6 +290,9 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
           <div className="photo-box"><label>{t('verified', language)}</label><img ref={photoRefs.verified} alt="verified" /></div>
         </div>
       </div>
+      <div className="form-actions">
+        <button className="btn-next" onClick={() => onNavigate(nextPage)}>{t('next', language)}</button>
+      </div>
     </div>
   );
 };
