@@ -1142,8 +1142,25 @@ app.get('/api/applications', async (req, res) => {
       const address = await pool.query('SELECT * FROM address_info WHERE personal_id=$1 LIMIT 1', [p.id]);
       const work = await pool.query('SELECT * FROM work_income_info WHERE personal_id=$1 LIMIT 1', [p.id]);
       const docs = await pool.query('SELECT id, doc_type, file_name, reference_number, confirmed_by_admin FROM uploaded_documents WHERE personal_id=$1', [p.id]);
+
+      const branchRow = p.branch_id ? await pool.query('SELECT name_en FROM bank_branches WHERE branch_id=$1', [p.branch_id]) : null;
+      const branchName = branchRow?.rows?.[0]?.name_en || null;
+
+      let cityCode = address.rows[0]?.city || null;
+      let cityName = null;
+      if (cityCode) {
+        let cityRow = await pool.query('SELECT city_code, name_en FROM cities WHERE city_code=$1', [cityCode]);
+        if (cityRow.rows.length === 0) {
+          cityRow = await pool.query('SELECT city_code, name_en FROM cities WHERE name_en=$1 OR name_ar=$1', [cityCode]);
+        }
+        if (cityRow.rows.length > 0) {
+          cityCode = cityRow.rows[0].city_code;
+          cityName = cityRow.rows[0].name_en;
+        }
+      }
+
       apps.push({
-        personalInfo: p,
+        personalInfo: { ...p, branch_name: branchName, city_code: cityCode, city_name: cityName },
         addressInfo: address.rows[0] || null,
         workInfo: work.rows[0] || null,
         uploadedDocuments: docs.rows,
