@@ -43,10 +43,22 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
   const startCamera = async () => {
     try {
       const mediaDevices = navigator.mediaDevices;
-      if (!mediaDevices || typeof mediaDevices.getUserMedia !== 'function') {
-        throw new Error('MediaDevices API or getUserMedia not supported');
+      let stream;
+      if (mediaDevices && typeof mediaDevices.getUserMedia === 'function') {
+        stream = await mediaDevices.getUserMedia({ video: true });
+      } else {
+        const legacyGetUserMedia =
+          navigator.getUserMedia ||
+          navigator.webkitGetUserMedia ||
+          navigator.mozGetUserMedia ||
+          navigator.msGetUserMedia;
+        if (!legacyGetUserMedia) {
+          throw new Error('MediaDevices API or getUserMedia not supported');
+        }
+        stream = await new Promise((resolve, reject) =>
+          legacyGetUserMedia.call(navigator, { video: true }, resolve, reject)
+        );
       }
-      const stream = await mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
