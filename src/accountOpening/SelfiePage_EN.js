@@ -109,7 +109,12 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
     const headTurnThreshold = 25;
 
     livenessInterval.current = setInterval(async () => {
-      const detection = await faceapi.detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+      const detection = await faceapi
+        .detectSingleFace(
+          videoRef.current,
+          new faceapi.TinyFaceDetectorOptions()
+        )
+        .withFaceLandmarks();
       if (detection && detection.detection && detection.landmarks) {
         drawDetections(detection);
         let challengePassed = false;
@@ -294,7 +299,10 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
           <div className="photo-box"><label>{t('right', language)}</label><img ref={photoRefs.turnRight} alt="right" /></div>
           <div className="photo-box"><label>{t('up', language)}</label><img ref={photoRefs.turnUp} alt="up" /></div>
           <div className="photo-box"><label>{t('down', language)}</label><img ref={photoRefs.turnDown} alt="down" /></div>
-          <div className="photo-box"><label>{t('verified', language)}</label><img ref={photoRefs.verified} alt="verified" /></div>
+          <div className="photo-box">
+            <label>{t('verified', language)}</label>
+            <img ref={photoRefs.verified} alt="verified" />
+          </div>
         </div>
       </div>
       <div className="form-actions">
