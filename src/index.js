@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './index.css';
 
 // Generate a simple session id and store it in localStorage
 const sidKey = 'sessionId';
