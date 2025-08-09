@@ -163,6 +163,7 @@ const translations = {
   refresh: { en: 'Refresh', ar: 'تحديث' },
   gemini: { en: 'Gemini', ar: 'Gemini' },
   chatgpt: { en: 'ChatGPT', ar: 'شات جي بي تي' },
+  tesseract: { en: 'Tesseract', ar: 'تسيراكت' },
   change_document: { en: 'Change Document', ar: 'تغيير المستند' },
   loading: { en: 'Loading...', ar: 'جارٍ التحميل...' },
   search: { en: 'Search', ar: 'بحث' },
