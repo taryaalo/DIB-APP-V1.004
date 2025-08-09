@@ -42,7 +42,11 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const mediaDevices = navigator.mediaDevices;
+      if (!mediaDevices || typeof mediaDevices.getUserMedia !== 'function') {
+        throw new Error('MediaDevices API or getUserMedia not supported');
+      }
+      const stream = await mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
