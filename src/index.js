@@ -19,7 +19,7 @@ window.fetch = (url, options = {}) => {
   opts.headers = opts.headers || {};
 
   // Only add x-session-id to requests to our backend
-  if (url.toString().startsWith(apiBaseUrl) || url.toString().startsWith('/api')) {
+  if ((apiBaseUrl && url.toString().startsWith(apiBaseUrl)) || url.toString().startsWith('/api')) {
     opts.headers['x-session-id'] = sessionId;
   }
 

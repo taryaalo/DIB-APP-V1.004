@@ -81,7 +81,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
             await uploadDocument(file, DOCS[current].key);
 
             if (current === 0 && !formData.personalInfo?.referenceNumber) {
-                const initResp = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/initialize-application`, {
+                const initResp = await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/initialize-application`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ aiModel: provider, serviceType: formData.serviceType })
