@@ -118,8 +118,17 @@ const app = express();
 const upload = multer({ dest: 'uploads/' });
 const HTTP_PORT = process.env.PORT || 7003;
 
-app.use(cors());
+const corsOptions = {
+  origin: '*', // Be more specific in production
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
+
 app.use(express.json({ limit: '20mb' }));
+
 app.use((req, res, next) => {
   const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0];
   req.sessionId = req.headers['x-session-id'] || ip;
@@ -1373,6 +1382,21 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Server error' });
 });
 
-http.createServer(app).listen(HTTP_PORT, () => {
-  console.log(`HTTP server running on port ${HTTP_PORT}`);
-});
+const HTTPS_PORT = process.env.HTTPS_PORT || 7102;
+
+try {
+  const sslOptions = {
+    key: fs.readFileSync(path.join(__dirname, 'src', 'ssl', 'key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, 'src', 'ssl', 'cert.pem')),
+  };
+  https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
+    console.log(`HTTPS server running on port ${HTTPS_PORT}`);
+  });
+} catch (e) {
+  logError(`SSL_ERROR ${e.message}`);
+  console.error('Could not start HTTPS server.', e.message);
+  // Fallback to HTTP if SSL fails
+  http.createServer(app).listen(HTTP_PORT, () => {
+    console.log(`HTTP server running on port ${HTTP_PORT}`);
+  });
+}

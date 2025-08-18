@@ -49,9 +49,10 @@ async function callGemini(payload) {
     });
 
     if (!resp.ok) {
-      const text = await resp.text();
-      logToServer(`GEMINI_ERROR ${resp.status} ${text}`);
-      throw new Error(`Gemini request failed: ${resp.status}`);
+      const errorData = await resp.json().catch(() => ({ error: 'Request failed with status ' + resp.status }));
+      const errorMessage = errorData.error || `Request failed: ${resp.status}`;
+      logToServer(`GEMINI_ERROR ${resp.status} ${errorMessage}`);
+      throw new Error(`Gemini request failed: ${errorMessage}`);
     }
 
     const result = await resp.json();
