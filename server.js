@@ -142,6 +142,13 @@ if (!fs.existsSync(userDocsBase)) {
 }
 app.use('/user_document', express.static(userDocsBase));
 
+// Serve React App
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 app.post('/api/log-activity', (req, res) => {
   const { message } = req.body || {};
   if (!message) return res.status(400).json({ error: 'missing_message' });
