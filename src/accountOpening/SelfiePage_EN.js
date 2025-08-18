@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import * as faceapi from 'face-api.js/dist/face-api.js';
+import * as faceapi from '@vladmandic/face-api';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useFormData } from '../contexts/FormContext';
 import { t } from '../i18n';
