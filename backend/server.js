@@ -1048,6 +1048,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Server error' });
 });
 
+// Serve React App
+app.use(express.static(path.join(__dirname, '..', 'build')));
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', '..', 'build', 'index.html'));
+});
+
 // const HTTPS_PORT = process.env.HTTPS_PORT || 7102;
 
 // try {

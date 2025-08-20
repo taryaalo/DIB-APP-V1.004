@@ -70,11 +70,4 @@ app.use('/user_document', express.static(userDocsBase));
 // API routes
 app.use(require('../routes'));
 
-// Serve React App
-app.use(express.static(path.join(__dirname, '..', '..', 'build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'build', 'index.html'));
-});
-
 module.exports = app;
