@@ -3,26 +3,26 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const session = require('express-session');
-const RedisStore = require('connect-redis').default;
-const { createClient } = require('redis');
+// const RedisStore = require('connect-redis');
+// const { createClient } = require('redis');
 const { logActivity } = require('../utils/logger');
 require('dotenv').config({ path: '../../.env' });
 
 
 const app = express();
 
-// Initialize Redis client
-const redisClient = createClient({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379
-});
-redisClient.connect().catch(console.error);
+// // Initialize Redis client
+// const redisClient = createClient({
+//     host: process.env.REDIS_HOST || 'localhost',
+//     port: process.env.REDIS_PORT || 6379
+// });
+// redisClient.connect().catch(console.error);
 
-// Initialize Redis store
-const redisStore = new RedisStore({
-    client: redisClient,
-    prefix: 'dib-app:',
-});
+// // Initialize Redis store
+// const redisStore = new RedisStore({
+//     client: redisClient,
+//     prefix: 'dib-app:',
+// });
 
 
 const corsOptions = {
@@ -40,7 +40,7 @@ app.use(express.json({ limit: '20mb' }));
 // Session middleware
 app.use(
     session({
-        store: redisStore,
+        // store: redisStore,
         secret: process.env.SESSION_SECRET || 'a-very-strong-secret',
         resave: false,
         saveUninitialized: false,

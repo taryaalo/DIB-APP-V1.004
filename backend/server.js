@@ -1048,21 +1048,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Server error' });
 });
 
-const HTTPS_PORT = process.env.HTTPS_PORT || 7102;
+// const HTTPS_PORT = process.env.HTTPS_PORT || 7102;
 
-try {
-  const sslOptions = {
-    key: fs.readFileSync(path.join(__dirname, '..', 'src', 'ssl', 'key.pem')),
-    cert: fs.readFileSync(path.join(__dirname, '..', 'src', 'ssl', 'cert.pem')),
-  };
-  https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
-    console.log(`HTTPS server running on port ${HTTPS_PORT}`);
-  });
-} catch (e) {
-  logError(`SSL_ERROR ${e.message}`);
-  console.error('Could not start HTTPS server.', e.message);
-  // Fallback to HTTP if SSL fails
-  http.createServer(app).listen(HTTP_PORT, () => {
-    console.log(`HTTP server running on port ${HTTP_PORT}`);
-  });
-}
+// try {
+//   const sslOptions = {
+//     key: fs.readFileSync(path.join(__dirname, '..', 'src', 'ssl', 'key.pem')),
+//     cert: fs.readFileSync(path.join(__dirname, '..', 'src', 'ssl', 'cert.pem')),
+//   };
+//   https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
+//     console.log(`HTTPS server running on port ${HTTPS_PORT}`);
+//   });
+// } catch (e) {
+//   logError(`SSL_ERROR ${e.message}`);
+//   console.error('Could not start HTTPS server.', e.message);
+//   // Fallback to HTTP if SSL fails
+//   http.createServer(app).listen(HTTP_PORT, () => {
+//     console.log(`HTTP server running on port ${HTTP_PORT}`);
+//   });
+// }
+
+http.createServer(app).listen(HTTP_PORT, () => {
+  console.log(`HTTP server running on port ${HTTP_PORT}`);
+});

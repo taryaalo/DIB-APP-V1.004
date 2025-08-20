@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated } = require('../middleware/auth');
-const { pool } = require('../config/db');
+const pool = require('../config/db');
 const { logActivity, logError } = require('../utils/logger');
 
 router.post('/api/application-status', isAuthenticated, async (req, res) => {

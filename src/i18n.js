@@ -21,4 +21,6 @@ i18n
     },
   });
 
+export const t = i18n.t;
+
 export default i18n;
