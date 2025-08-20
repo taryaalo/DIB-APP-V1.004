@@ -1,6 +1,5 @@
-// src/accountOpening/WorkInfoPage_EN.js
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LOGO_WHITE } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -12,9 +11,10 @@ import { CalendarIcon } from '../common/Icons';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
-const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
+const WorkInfoPage_EN = () => {
     const { language } = useLanguage();
     const { formData, setFormData } = useFormData();
+    const navigate = useNavigate();
     const [sources, setSources] = useState([]);
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
@@ -98,7 +98,7 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
             });
         } catch (e) { console.error(e); }
         // Data will be saved on confirmation page
-        onNavigate(nextPage);
+        navigate('/personal-info');
     };
 
     const isComplete = form.jobTitle && form.employer && form.workSector && form.fieldOfWork &&
@@ -112,8 +112,8 @@ const WorkInfoPage_EN = ({ onNavigate, backPage, nextPage }) => {
                     <ThemeSwitcher />
                     <LanguageSwitcher />
                 </div>
-                 <button onClick={() => onNavigate(backPage)} className="btn-back">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                 <button onClick={() => navigate(-1)} className="btn-back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                     <span>{t('back', language)}</span>
                 </button>
             </header>

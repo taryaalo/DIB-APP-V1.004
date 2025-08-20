@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { FormProvider } from './contexts/FormContext';
 import GlobalStyles from './styles/GlobalStyles';
 
@@ -9,122 +10,82 @@ import LanguageSelectionPage from './components/LanguageSelectionPage';
 // English Pages - Account Opening flow
 import LandingPage_EN from './accountOpening/LandingPage_EN';
 import SelectUserPage_EN from './accountOpening/SelectUserPage_EN';
-import CompaniesDocsPage_EN from './accountOpening/CompaniesDocsPage_EN';
-import ContactInfoPage_EN from './accountOpening/ContactInfoPage_EN';
+import CompaniesDocsPage from './accountOpening/CompaniesDocsPage';
+import ContactInfoPage from './accountOpening/ContactInfoPage';
 import WorkInfoPage_EN from './accountOpening/WorkInfoPage_EN';
-import PersonalInfoPage_EN from './accountOpening/PersonalInfoPage_EN';
-import CompanyInfoPage_EN from './accountOpening/CompanyInfoPage_EN';
-import CompanyContactPage_EN from './accountOpening/CompanyContactPage_EN';
-import LegalRepInfoPage_EN from './accountOpening/LegalRepInfoPage_EN';
-import FinancialInfoPage_EN from './accountOpening/FinancialInfoPage_EN';
+import PersonalInfoPage from './accountOpening/PersonalInfoPage';
+import CompanyInfoPage from './accountOpening/CompanyInfoPage';
+import CompanyContactPage from './accountOpening/CompanyContactPage';
+import LegalRepInfoPage from './accountOpening/LegalRepInfoPage';
+import FinancialInfoPage from './accountOpening/FinancialInfoPage';
 import SuccessPage_EN from './accountOpening/SuccessPage_EN';
-import ConfirmPage_EN from './accountOpening/ConfirmPage_EN';
+import ConfirmPage from './accountOpening/ConfirmPage';
 import EServicesLanding from './eServices/EServicesLandingPage';
-import SequentialDocsPage_EN from './accountOpening/SequentialDocsPage_EN';
-import SelfiePage_EN from './accountOpening/SelfiePage_EN';
+import SequentialDocsPage from './accountOpening/SequentialDocsPage';
+import SelfiePage from './accountOpening/SelfiePage';
 import LookupPage_EN from './completeAccount/LookupPage_EN';
 import SelectApplicationPage_EN from './completeAccount/SelectApplicationPage_EN';
-import BankAccountLookupPage_EN from './completeAccount/BankAccountLookupPage_EN';
+import BankAccountLookupPage from './completeAccount/BankAccountLookupPage';
 import ReviewDocsPage_EN from './completeAccount/ReviewDocsPage_EN';
 import ReviewWorkInfoPage_EN from './completeAccount/ReviewWorkInfoPage_EN';
 import ReviewAddressInfoPage_EN from './completeAccount/ReviewAddressInfoPage_EN';
 import EServicesRegistrationPage_EN from './completeAccount/EServicesRegistrationPage_EN';
 import AccountSummaryPage_EN from './completeAccount/AccountSummaryPage_EN';
-import BankAccountPage_EN from './completeAccount/BankAccountPage_EN';
+import BankAccountPage from './completeAccount/BankAccountPage';
 import CompleteAccountSuccessPage_EN from './completeAccount/CompleteAccountSuccessPage_EN';
 
-
-// ---=== Main App Component ===---
 const AppContent = () => {
-  const [navigation, setNavigation] = useState({ page: 'languageSelection', flow: null, state: null });
-  const { theme } = useTheme();
-  const { language } = useLanguage();
+    const { theme } = useTheme();
+    const { i18n } = useTranslation();
+    const location = useLocation();
 
-  useEffect(() => {
-    document.body.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.body.setAttribute('data-theme', theme);
-  }, [theme, language]);
+    useEffect(() => {
+        document.body.dir = i18n.dir();
+        document.body.setAttribute('data-theme', theme);
+    }, [i18n, theme, i18n.language]);
 
-  const handleNavigation = (page, state = null) => {
-    const pageFlows = {
-        personalDocs: 'personal',
-        businessmenDocs: 'businessmen',
-        guaranteedDocs: 'guaranteed',
-        expatDocs: 'expat',
-        companiesDocs: 'companies'
-    };
-    const newFlow = pageFlows[page] || navigation.flow;
-
-    setNavigation({ page, flow: newFlow, state });
-  };
-
-  const renderPage = () => {
-      const { page, flow, state } = navigation;
-
-      if (page === 'languageSelection') {
-          return <LanguageSelectionPage onNavigate={handleNavigation} />;
-      }
-
-      switch(page) {
-            case 'landing': return <LandingPage_EN onNavigate={handleNavigation} />;
-            case 'eServices': return <EServicesLanding onNavigate={handleNavigation} />;
-            case 'selectUser': return <SelectUserPage_EN onNavigate={handleNavigation} />;
-            case 'completeAccount': return <SelectApplicationPage_EN onNavigate={handleNavigation} />;
-            case 'pendingApplications': return <LookupPage_EN onNavigate={handleNavigation} />;
-            case 'bankAccountLookup': return <BankAccountLookupPage_EN onNavigate={handleNavigation} />;
-            case 'reviewDocs': return <ReviewDocsPage_EN onNavigate={handleNavigation} state={state} />;
-            case 'reviewWorkInfo': return <ReviewWorkInfoPage_EN onNavigate={handleNavigation} state={state} />;
-            case 'reviewAddressInfo': return <ReviewAddressInfoPage_EN onNavigate={handleNavigation} state={state} />;
-            case 'eServicesReg': return <EServicesRegistrationPage_EN onNavigate={handleNavigation} state={state} />;
-            case 'accountSummary': return <AccountSummaryPage_EN onNavigate={handleNavigation} state={state} />;
-            case 'bankAccount': return <BankAccountPage_EN onNavigate={handleNavigation} state={state} />;
-            case 'completeAccountSuccess': return <CompleteAccountSuccessPage_EN onNavigate={handleNavigation} state={state} />;
-            
-            case 'personalDocs':
-            case 'businessmenDocs':
-            case 'guaranteedDocs':
-            case 'expatDocs':
-              return <SequentialDocsPage_EN onNavigate={handleNavigation} backPage="selectUser" nextPage="contactInfo" selfPage={page} />;
-
-            case 'faceRegistration':
-              return <SelfiePage_EN onNavigate={handleNavigation} backPage={state?.backPage || 'selectUser'} nextPage={state?.nextPage || 'contactInfo'} />;
-
-            case 'companiesDocs': return <CompaniesDocsPage_EN onNavigate={handleNavigation} backPage="selectUser" nextPage="companyInfo" />;
-            case 'companyInfo': return <CompanyInfoPage_EN onNavigate={handleNavigation} backPage="companiesDocs" nextPage="companyContact" />;
-            case 'companyContact': return <CompanyContactPage_EN onNavigate={handleNavigation} backPage="companyInfo" nextPage="legalRepInfo" />;
-            case 'legalRepInfo': return <LegalRepInfoPage_EN onNavigate={handleNavigation} backPage="companyContact" nextPage="financialInfo" />;
-            case 'financialInfo': return <FinancialInfoPage_EN onNavigate={handleNavigation} backPage="legalRepInfo" />;
-
-            case 'contactInfo': {
-                let backPage = 'selectUser';
-                if (flow === 'personal') backPage = 'personalDocs';
-                if (flow === 'guaranteed') backPage = 'guaranteedDocs';
-                if (flow === 'businessmen') backPage = 'businessmenDocs';
-                if (flow === 'expat') backPage = 'expatDocs';
-                return <ContactInfoPage_EN onNavigate={handleNavigation} backPage={backPage} nextPage="workInfo" />;
-            }
-            case 'workInfo': return <WorkInfoPage_EN onNavigate={handleNavigation} backPage="contactInfo" nextPage="personalInfo" />;
-            case 'personalInfo': return <PersonalInfoPage_EN onNavigate={handleNavigation} backPage="workInfo" flow={flow} state={state} />;
-            case 'confirm': return <ConfirmPage_EN onNavigate={handleNavigation} state={state} />;
-            
-            case 'success': return <SuccessPage_EN onNavigate={handleNavigation} state={state} />;
-            default: return <LanguageSelectionPage onNavigate={handleNavigation} />;
-        }
-  }
-
-  return <>{renderPage()}</>;
-}
-
+    return (
+        <Routes location={location}>
+            <Route path="/" element={<LanguageSelectionPage />} />
+            <Route path="/landing" element={<LandingPage_EN />} />
+            <Route path="/eservices" element={<EServicesLanding />} />
+            <Route path="/select-user" element={<SelectUserPage_EN />} />
+            <Route path="/complete-account" element={<SelectApplicationPage_EN />} />
+            <Route path="/pending-applications" element={<LookupPage_EN />} />
+            <Route path="/bank-account-lookup" element={<BankAccountLookupPage />} />
+            <Route path="/review-docs" element={<ReviewDocsPage_EN />} />
+            <Route path="/review-work-info" element={<ReviewWorkInfoPage_EN />} />
+            <Route path="/review-address-info" element={<ReviewAddressInfoPage_EN />} />
+            <Route path="/eservices-reg" element={<EServicesRegistrationPage_EN />} />
+            <Route path="/account-summary" element={<AccountSummaryPage_EN />} />
+            <Route path="/bank-account" element={<BankAccountPage />} />
+            <Route path="/complete-account-success" element={<CompleteAccountSuccessPage_EN />} />
+            <Route path="/personal-docs" element={<SequentialDocsPage flow="personal" />} />
+            <Route path="/businessmen-docs" element={<SequentialDocsPage flow="businessmen" />} />
+            <Route path="/guaranteed-docs" element={<SequentialDocsPage flow="guaranteed" />} />
+            <Route path="/expat-docs" element={<SequentialDocsPage flow="expat" />} />
+            <Route path="/face-registration" element={<SelfiePage />} />
+            <Route path="/companies-docs" element={<CompaniesDocsPage />} />
+            <Route path="/company-info" element={<CompanyInfoPage />} />
+            <Route path="/company-contact" element={<CompanyContactPage />} />
+            <Route path="/legal-rep-info" element={<LegalRepInfoPage />} />
+            <Route path="/financial-info" element={<FinancialInfoPage />} />
+            <Route path="/contact-info" element={<ContactInfoPage />} />
+            <Route path="/work-info" element={<WorkInfoPage_EN />} />
+            <Route path="/personal-info" element={<PersonalInfoPage />} />
+            <Route path="/confirm" element={<ConfirmPage />} />
+            <Route path="/success" element={<SuccessPage_EN />} />
+        </Routes>
+    );
+};
 
 export default function App() {
     return (
-        <LanguageProvider>
-            <ThemeProvider>
-                <FormProvider>
-                    <GlobalStyles />
-                    <AppContent />
-                </FormProvider>
-            </ThemeProvider>
-        </LanguageProvider>
+        <ThemeProvider>
+            <FormProvider>
+                <GlobalStyles />
+                <AppContent />
+            </FormProvider>
+        </ThemeProvider>
     );
 }

@@ -8,9 +8,14 @@
     "@testing-library/user-event": "^13.5.0",
     "@vladmandic/face-api": "^1.7.15",
     "axios": "^1.6.7",
+    "connect-redis": "^9.0.0",
     "cors": "^2.8.5",
+    "dompurify": "^3.2.6",
     "express": "^4.18.2",
+    "express-session": "^1.18.2",
     "html2canvas": "^1.4.1",
+    "i18next": "^25.3.6",
+    "jsdom": "^26.1.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "multer": "^1.4.4",
@@ -18,7 +23,11 @@
     "pg": "^8.11.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^15.6.1",
+    "react-router-dom": "^7.8.1",
     "react-scripts": "5.0.1",
+    "redis": "^5.8.1",
+    "sequelize": "^6.37.7",
     "tesseract.js": "^5.1.1",
     "web-vitals": "^2.1.4",
     "xml2js": "^0.6.2"
@@ -46,5 +55,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.3"
   }
 }

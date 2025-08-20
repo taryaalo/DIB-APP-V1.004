@@ -1,17 +1,19 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import * as faceapi from '@vladmandic/face-api';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useFormData } from '../contexts/FormContext';
-import { t } from '../i18n';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import '../styles/SelfiePage.css';
 
 const challenges = ['center','turnLeft','turnRight','turnUp','turnDown'];
 
-const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
-  const { language } = useLanguage();
+const SelfiePage_EN = () => {
+  const { t } = useTranslation();
   const { formData } = useFormData();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -37,7 +39,7 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
   const allLivenessData = useRef({});
   const initializedRef = useRef(false);
 
-  const [status, setStatus] = useState(t('loadingModels', language));
+  const [status, setStatus] = useState(t('loadingModels'));
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
 
@@ -75,42 +77,42 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
       return true;
     } catch (err) {
       setPermissionDenied(true);
-      setStatus(t('cameraPermissionDenied', language));
+      setStatus(t('cameraPermissionDenied'));
       console.error('Camera error', err);
       return false;
     }
-  }, [language]);
+  }, [t]);
 
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
     const init = async () => {
-      setStatus(t('requestingCameraPermission', language));
+      setStatus(t('requestingCameraPermission'));
       if (!(await startCamera())) return;
-      setStatus(t('loadingModels', language));
+      setStatus(t('loadingModels'));
       await Promise.all([
         faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
         faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
         faceapi.nets.ssdMobilenetv1.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
         faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/')
       ]);
-      setStatus(t('cameraReady', language));
+      setStatus(t('cameraReady'));
       setButtonDisabled(false);
     };
 
     init();
-  }, [language, startCamera]);
+  }, [t, startCamera]);
 
   useEffect(() => {
     if (permissionDenied) {
-      setStatus(t('cameraPermissionDenied', language));
+      setStatus(t('cameraPermissionDenied'));
     } else if (buttonDisabled) {
-      setStatus(t('loadingModels', language));
+      setStatus(t('loadingModels'));
     } else {
-      setStatus(t('cameraReady', language));
+      setStatus(t('cameraReady'));
     }
-  }, [language, buttonDisabled, permissionDenied]);
+  }, [t, buttonDisabled, permissionDenied]);
 
   const updateGuide = (challenge) => {
     const guideText = guideTextRef.current;
@@ -121,11 +123,11 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
     virtualFaceGuide.classList.remove('visible','animate-turnLeft','animate-turnRight','animate-turnUp','animate-turnDown');
 
     const challengeInstructions = {
-      center: t('challengeCenter', language),
-      turnLeft: t('challengeTurnLeft', language),
-      turnRight: t('challengeTurnRight', language),
-      turnUp: t('challengeTurnUp', language),
-      turnDown: t('challengeTurnDown', language)
+      center: t('challengeCenter'),
+      turnLeft: t('challengeTurnLeft'),
+      turnRight: t('challengeTurnRight'),
+      turnUp: t('challengeTurnUp'),
+      turnDown: t('challengeTurnDown')
     };
     guideText.textContent = challengeInstructions[challenge];
 
@@ -207,14 +209,14 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
           if (currentChallengeIndex.current >= challenges.length) {
             guideTextRef.current.textContent = '';
             virtualFaceGuideRef.current.classList.remove('visible');
-            setStatus(t('livenessConfirmed', language));
+            setStatus(t('livenessConfirmed'));
             if (registeredDescriptor.current) {
               saveDataToServer();
-              setStatus(t('registrationComplete', language));
+              setStatus(t('registrationComplete'));
               setButtonDisabled(true);
               startVerification();
             } else {
-              setStatus(t('couldNotCapture', language));
+              setStatus(t('couldNotCapture'));
               setButtonDisabled(false);
               currentChallengeIndex.current = 0;
             }
@@ -245,7 +247,7 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
           clearInterval(verificationInterval.current);
           overlayRef.current.classList.add('success');
           setStatus(
-            t('identityVerified', language) + ` (Distance: ${distance.toFixed(2)})`
+            t('identityVerified') + ` (Distance: ${distance.toFixed(2)})`
           );
           drawDetections(detection);
           capturePhoto(videoRef.current, photoRefs.verified.current);
@@ -305,10 +307,20 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
 
   const handleStart = () => {
     setButtonDisabled(true);
-    setStatus(t('followInstructions', language));
+    setStatus(t('followInstructions'));
     currentChallengeIndex.current = 0;
     allLivenessData.current = {};
     runLivenessChallenge();
+  };
+
+  const handleBack = () => {
+    const backPath = location.state?.backPage || -1;
+    navigate(backPath);
+  };
+
+  const handleNext = () => {
+    const nextPath = location.state?.nextPage || '/contact-info';
+    navigate(nextPath);
   };
 
   return (
@@ -318,12 +330,12 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
           <ThemeSwitcher />
           <LanguageSwitcher />
         </div>
-        <button onClick={() => onNavigate(backPage)} className="btn-back">
-          <span>{t('back', language)}</span>
+        <button onClick={handleBack} className="btn-back">
+          <span>{t('back')}</span>
         </button>
       </header>
       <div className="container">
-        <h1 className="page-title">{t('selfieTitle', language)}</h1>
+        <h1 className="page-title">{t('selfieTitle')}</h1>
         <div className="camera-container">
           <video id="video" ref={videoRef} autoPlay muted playsInline></video>
           <canvas id="canvas" ref={canvasRef}></canvas>
@@ -336,22 +348,22 @@ const SelfiePage_EN = ({ onNavigate, backPage, nextPage }) => {
           </div>
           <div id="overlay" ref={overlayRef} className="overlay"></div>
         </div>
-        <button id="registerButton" disabled={buttonDisabled} onClick={handleStart}>{t('startLivenessCheck', language)}</button>
+        <button id="registerButton" disabled={buttonDisabled} onClick={handleStart}>{t('startLivenessCheck')}</button>
         <div id="results" className="info">{status}</div>
         <div className="photo-strip">
-          <div className="photo-box"><label>{t('center', language)}</label><img ref={photoRefs.center} alt="center" /></div>
-          <div className="photo-box"><label>{t('left', language)}</label><img ref={photoRefs.turnLeft} alt="left" /></div>
-          <div className="photo-box"><label>{t('right', language)}</label><img ref={photoRefs.turnRight} alt="right" /></div>
-          <div className="photo-box"><label>{t('up', language)}</label><img ref={photoRefs.turnUp} alt="up" /></div>
-          <div className="photo-box"><label>{t('down', language)}</label><img ref={photoRefs.turnDown} alt="down" /></div>
+          <div className="photo-box"><label>{t('center')}</label><img ref={photoRefs.center} alt="center" /></div>
+          <div className="photo-box"><label>{t('left')}</label><img ref={photoRefs.turnLeft} alt="left" /></div>
+          <div className="photo-box"><label>{t('right')}</label><img ref={photoRefs.turnRight} alt="right" /></div>
+          <div className="photo-box"><label>{t('up')}</label><img ref={photoRefs.turnUp} alt="up" /></div>
+          <div className="photo-box"><label>{t('down')}</label><img ref={photoRefs.turnDown} alt="down" /></div>
           <div className="photo-box">
-            <label>{t('verified', language)}</label>
+            <label>{t('verified')}</label>
             <img ref={photoRefs.verified} alt="verified" />
           </div>
         </div>
       </div>
       <div className="form-actions">
-        <button className="btn-next" onClick={() => onNavigate(nextPage)}>{t('next', language)}</button>
+        <button className="btn-next" onClick={handleNext}>{t('next')}</button>
       </div>
     </div>
   );

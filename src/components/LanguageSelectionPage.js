@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { LOGO_WHITE } from '../assets/imagePaths';
-import { t } from '../i18n';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
-const LanguageSelectionPage = ({ onNavigate }) => {
-    const { setLanguage, language } = useLanguage();
+const LanguageSelectionPage = () => {
+    const { t, i18n } = useTranslation();
     const [dbStatus, setDbStatus] = useState('');
+    const navigate = useNavigate();
 
     const testDb = async () => {
         setDbStatus('testing');
@@ -23,21 +24,26 @@ const LanguageSelectionPage = ({ onNavigate }) => {
         }
     };
 
+    const handleLanguageChange = (lang) => {
+        i18n.changeLanguage(lang);
+        navigate('/landing');
+    };
+
     return (
         <div className="lang-selection-page">
             <div className="lang-selection-box">
                 <img src={LOGO_WHITE} alt="Daman Islamic Bank" className="lang-logo" />
                 <div className="lang-buttons-container">
-                    <button className="lang-btn" onClick={() => {setLanguage('en'); onNavigate('landing');}}>{t('english', language)}</button>
-                    <button className="lang-btn" onClick={() => {setLanguage('ar'); onNavigate('landing');}}>{t('arabic', language)}</button>
-                    <button className="lang-btn" onClick={testDb}>{t('testDb', language)}</button>
+                    <button className="lang-btn" onClick={() => handleLanguageChange('en')}>{t('english')}</button>
+                    <button className="lang-btn" onClick={() => handleLanguageChange('ar')}>{t('arabic')}</button>
+                    <button className="lang-btn" onClick={testDb}>{t('testDb')}</button>
                     {dbStatus && (
                         <p className={`db-status ${dbStatus === 'success' ? 'success' : dbStatus === 'failed' ? 'error' : ''}`}>{
                             dbStatus === 'testing'
-                                ? t('testingDb', language)
+                                ? t('testingDb')
                                 : dbStatus === 'success'
-                                ? t('dbConnected', language)
-                                : t('dbFailed', language)
+                                ? t('dbConnected')
+                                : t('dbFailed')
                         }</p>
                     )}
                 </div>

@@ -2,15 +2,15 @@
 
 const express = require('express');
 const multer = require('multer');
-const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const userDocsBase = path.join(__dirname, '..', 'src', 'user_document');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const xml2js = require('xml2js');
-const { callChatGPT, callGemini } = require('./ai');
-const { Pool } = require('pg');
+const { callChatGPT, callGemini } = require('./services/ai');
+const pool = require('./config/db');
 
 function normalizeDate(dateString) {
   if (!dateString || typeof dateString !== 'string') return null;
@@ -65,101 +65,28 @@ function normalizeDate(dateString) {
 
 require('dotenv').config();
 
-const logsDir = path.join(__dirname, 'logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir);
-}
-
-function logMessage(msg) {
-  const file = path.join(logsDir, `${new Date().toISOString().split('T')[0]}.log`);
-  const entry = `[${new Date().toISOString()}] ${msg}\n`;
-  fs.appendFile(file, entry, (err) => {
-    if (err) console.error('Log error:', err);
-  });
-}
-
-function logActivity(msg) {
-  logMessage(msg);
-  pool.query('INSERT INTO activity_log (activity) VALUES ($1)', [msg]).catch(e =>
-    console.error('Activity log error:', e.message)
-  );
-}
-
-function logError(msg) {
-  logMessage(msg);
-  pool.query('INSERT INTO error_log (error) VALUES ($1)', [msg]).catch(e =>
-    console.error('Error log error:', e.message)
-  );
-}
-
-function logEmailDebug(msg) {
-  const file = path.join(logsDir, 'email.log');
-  const entry = `[${new Date().toISOString()}] ${msg}\n`;
-  fs.appendFile(file, entry, (err) => {
-    if (err) console.error('Email log error:', err);
-  });
-}
+const { logActivity, logError, logEmailDebug } = require('./utils/logger');
+const { sanitize } = require('./utils/sanitizer');
+const { isAuthenticated } = require('./middleware/auth');
 
 const https = require('https');
 const http = require('http');
 
-const pool = new Pool({
-  host: process.env.PG_HOST || 'localhost',
-  port: process.env.PG_PORT || 5432,
-  user: process.env.PG_USER || 'postgres',
-  password: process.env.PG_PASSWORD || '',
-  database: process.env.PG_DATABASE || 'dib_app_data',
+const app = require('./config/app');
+const upload = multer({
+    dest: 'uploads/',
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only JPEG and PNG are allowed.'));
+        }
+    }
 });
-
-pool.on('connect', () => logActivity('DB_CONNECT'));
-pool.on('error', (err) => logError(`DB_ERROR ${err.message}`));
-
-const app = express();
-const upload = multer({ dest: 'uploads/' });
 const HTTP_PORT = process.env.PORT || 7003;
 
-const corsOptions = {
-  origin: '*', // Be more specific in production
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id'],
-};
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
-
-app.use(express.json({ limit: '20mb' }));
-
-app.use((req, res, next) => {
-  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0];
-  req.sessionId = req.headers['x-session-id'] || ip;
-  logActivity(`REQUEST ${req.method} ${req.originalUrl} ${ip}`);
-  next();
-});
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const userDocsBase = path.join(__dirname, 'src', 'user_document');
-if (!fs.existsSync(userDocsBase)) {
-  fs.mkdirSync(userDocsBase, { recursive: true });
-}
-app.use('/user_document', express.static(userDocsBase));
-
-// Serve React App
-app.use(express.static(path.join(__dirname, 'build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
-app.post('/api/log-activity', (req, res) => {
-  const { message } = req.body || {};
-  if (!message) return res.status(400).json({ error: 'missing_message' });
-  logActivity(`CLIENT_LOG ${message}`);
-  res.json({ success: true });
-});
-
-let cachedForm = {};
-let cachedUploads = {};
-let cachedExtracted = {};
-let otpStore = {};
 
 async function getTemplate(key, media) {
   const res = await pool.query(
@@ -174,31 +101,6 @@ function fillTemplate(tpl, params) {
   return filled.replace(/\/n/g, '\n');
 }
 
-app.post('/api/cache-form', (req, res) => {
-  const sid = req.sessionId;
-  cachedForm[sid] = req.body || {};
-  res.json({ success: true });
-});
-
-app.get('/api/cache-form', (req, res) => {
-  const sid = req.sessionId;
-  res.json(cachedForm[sid] || {});
-});
-
-app.post('/api/cache-upload', upload.single('file'), (req, res) => {
-  const sid = req.sessionId;
-  const docType = req.body.docType;
-  if (req.file && docType) {
-    if (!cachedUploads[sid]) cachedUploads[sid] = {};
-    cachedUploads[sid][docType] = req.file.path;
-  }
-  res.json({ uploaded: true });
-});
-
-app.get('/api/cached-uploads', (req, res) => {
-    const sid = req.sessionId;
-    res.json(cachedUploads[sid] || {});
-});
 
 app.post('/api/save-selfie', async (req, res) => {
   const { referenceNumber, photos, data } = req.body || {};
@@ -227,73 +129,10 @@ app.post('/api/save-selfie', async (req, res) => {
   }
 });
 
-app.get('/api/branches', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT branch_id, name_en, name_ar, city, location FROM bank_branches ORDER BY branch_id');
-    res.json(result.rows);
-  } catch (e) {
-    logError(`BRANCHES_ERROR ${e.message}`);
-    res.status(500).json({ error: 'failed' });
-  }
-});
 
-app.get('/api/countries', async (req, res) => {
-  try {
-    const result = await pool.query("SELECT code, name_en, name_ar FROM countries ORDER BY CASE WHEN code='LY' THEN 0 ELSE 1 END, name_en");
-    res.json(result.rows);
-  } catch (e) {
-    logError(`COUNTRIES_ERROR ${e.message}`);
-    res.status(500).json({ error: 'failed' });
-  }
-});
 
-app.get('/api/cities', async (req, res) => {
-  try {
-    const country = req.query.country;
-    let result;
-    if (country) {
-      result = await pool.query('SELECT city_code, name_en, name_ar FROM cities WHERE country_code=$1 ORDER BY name_en', [country]);
-    } else {
-      result = await pool.query('SELECT country_code, city_code, name_en, name_ar FROM cities ORDER BY country_code, name_en');
-    }
-    res.json(result.rows);
-  } catch (e) {
-    logError(`CITIES_ERROR ${e.message}`);
-    res.status(500).json({ error: 'failed' });
-  }
-});
 
-app.get('/api/income-sources', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT id, name_en, name_ar FROM income_sources ORDER BY id');
-    res.json(result.rows);
-  } catch (e) {
-    logError(`INCOME_SOURCES_ERROR ${e.message}`);
-    res.status(500).json({ error: 'failed' });
-  }
-});
 
-app.get('/api/cache-extracted/:docType', (req, res) => {
-  const sid = req.sessionId;
-  res.json((cachedExtracted[sid] && cachedExtracted[sid][req.params.docType]) || {});
-});
-
-app.post('/api/cache-extracted', (req, res) => {
-  const sid = req.sessionId;
-  const { docType, data } = req.body || {};
-  if (!docType) return res.status(400).json({ error: 'missing_doc_type' });
-  if (!cachedExtracted[sid]) cachedExtracted[sid] = {};
-  cachedExtracted[sid][docType] = data || {};
-  res.json({ success: true });
-});
-
-app.post('/api/clear-cache', (req, res) => {
-  const sid = req.sessionId;
-  delete cachedForm[sid];
-  delete cachedUploads[sid];
-  delete cachedExtracted[sid];
-  res.json({ success: true });
-});
 
 function generateOtp() {
   return Math.floor(1000 + Math.random() * 9000).toString();
@@ -321,8 +160,7 @@ async function sendOtpSms(phone, code, language = 'ar') {
     logActivity(`SMS_POST ${JSON.stringify(payload)}`);
     const resp = await axios.post(
       url,
-      payload,
-      { httpsAgent: new https.Agent({ rejectUnauthorized: false }) }
+      payload
     );
     logActivity(`SMS_RESPONSE ${resp.status} ${JSON.stringify(resp.data)}`);
     logActivity(`SMS_SENT ${phone}`);
@@ -388,8 +226,7 @@ async function sendGenericSms(phone, message) {
     logActivity(`SMS_POST ${JSON.stringify(payload)}`);
     const resp = await axios.post(
       url,
-      payload,
-      { httpsAgent: new https.Agent({ rejectUnauthorized: false }) }
+      payload
     );
     logActivity(`SMS_RESPONSE ${resp.status} ${JSON.stringify(resp.data)}`);
     logActivity(`SMS_SENT ${phone}`);
@@ -428,18 +265,21 @@ app.post('/api/send-otp', (req, res) => {
   const { phone, email, language } = req.body || {};
   if (!phone && !email) return res.status(400).json({ error: 'missing_contact' });
 
-  if (phone) {
+  const sanitizedPhone = phone ? sanitize(phone) : null;
+  const sanitizedEmail = email ? sanitize(email) : null;
+
+  if (sanitizedPhone) {
     const code = generateOtp();
-    otpStore[`phone:${phone}`] = { code, expires: Date.now() + 5 * 60 * 1000 };
-    sendOtpSms(phone, code, language || 'ar');
-    logActivity(`OTP_SENT_PHONE ${phone} ${code}`);
+    otpStore[`phone:${sanitizedPhone}`] = { code, expires: Date.now() + 5 * 60 * 1000 };
+    sendOtpSms(sanitizedPhone, code, language || 'ar');
+    logActivity(`OTP_SENT_PHONE ${sanitizedPhone} ${code}`);
   }
 
-  if (email) {
+  if (sanitizedEmail) {
     const code = generateOtp();
-    otpStore[`email:${email}`] = { code, expires: Date.now() + 5 * 60 * 1000 };
-    sendOtpEmail(email, code, language || 'en');
-    logActivity(`OTP_SENT_EMAIL ${email} ${code}`);
+    otpStore[`email:${sanitizedEmail}`] = { code, expires: Date.now() + 5 * 60 * 1000 };
+    sendOtpEmail(sanitizedEmail, code, language || 'en');
+    logActivity(`OTP_SENT_EMAIL ${sanitizedEmail} ${code}`);
   }
 
   res.json({ success: true });
@@ -447,34 +287,29 @@ app.post('/api/send-otp', (req, res) => {
 
 app.post('/api/verify-otp', (req, res) => {
   const { phone, email, otp } = req.body || {};
-  const key = phone ? `phone:${phone}` : `email:${email}`;
+  const sanitizedPhone = phone ? sanitize(phone) : null;
+  const sanitizedEmail = email ? sanitize(email) : null;
+  const sanitizedOtp = otp ? sanitize(otp) : null;
+
+  const key = sanitizedPhone ? `phone:${sanitizedPhone}` : `email:${sanitizedEmail}`;
   const entry = otpStore[key];
-  if (entry && entry.code === String(otp) && Date.now() <= entry.expires) {
+  if (entry && entry.code === String(sanitizedOtp) && Date.now() <= entry.expires) {
     delete otpStore[key];
     return res.json({ verified: true });
   }
   res.json({ verified: false });
 });
 
-app.post('/api/log', (req, res) => {
-  const { message } = req.body || {};
-  if (message) {
-    logActivity(message);
-  }
-  res.json({ success: true });
-});
 
-app.post('/api/error-log', (req, res) => {
-  const { message } = req.body || {};
-  if (message) {
-    logError(message);
-  }
-  res.json({ success: true });
-});
-
-app.post('/api/update-personal-info', async (req, res) => {
+app.post('/api/update-personal-info', isAuthenticated, async (req, res) => {
   const { reference_number, ...fields } = req.body;
   if (!reference_number) return res.status(400).json({ error: 'missing_reference_number' });
+
+  for (const key in fields) {
+    if (typeof fields[key] === 'string') {
+        fields[key] = sanitize(fields[key]);
+    }
+  }
 
   const needNameUpdate = ['first_name_ar','middle_name_ar','last_name_ar','surname_ar'].some(f => fields[f] !== undefined);
   if (needNameUpdate) {
@@ -513,9 +348,15 @@ app.post('/api/update-personal-info', async (req, res) => {
   }
 });
 
-app.post('/api/update-address-info', async (req, res) => {
+app.post('/api/update-address-info', isAuthenticated, async (req, res) => {
   const { reference_number, ...fields } = req.body;
   if (!reference_number) return res.status(400).json({ error: 'missing_reference_number' });
+
+  for (const key in fields) {
+    if (typeof fields[key] === 'string') {
+        fields[key] = sanitize(fields[key]);
+    }
+  }
 
   const allowedFields = Object.keys(fields).filter(k => !['id', 'personal_id', 'national_id', 'reference_number', 'confirmed_by_admin'].includes(k));
   const setClauses = allowedFields.map((field, i) => `${field}=$${i + 1}`).join(', ');
@@ -532,9 +373,15 @@ app.post('/api/update-address-info', async (req, res) => {
   }
 });
 
-app.post('/api/update-work-info', async (req, res) => {
+app.post('/api/update-work-info', isAuthenticated, async (req, res) => {
   const { reference_number, ...fields } = req.body;
   if (!reference_number) return res.status(400).json({ error: 'missing_reference_number' });
+
+  for (const key in fields) {
+    if (typeof fields[key] === 'string') {
+        fields[key] = sanitize(fields[key]);
+    }
+  }
 
   const allowedFields = Object.keys(fields).filter(k => !['id', 'personal_id', 'national_id', 'reference_number', 'confirmed_by_admin'].includes(k));
   const setClauses = allowedFields.map((field, i) => `${field}=$${i + 1}`).join(', ');
@@ -559,6 +406,12 @@ app.post('/api/update-work-info', async (req, res) => {
 app.post('/api/address-info', async (req, res) => {
   const { reference, nid, adminChange, ...fields } = req.body || {};
   if (!reference && !nid) return res.status(400).json({ error: 'missing_identifier' });
+
+  for (const key in fields) {
+    if (typeof fields[key] === 'string') {
+        fields[key] = sanitize(fields[key]);
+    }
+  }
   try {
     let personal;
     if (reference) {
@@ -607,6 +460,12 @@ app.get('/api/address-info', async (req, res) => {
 app.post('/api/work-info', async (req, res) => {
   const { reference, nid, adminChange, ...fields } = req.body || {};
   if (!reference && !nid) return res.status(400).json({ error: 'missing_identifier' });
+
+  for (const key in fields) {
+    if (typeof fields[key] === 'string') {
+        fields[key] = sanitize(fields[key]);
+    }
+  }
   try {
     let personal;
     if (reference) {
@@ -755,6 +614,13 @@ app.post('/api/initialize-application', async (req, res) => {
 app.post('/api/submit-form', async (req, res) => {
     try {
         const form = req.body || {};
+
+        for (const key in form) {
+            if (typeof form[key] === 'string') {
+                form[key] = sanitize(form[key]);
+            }
+        }
+
         const manualFields = Array.isArray(form.manualFields) ? form.manualFields : [];
         const nid = Array.isArray(form.nidDigits) ? form.nidDigits.join('') : null;
         const referenceNumber = form.referenceNumber;
@@ -954,96 +820,6 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
-app.post('/api/create-custid', async (req, res) => {
-  const { reference, admin } = req.body || {};
-  if (!reference) return res.status(400).json({ error: 'missing_reference' });
-  try {
-    const pres = await pool.query('SELECT * FROM personal_info WHERE reference_number=$1', [reference]);
-    if (pres.rows.length === 0) return res.status(404).json({ error: 'not_found' });
-    const p = pres.rows[0];
-    const ares = await pool.query('SELECT * FROM address_info WHERE personal_id=$1 ORDER BY id DESC LIMIT 1', [p.id]);
-    const wres = await pool.query('SELECT * FROM work_income_info WHERE personal_id=$1 ORDER BY id DESC LIMIT 1', [p.id]);
-    const a = ares.rows[0] || {};
-    const w = wres.rows[0] || {};
-    const cityAddr = a.city ? await pool.query('SELECT name_ar, name_en FROM cities WHERE city_code=$1', [a.city]) : { rows: [{}] };
-    const countryAddr = a.country ? await pool.query('SELECT name_ar FROM countries WHERE code=$1', [a.country]) : { rows: [{}] };
-    const workCity = w.work_city ? await pool.query('SELECT name_ar FROM cities WHERE city_code=$1', [w.work_city]) : { rows: [{}] };
-    const birthCountryRes = p.birth_place ? await pool.query('SELECT country_code FROM cities WHERE name_en=$1 LIMIT 1', [p.birth_place]) : { rows: [{}] };
-    const birthCountry = birthCountryRes.rows[0]?.country_code || a.country || '';
-    const digits = (p.phone || '').replace(/\D/g, '');
-    const mobisdno = digits.slice(0,3);
-    const mobnum = digits.slice(3);
-    const fmt = (d) => d ? new Date(d).toISOString().split('T')[0] : null;
-    const payload = {
-      branch: String(p.branch_id || ''),
-      private_customer: 'N',
-      name: p.full_name,
-      fullname: p.full_name,
-      sname: p.national_id || '',
-      nlty: a.country || '',
-      addrln1: cityAddr.rows[0]?.name_ar || '',
-      addrln4: countryAddr.rows[0]?.name_ar || '',
-      country: a.country || '',
-      ccateg: p.service_type === 'personal' ? 'INDIVIDUAL' : 'CORPORATE',
-      media: 'MAIL',
-      loc: a.city || '',
-      p_address_code: cityAddr.rows[0]?.name_en || '',
-      track_limits: 'Y',
-      lang: p.language === 'en' ? 'ENG' : 'ARB',
-      gendr: p.gender === 'F' ? 'F' : 'M',
-      dob: fmt(p.dob),
-      birth_country: birthCountry,
-      nationid: p.national_id || '',
-      cust_comm_mode: p.phone ? 'M' : 'E',
-      pptno: p.passport_number || '',
-      pptissdt: fmt(p.passport_issue_date),
-      pptexpdt: fmt(p.passport_expiry_date),
-      mobisdno,
-      mobnum,
-      emailid: p.email || '',
-      birthcountry: birthCountry,
-      mothermaidn_name: p.mother_full_name || '',
-      liab_ccy: 'LYD',
-      work_place: workCity.rows[0]?.name_ar || ''
-    };
-    const respApi = await axios.post(process.env.CUST_API_URL, payload, { headers: { Authorization: `Bearer ${process.env.CUST_API_TOKEN}` } });
-    const data = respApi.data;
-    let custId;
-    if (data && typeof data === 'object' && data.CUSTID) {
-      custId = data.CUSTID;
-    } else if (typeof data === 'string') {
-      const match = data.match(/<CUSTID>\s*([^<]+)<\/CUSTID>/i);
-      if (match) {
-        custId = match[1].trim().replace(/^>/, '');
-      }
-    }
-    if (custId) {
-      await pool.query('INSERT INTO customer_details (personal_info_id, customer_id, created_at, created_by) VALUES ($1,$2,NOW(),$3)', [p.id, custId, admin || 'admin']);
-      logActivity(`CUSTOMER_API_RESPONSE ${JSON.stringify({ CUSTID: custId })}`);
-      res.json({ CUSTID: custId });
-    } else {
-      let errText = 'custid_missing';
-      if (typeof data === 'string') {
-        const matches = [...data.matchAll(/<error>([^<]+)<\/error>/gi)];
-        if (matches.length) {
-          errText = matches.map(m => m[1].trim()).join('; ');
-        }
-      }
-      logError(`CREATE_CUSTID_INVALID_RESPONSE ${typeof data === 'string' ? data : JSON.stringify(data)}`);
-      res.status(500).json({ error: errText });
-    }
-  } catch (e) {
-    let errText = 'server_error';
-    if (e.response?.data && typeof e.response.data === 'string') {
-      const matches = [...e.response.data.matchAll(/<error>([^<]+)<\/error>/gi)];
-      if (matches.length) {
-        errText = matches.map(m => m[1].trim()).join('; ');
-      }
-    }
-    logError(`CREATE_CUSTID_ERROR ${e.message}`);
-    res.status(500).json({ error: errText });
-  }
-});
 
 app.get('/api/customers-no-bank', async (req, res) => {
   const { nid, customerId } = req.query;
@@ -1177,98 +953,12 @@ app.post('/api/create-bank-account', async (req, res) => {
 });
 
 // Fetch all applications with related data
-app.get('/api/applications', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM personal_info ORDER BY created_at DESC');
-    const apps = [];
-    for (const p of result.rows) {
-      const address = await pool.query('SELECT * FROM address_info WHERE personal_id=$1 LIMIT 1', [p.id]);
-      const work = await pool.query('SELECT * FROM work_income_info WHERE personal_id=$1 LIMIT 1', [p.id]);
-      const docs = await pool.query('SELECT id, doc_type, file_name, reference_number, confirmed_by_admin FROM uploaded_documents WHERE personal_id=$1', [p.id]);
-
-      const branchRow = p.branch_id ? await pool.query('SELECT name_en FROM bank_branches WHERE branch_id=$1', [p.branch_id]) : null;
-      const branchName = branchRow?.rows?.[0]?.name_en || null;
-
-      let cityCode = address.rows[0]?.city || null;
-      let cityName = null;
-      if (cityCode) {
-        let cityRow = await pool.query('SELECT city_code, name_en FROM cities WHERE city_code=$1', [cityCode]);
-        if (cityRow.rows.length === 0) {
-          cityRow = await pool.query('SELECT city_code, name_en FROM cities WHERE name_en=$1 OR name_ar=$1', [cityCode]);
-        }
-        if (cityRow.rows.length > 0) {
-          cityCode = cityRow.rows[0].city_code;
-          cityName = cityRow.rows[0].name_en;
-        }
-      }
-
-      apps.push({
-        personalInfo: { ...p, branch_name: branchName, city_code: cityCode, city_name: cityName },
-        addressInfo: address.rows[0] || null,
-        workInfo: work.rows[0] || null,
-        uploadedDocuments: docs.rows,
-        status: p.confirmed_by_admin ? 'Approved' : 'Pending'
-      });
-    }
-    res.json(apps);
-  } catch (e) {
-    logError(`GET_APPS_ERROR ${e.message}`);
-    res.status(500).json({ error: 'server_error' });
-  }
-});
 
 // Update an uploaded document with a new file
-app.post('/api/update-document/:id', upload.single('file'), async (req, res) => {
-  const docId = req.params.id;
-  if (!req.file) return res.status(400).json({ error: 'missing_file' });
-  try {
-    const existing = await pool.query('SELECT personal_id, file_name FROM uploaded_documents WHERE id=$1', [docId]);
-    if (existing.rows.length === 0) return res.status(404).json({ error: 'not_found' });
-    const oldPath = existing.rows[0].file_name;
-    const dir = path.dirname(oldPath);
-    const newPath = path.join(dir, path.basename(req.file.path));
-    fs.renameSync(req.file.path, newPath);
-    const refRes = await pool.query('SELECT reference_number FROM personal_info WHERE id=$1', [existing.rows[0].personal_id]);
-    const refNum = refRes.rows[0].reference_number;
-    await pool.query('UPDATE uploaded_documents SET file_name=$1, confirmed_by_admin=FALSE, reference_number=$2 WHERE id=$3', [newPath, refNum, docId]);
-    logActivity(`DOC_UPDATED ${docId}`);
-    res.json({ path: newPath });
-  } catch (e) {
-    logError(`DOC_UPDATE_ERROR ${e.message}`);
-    res.status(500).json({ error: 'server_error' });
-  }
-});
 
 // Approve or unapprove an uploaded document
-app.post('/api/approve-document', async (req, res) => {
-  const { id, approved, adminName } = req.body || {};
-  if (!id) return res.status(400).json({ error: 'missing_id' });
-  try {
-    const adminIp = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0];
-    await pool.query('UPDATE uploaded_documents SET confirmed_by_admin=$1, approved_by_admin_name=$2, approved_by_admin_ip=$3 WHERE id=$4', [approved, adminName || null, adminIp, id]);
-    logActivity(`DOC_APPROVE ${id} ${approved} ${adminName || ''} ${adminIp}`);
-    res.json({ success: true });
-  } catch (e) {
-    logError(`DOC_APPROVE_ERROR ${e.message}`);
-    res.status(500).json({ error: 'server_error' });
-  }
-});
 
 // Update personal info approval status
-app.post('/api/application-status', async (req, res) => {
-  const { id, status, adminName } = req.body || {};
-  if (!id || !status) return res.status(400).json({ error: 'missing_parameters' });
-  try {
-    const approved = status === 'Approved';
-    const adminIp = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0];
-    await pool.query('UPDATE personal_info SET confirmed_by_admin=$1, approved_by_admin_name=$2, approved_by_admin_ip=$3 WHERE id=$4', [approved, adminName || null, adminIp, id]);
-    logActivity(`APP_STATUS ${id} ${status} ${adminName || ''} ${adminIp}`);
-    res.json({ success: true });
-  } catch (e) {
-    logError(`APP_STATUS_ERROR ${e.message}`);
-    res.status(500).json({ error: 'server_error' });
-  }
-});
 
 // List all uploaded document references awaiting admin approval
 app.get('/api/pending-docs', async (req, res) => {
@@ -1282,37 +972,6 @@ app.get('/api/pending-docs', async (req, res) => {
 });
 
 // Add a new uploaded document for an existing customer
-app.post('/api/add-document', upload.single('file'), async (req, res) => {
-  const { reference, nid, docType } = req.body || {};
-  if (!req.file || (!reference && !nid) || !docType) {
-    return res.status(400).json({ error: 'missing_parameters' });
-  }
-  try {
-    let personal;
-    if (reference) {
-      personal = await pool.query('SELECT id, national_id FROM personal_info WHERE reference_number=$1', [reference]);
-    } else {
-      personal = await pool.query('SELECT id, national_id FROM personal_info WHERE national_id=$1 ORDER BY created_at DESC LIMIT 1', [nid]);
-    }
-    if (personal.rows.length === 0) return res.status(404).json({ error: 'not_found' });
-    const pid = personal.rows[0].id;
-    const nat = personal.rows[0].national_id;
-    const refResult = await pool.query('SELECT reference_number FROM personal_info WHERE id=$1', [pid]);
-    const refNum = refResult.rows[0].reference_number;
-    const dir = path.join(userDocsBase, refNum);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    const newPath = path.join(dir, path.basename(req.file.path));
-    fs.renameSync(req.file.path, newPath);
-    const ins = await pool.query('INSERT INTO uploaded_documents (personal_id, national_id, doc_type, file_name, reference_number) VALUES ($1,$2,$3,$4,$5) RETURNING id', [pid, nat, docType, newPath, refNum]);
-    logActivity(`DOC_ADDED ${refNum}`);
-    res.json({ id: ins.rows[0].id, referenceNumber: refNum, path: newPath });
-  } catch (e) {
-    logError(`ADD_DOC_ERROR ${e.message}`);
-    res.status(500).json({ error: 'server_error' });
-  }
-});
 
 // Update selected service type for an existing customer
 app.post('/api/service-type', async (req, res) => {
@@ -1393,8 +1052,8 @@ const HTTPS_PORT = process.env.HTTPS_PORT || 7102;
 
 try {
   const sslOptions = {
-    key: fs.readFileSync(path.join(__dirname, 'src', 'ssl', 'key.pem')),
-    cert: fs.readFileSync(path.join(__dirname, 'src', 'ssl', 'cert.pem')),
+    key: fs.readFileSync(path.join(__dirname, '..', 'src', 'ssl', 'key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, '..', 'src', 'ssl', 'cert.pem')),
   };
   https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
     console.log(`HTTPS server running on port ${HTTPS_PORT}`);

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { extractPassportData, extractNIDData } from '../utils/passportNidExtractors';
 import { mapExtractedFields } from '../utils/fieldMapper';
 import { uploadDocument } from '../utils/fileUploader';
@@ -10,8 +11,7 @@ import LanguageSwitcher from '../common/LanguageSwitcher';
 import AIProviderSwitcher from '../common/AIProviderSwitcher';
 import Footer from '../common/Footer';
 import { UploadIcon } from '../common/Icons';
-import { LOGO_WHITE } from '../assets/imagePaths';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useFormData } from '../contexts/FormContext';
 import '../styles/SequentialDocsPage.css';
 
@@ -21,9 +21,11 @@ const DOCS = [
   { key: 'letter', labelKey: 'accountOpeningLetter' },
 ];
 
-const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => {
-    const { language } = useLanguage();
+const SequentialDocsPage_EN = () => {
+    const { t } = useTranslation();
     const { setFormData, formData } = useFormData();
+    const navigate = useNavigate();
+    const location = useLocation();
     const [current, setCurrent] = useState(0);
     const [data, setData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -104,7 +106,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
                   setFormData((d) => ({ ...d, personalInfo: { ...(d.personalInfo || {}), fullName: result.fullNameArabic, firstNameEn: firstName, middleNameEn: middleName, lastNameEn: result.surnameEng, dob: result.dateOfBirth, gender: genderVal, nationality: normalizeNationality(result.nationality), passportNumber: result.passportNo, passportIssueDate: result.dateOfIssue, passportExpiryDate: result.expiryDate, birthPlace: result.placeOfBirth, }, passportData: result, }));
                   setIsValid(true);
                  } else {
-                  setError(t('invalidPassport', language));
+                  setError(t('invalidPassport'));
                   setIsValid(false);
                   setScanComplete(true);
                   setIsLoading(false);
@@ -124,7 +126,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
                   });
                   setIsValid(true);
                 } else {
-                  setError(t('invalidNid', language));
+                  setError(t('invalidNid'));
                   setIsValid(false);
                   setScanComplete(true);
                   setIsLoading(false);
@@ -141,7 +143,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
 
         } catch (e) {
             console.error(e);
-            setError(t('error_extracting_data', language));
+            setError(t('error_extracting_data'));
         } finally {
             setIsLoading(false);
         }
@@ -154,7 +156,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
                 setCurrent(c => c + 1);
                 resetComponentState();
             } else {
-                onNavigate('faceRegistration', { backPage: selfPage, nextPage });
+                navigate('/face-registration', { state: { backPage: location.pathname, nextPage: '/contact-info' } });
             }
             setIsConfirming(false);
         }, 500);
@@ -177,20 +179,20 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
                     <ThemeSwitcher />
                     <LanguageSwitcher />
                 </div>
-                <button onClick={() => onNavigate(backPage)} className="btn-back">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    <span>{t('back', language)}</span>
+                <button onClick={() => navigate(-1)} className="btn-back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    <span>{t('back')}</span>
                 </button>
             </header>
             <main className="form-main">
                  <input type="file" ref={fileInputRef} onChange={(e) => handleUpload(e.target.files[0])} accept="image/*" style={{ display: 'none' }} />
 
                 <div className="controls-header">
-                   <h2 className="page-title">{t(doc.labelKey, language)}</h2>
+                   <h2 className="page-title">{t(doc.labelKey)}</h2>
                     {image && (
                       <button onClick={handleRefresh} className="btn-refresh">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0114.13-3.36L23 10"></path><path d="M20.49 15a9 9 0 01-14.13 3.36L1 14"></path></svg>
-                        <span>{t('refresh', language)}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0114.13-3.36L23 10"></path><path d="M20.49 15a9 9 0 01-14.13 3.36L1 14"></path></svg>
+                        <span>{t('refresh')}</span>
                       </button>
                     )}
                 </div>
@@ -198,7 +200,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
                 {!image ? (
                   <div className={`upload-area ${isDragging ? 'drag-over' : ''}`} onClick={() => fileInputRef.current.click()} onDragEnter={handleDragEvents} onDragOver={handleDragEvents} onDragLeave={handleDragEvents} onDrop={handleDrop}>
                     <div className="upload-icon"><UploadIcon /></div>
-                    <h2>{t('upload_prompt', language)}</h2>
+                    <h2>{t('upload_prompt')}</h2>
                   </div>
                 ) : (
                   <div className="result-container">
@@ -222,31 +224,31 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
                           </div>
                         </div>
                       <button type="button" onClick={() => fileInputRef.current.click()} className="btn-change" style={{ marginTop: 'auto' }}>
-                        {t('change_document', language)}
+                        {t('change_document')}
                       </button>
                     </div>
 
                     <div className="data-result-box">
                        <div className="data-result-header">
-                         <h3>{t('extractedData', language)}</h3>
+                         <h3>{t('extractedData')}</h3>
                        </div>
                        {isLoading ? (
                          <div className="loading-container">
                            <div className="arrow-spinner"></div>
-                           <p>{t('extracting_data', language)}</p>
+                           <p>{t('extracting_data')}</p>
                          </div>
                        ) : data[doc.key] && Object.keys(data[doc.key]).length > 0 ? (
                             <table className="modern-table">
                                 <thead>
                                     <tr>
-                                        <th>{t('label', language)}</th>
-                                        <th>{t('value', language)}</th>
+                                        <th>{t('label')}</th>
+                                        <th>{t('value')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {Object.entries(data[doc.key]).map(([key, value]) => (
                                         <tr key={key}>
-                                            <td>{t(key, language)}</td>
+                                            <td>{t(key)}</td>
                                             <td>{String(value) || 'N/A'}</td>
                                         </tr>
                                     ))}
@@ -254,7 +256,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
                             </table>
                         ) : (
                            <div className="loading-container">
-                               <p>{t('not_found', language)}</p>
+                               <p>{t('not_found')}</p>
                            </div>
                        )}
                     </div>
@@ -264,7 +266,7 @@ const SequentialDocsPage_EN = ({ onNavigate, backPage, nextPage, selfPage }) => 
                 
                 <div className="form-actions" style={{marginTop: '30px'}}>
                     <button className="btn-next" onClick={handleConfirm} disabled={!image || isLoading || isConfirming || !isValid}>
-                        {isConfirming ? <div className="loader"></div> : t('next', language)}
+                        {isConfirming ? <div className="loader"></div> : t('next')}
                     </button>
                 </div>
 

@@ -1,13 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { LOGO_WHITE } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
-import { t } from '../i18n';
-import { useLanguage } from '../contexts/LanguageContext';
 
-const CompanyContactPage_EN = ({ onNavigate, backPage, nextPage }) => {
-    const { language } = useLanguage();
+const CompanyContactPage = () => {
+    const { t } = useTranslation();
+    const navigate = useNavigate();
     return (
         <div className="form-page">
             <header className="header docs-header">
@@ -16,33 +17,33 @@ const CompanyContactPage_EN = ({ onNavigate, backPage, nextPage }) => {
                     <ThemeSwitcher />
                     <LanguageSwitcher />
                 </div>
-                 <button onClick={() => onNavigate(backPage)} className="btn-back">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    <span>{t('back', language)}</span>
+                 <button onClick={() => navigate(-1)} className="btn-back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    <span>{t('back')}</span>
                 </button>
             </header>
             <main className="form-main">
-                <form className="form-container" onSubmit={e => {e.preventDefault(); onNavigate(nextPage);}} noValidate>
+                <form className="form-container" onSubmit={e => {e.preventDefault(); navigate('/legal-rep-info');}} noValidate>
                     <div className="form-section">
-                        <h3>Company Contact Information</h3>
+                        <h3>{t('companyContactInfo')}</h3>
                         <div className="form-group">
                             <div className="phone-input-group">
                                <span className="phone-prefix">+218</span>
-                               <input type="tel" required className="form-input" placeholder="Main Phone Number" />
+                               <input type="tel" required className="form-input" placeholder={t('mainPhoneNumber')} />
                             </div>
                         </div>
                         <div className="form-group">
-                            <input type="email" required className="form-input" placeholder="Official Email" />
+                            <input type="email" required className="form-input" placeholder={t('officialEmail')} />
                         </div>
                         <div className="form-group">
-                            <input type="text" className="form-input" placeholder="Website (if any)" />
+                            <input type="text" className="form-input" placeholder={t('websiteIfAny')} />
                         </div>
                         <div className="form-group">
-                            <input type="text" className="form-input" placeholder="Branch Address (if any)" />
+                            <input type="text" className="form-input" placeholder={t('branchAddressIfAny')} />
                         </div>
                     </div>
                     <div className="form-actions">
-                    <button type="submit" className="btn-next">{t('next', language)}</button>
+                    <button type="submit" className="btn-next">{t('next')}</button>
                 </div>
                 </form>
             </main>
@@ -50,5 +51,4 @@ const CompanyContactPage_EN = ({ onNavigate, backPage, nextPage }) => {
         </div>
     );
 };
-export default CompanyContactPage_EN;
-
+export default CompanyContactPage;

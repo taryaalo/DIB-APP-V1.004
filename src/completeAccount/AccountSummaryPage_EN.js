@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
-import { useLanguage } from '../contexts/LanguageContext';
-import { t } from '../i18n';
+import { useTranslation } from 'react-i18next';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { logToServer } from '../utils/logger';
@@ -12,8 +12,11 @@ import { logToServer } from '../utils/logger';
 const mockFetchCustomerId = () =>
   new Promise(resolve => setTimeout(() => resolve('CUST-0001'), 500));
 
-const AccountSummaryPage_EN = ({ onNavigate, state }) => {
-  const { language } = useLanguage();
+const AccountSummaryPage_EN = () => {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state } = location;
   const [customerId, setCustomerId] = useState('');
 
   useEffect(() => {
@@ -25,7 +28,7 @@ const AccountSummaryPage_EN = ({ onNavigate, state }) => {
       {Object.entries(obj || {}).map(([k, v]) => (
         v ? (
           <li key={k}>
-            <strong>{t(k, language)}:</strong> {v}
+            <strong>{t(k)}:</strong> {v}
           </li>
         ) : null
       ))}
@@ -38,29 +41,29 @@ const AccountSummaryPage_EN = ({ onNavigate, state }) => {
       const pageWidth = doc.internal.pageSize.getWidth();
       doc.addImage(LOGO_COLOR, 'PNG', pageWidth / 2 - 20, 10, 40, 40);
       doc.setFontSize(16);
-      doc.text(t('accountSummary', language), pageWidth / 2, 55, { align: 'center' });
+      doc.text(t('accountSummary'), pageWidth / 2, 55, { align: 'center' });
 
       const rows = [];
       const pushRows = (obj) => {
         Object.entries(obj || {}).forEach(([k, v]) => {
           if (!v) return;
-          rows.push([t(k, language), Array.isArray(v) ? v.join('') : v]);
+          rows.push([t(k), Array.isArray(v) ? v.join('') : v]);
         });
       };
       pushRows(state.personalInfo);
       pushRows(state.addressInfo);
       pushRows(state.workInfo);
       pushRows({
-        mobileApp: state.eServices?.mobileApp ? t('yes', language) : t('no', language),
-        sms: state.eServices?.sms ? t('yes', language) : t('no', language),
-        localCard: state.eServices?.localCard ? t('yes', language) : t('no', language),
-        internationalCard: state.eServices?.internationalCard ? t('yes', language) : t('no', language)
+        mobileApp: state.eServices?.mobileApp ? t('yes') : t('no'),
+        sms: state.eServices?.sms ? t('yes') : t('no'),
+        localCard: state.eServices?.localCard ? t('yes') : t('no'),
+        internationalCard: state.eServices?.internationalCard ? t('yes') : t('no')
       });
-      rows.push([t('customerId', language), customerId]);
+      rows.push([t('customerId'), customerId]);
 
       autoTable(doc, {
         startY: 65,
-        head: [[t('label', language), t('value', language)]],
+        head: [[t('label'), t('value')]],
         body: rows,
         theme: 'grid',
         styles: { font: 'helvetica', fontSize: 10 }
@@ -79,8 +82,8 @@ const AccountSummaryPage_EN = ({ onNavigate, state }) => {
           <ThemeSwitcher />
           <LanguageSwitcher />
         </div>
-        <button onClick={() => onNavigate('eServicesReg', state)} className="btn-back">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <button onClick={() => navigate('/eservices-reg', { state })} className="btn-back">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           <span>{t('back', language)}</span>
         </button>
       </header>
@@ -105,7 +108,7 @@ const AccountSummaryPage_EN = ({ onNavigate, state }) => {
         </div>
         <div className="form-actions">
           <button className="btn-export" onClick={handleExport} style={{marginRight:'10px'}}>{t('exportPdf', language)}</button>
-          <button className="btn-next" onClick={() => onNavigate('landing')}>{t('backToHome', language)}</button>
+          <button className="btn-next" onClick={() => navigate('/landing')}>{t('backToHome', language)}</button>
         </div>
       </main>
       <Footer />

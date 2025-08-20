@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 import { SuccessIcon } from '../common/Icons';
@@ -9,12 +10,14 @@ import { LOGO_WHITE } from '../assets/imagePaths';
 import '../styles/SuccessPage_EN.css';
 import { useFormData } from '../contexts/FormContext';
 
-const SuccessPage_EN = ({ onNavigate, state }) => {
+const SuccessPage_EN = () => {
   const { language } = useLanguage();
   const { setFormData } = useFormData();
-  const reference = state?.referenceNumber;
-  const createdAt = state?.createdAt;
-  const aiModel = state?.aiModel;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const reference = location.state?.referenceNumber;
+  const createdAt = location.state?.createdAt;
+  const aiModel = location.state?.aiModel;
 
   useEffect(() => {
     fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/clear-cache`, { method: 'POST' }).catch(() => {});
@@ -50,7 +53,7 @@ const SuccessPage_EN = ({ onNavigate, state }) => {
             {t('aiModelUsed', language)}: {aiModel}
           </p>
         )}
-        <button className="btn-next" onClick={() => onNavigate('landing')}>
+        <button className="btn-next" onClick={() => navigate('/landing')}>
           {t('backToHome', language)}
         </button>
       </main>
