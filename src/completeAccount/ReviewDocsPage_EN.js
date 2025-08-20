@@ -6,7 +6,6 @@ import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
-import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 import { SuccessIcon } from '../common/Icons';
 
@@ -22,7 +21,6 @@ const DOC_LABELS = {
 const DOC_TYPES = Object.keys(DOC_LABELS);
 
 const ReviewDocsPage_EN = () => {
-  const { language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = location;
@@ -122,11 +120,11 @@ const ReviewDocsPage_EN = () => {
         </div>
         <button onClick={() => navigate('/complete-account')} className="btn-back">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          <span>{t('back', language)}</span>
+          <span>{t('back')}</span>
         </button>
       </header>
       <main className="form-main">
-        <h2 className="form-title">{t('reviewDocuments', language)}</h2>
+        <h2 className="form-title">{t('reviewDocuments')}</h2>
         <div className="docs-grid">
           {DOC_TYPES.map(type => {
             const doc = docs.find(d => d.doc_type === type);
@@ -134,10 +132,10 @@ const ReviewDocsPage_EN = () => {
               <div key={doc.id} className="image-preview-box" style={{alignItems:'center', position: 'relative'}}>
                 <img src={`${API_BASE_URL}/${doc.file_name}`} alt={doc.doc_type} />
                 {valid[doc.id] && <div className="stamp-overlay"><SuccessIcon /></div>}
-                <div style={{marginTop:'10px', fontWeight:'600'}}>{t(DOC_LABELS[doc.doc_type] || doc.doc_type, language)}</div>
+                <div style={{marginTop:'10px', fontWeight:'600'}}>{t(DOC_LABELS[doc.doc_type] || doc.doc_type)}</div>
                 <label style={{marginTop:'10px', display:'flex', alignItems:'center', gap:'5px'}}>
                   <input type="checkbox" checked={!!valid[doc.id]} onChange={() => toggleValid(doc.id)} disabled={saving[doc.id]} />
-                  {t('valid', language)}
+                  {t('valid')}
                   {saving[doc.id] && <div className="loading-spinner"></div>}
                 </label>
                 {errors[doc.id] && <div className="error-message">{errors[doc.id]}</div>}
@@ -147,7 +145,7 @@ const ReviewDocsPage_EN = () => {
               </div>
             ) : (
               <div key={type} className="image-preview-box" style={{alignItems:'center', justifyContent:'center'}}>
-                <div style={{fontWeight:'600'}}>{t(DOC_LABELS[type], language)}</div>
+                <div style={{fontWeight:'600'}}>{t(DOC_LABELS[type])}</div>
                 <div style={{marginTop:'10px'}}>
                   <input type="file" onChange={e => handleNewDoc(type, e.target.files[0])} disabled={uploading[type]} />
                 </div>
@@ -156,7 +154,7 @@ const ReviewDocsPage_EN = () => {
           })}
         </div>
         <div className="form-actions">
-          <button className="btn-next" disabled={!DOC_TYPES.every(t => docs.some(d => d.doc_type === t && valid[d.id]))} onClick={() => navigate('/review-work-info', { state: { ...state, uploadedDocuments: docs } })}>{t('next', language)}</button>
+          <button className="btn-next" disabled={!DOC_TYPES.every(t => docs.some(d => d.doc_type === t && valid[d.id]))} onClick={() => navigate('/review-work-info', { state: { ...state, uploadedDocuments: docs } })}>{t('next')}</button>
         </div>
       </main>
       <Footer />

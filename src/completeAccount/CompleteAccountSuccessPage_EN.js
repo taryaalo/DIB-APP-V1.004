@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
+import i18n from 'i18next';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
@@ -12,7 +12,6 @@ import '../styles/CompleteAccountSuccessPage_EN.css';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 const CompleteAccountSuccessPage_EN = () => {
-  const { language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = location;
@@ -99,11 +98,11 @@ const CompleteAccountSuccessPage_EN = () => {
           <LanguageSwitcher />
         </div>
       </header>
-      <main className="sp-container" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-        <h1 className="sp-main-title">{t('successAccount', language)}</h1>
+      <main className="sp-container" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+        <h1 className="sp-main-title">{t('successAccount')}</h1>
         <div className="sp-content-layout">
           <div className="sp-card-section">
-            <h2>{t('customerCard', language)}</h2>
+            <h2>{t('customerCard')}</h2>
             <div ref={cardRef}>
               <div className="sp-id-card">
                 <div className="id-card-header">
@@ -117,13 +116,13 @@ const CompleteAccountSuccessPage_EN = () => {
                   <p className="id-card-name-ar">{fullNameAr}</p>
                   <div className="id-card-details">
                     <div className="id-card-info">
-                      <p><strong>{t('accountNumber', language)}</strong> {accountNumber}</p>
-                      <p><strong>{t('branch', language)}</strong> {branch}</p>
-                      <p><strong>{t('phoneNumber', language)}</strong> {phone}</p>
+                      <p><strong>{t('accountNumber')}</strong> {accountNumber}</p>
+                      <p><strong>{t('branch')}</strong> {branch}</p>
+                      <p><strong>{t('phoneNumber')}</strong> {phone}</p>
                     </div>
                     <div className="id-card-qr-wrapper">
                       <img src={qrCodeUrl} alt="QR Code" className="id-card-qr-code" />
-                      <p className="id-card-qr-label"><strong>{t('customerId', language)}:</strong> {custId}</p>
+                      <p className="id-card-qr-label"><strong>{t('customerId')}:</strong> {custId}</p>
                     </div>
                   </div>
                 </div>
@@ -131,33 +130,33 @@ const CompleteAccountSuccessPage_EN = () => {
             </div>
           </div>
           <div className="sp-actions-section">
-            <h2>{t('receipt', language)}</h2>
+            <h2>{t('receipt')}</h2>
             <div ref={receiptRef}>
               <div className="sp-receipt">
                 <div className="sp-receipt-header">
                   <img src={LOGO_COLOR} alt="Bank Logo" className="sp-receipt-logo" />
-                  <h3>{t('officialReceipt', language)}</h3>
+                  <h3>{t('officialReceipt')}</h3>
                 </div>
                 <div className="sp-receipt-body">
-                  <p><span>{t('customerId', language)}</span> <strong>{custId}</strong></p>
-                  <p><span>{t('fees', language)}</span> <strong>150.00 LYD</strong></p>
+                  <p><span>{t('customerId')}</span> <strong>{custId}</strong></p>
+                  <p><span>{t('fees')}</span> <strong>150.00 LYD</strong></p>
                 </div>
                 <div className="sp-receipt-footer">
-                  <p>{t('thankYou', language)}</p>
+                  <p>{t('thankYou')}</p>
                 </div>
               </div>
             </div>
-            <button className="sp-button sp-button-secondary" onClick={handlePrintReceipt}>{t('printReceipt', language)}</button>
+            <button className="sp-button sp-button-secondary" onClick={handlePrintReceipt}>{t('printReceipt')}</button>
             <div className="sp-fee-confirmation">
               <label>
-                <input type="checkbox" checked={feesDeposited} onChange={(e) => setFeesDeposited(e.target.checked)} /> {t('confirmFee', language)}
+                <input type="checkbox" checked={feesDeposited} onChange={(e) => setFeesDeposited(e.target.checked)} /> {t('confirmFee')}
               </label>
             </div>
-            <button onClick={handlePrintCard} className="sp-button sp-button-primary" disabled={!feesDeposited}>{t('printCard', language)}</button>
-            <button onClick={handleExportCard} className="sp-button sp-button-primary" disabled={!feesDeposited}>{t('exportCard', language)}</button>
+            <button onClick={handlePrintCard} className="sp-button sp-button-primary" disabled={!feesDeposited}>{t('printCard')}</button>
+            <button onClick={handleExportCard} className="sp-button sp-button-primary" disabled={!feesDeposited}>{t('exportCard')}</button>
           </div>
         </div>
-        <button className="sp-button sp-home-button" onClick={() => navigate('/landing')}>{t('goHome', language)}</button>
+        <button className="sp-button sp-home-button" onClick={() => navigate('/landing')}>{t('goHome')}</button>
       </main>
       <Footer />
     </div>
