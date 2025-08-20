@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -10,7 +11,8 @@ import { useFormData } from '../contexts/FormContext';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
-const SelectUserPage_EN = ({ onNavigate }) => {
+const SelectUserPage_EN = () => {
+    const navigate = useNavigate();
   useEffect(() => {
     const card = document.querySelector('.tilt-effect');
     if (!card) return;
@@ -46,7 +48,7 @@ const SelectUserPage_EN = ({ onNavigate }) => {
       });
     } catch (e) { console.error(e); }
     // Service type will be persisted on confirmation page
-    onNavigate(page);
+    navigate(`/${page}`);
   };
 
   return (
@@ -64,11 +66,11 @@ const SelectUserPage_EN = ({ onNavigate }) => {
         </div>
         <div className="menu-card tilt-effect">
           <h2>{t('selectService', language)}</h2>
-          <button onClick={() => selectService('personal', 'personalDocs')}><PersonalIcon /><span>{t('personal', language)}</span></button>
-          <button onClick={() => selectService('expat', 'expatDocs')}><PersonalIcon /><span>{t('expat', language)}</span></button>
-          <button onClick={() => selectService('guaranteed', 'guaranteedDocs')}><GuaranteedIcon /><span>{t('guaranteed', language)}</span></button>
-          <button onClick={() => selectService('businessmen', 'businessmenDocs')}><BusinessmenIcon /><span>{t('businessmen', language)}</span></button>
-          <button onClick={() => selectService('companies', 'companiesDocs')}><CompaniesIcon /><span>{t('companies', language)}</span></button>
+          <button onClick={() => selectService('personal', 'personal-docs')}><PersonalIcon /><span>{t('personal', language)}</span></button>
+          <button onClick={() => selectService('expat', 'expat-docs')}><PersonalIcon /><span>{t('expat', language)}</span></button>
+          <button onClick={() => selectService('guaranteed', 'guaranteed-docs')}><GuaranteedIcon /><span>{t('guaranteed', language)}</span></button>
+          <button onClick={() => selectService('businessmen', 'businessmen-docs')}><BusinessmenIcon /><span>{t('businessmen', language)}</span></button>
+          <button onClick={() => selectService('companies', 'companies-docs')}><CompaniesIcon /><span>{t('companies', language)}</span></button>
         </div>
       </main>
             <Footer />

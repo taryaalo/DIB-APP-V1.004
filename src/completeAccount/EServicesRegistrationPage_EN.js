@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -7,8 +8,11 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 import { MobileAppIcon, SmsIcon, CardIcon, VisaMasterIcon } from '../common/Icons';
 
-const EServicesRegistrationPage_EN = ({ onNavigate, state }) => {
+const EServicesRegistrationPage_EN = () => {
   const { language } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state } = location;
   const [services, setServices] = useState({
     mobileApp: true,
     sms: true,
@@ -29,8 +33,8 @@ const EServicesRegistrationPage_EN = ({ onNavigate, state }) => {
           <ThemeSwitcher />
           <LanguageSwitcher />
         </div>
-        <button onClick={() => onNavigate('reviewAddressInfo', state)} className="btn-back">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <button onClick={() => navigate('/review-address-info', { state })} className="btn-back">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           <span>{t('back', language)}</span>
         </button>
       </header>
@@ -81,7 +85,7 @@ const EServicesRegistrationPage_EN = ({ onNavigate, state }) => {
           </ul>
         </div>
         <div className="form-actions">
-          <button className="btn-next" onClick={() => onNavigate('accountSummary', { ...state, eServices: services })}>
+          <button className="btn-next" onClick={() => navigate('/account-summary', { state: { ...state, eServices: services } })}>
             {t('completeAccountRequest', language)}
           </button>
         </div>

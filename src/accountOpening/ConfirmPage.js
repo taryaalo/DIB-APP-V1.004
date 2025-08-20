@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { LOGO_WHITE } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
-import { t } from '../i18n';
-import { useLanguage } from '../contexts/LanguageContext';
 import { useFormData } from '../contexts/FormContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -22,10 +22,12 @@ const DOCS = [
     { key: 'photo', labelKey: 'recentPersonalPhoto' },
 ];
 
-const ConfirmPage_EN = ({ onNavigate, state }) => {
-    const { language } = useLanguage();
+const ConfirmPage = () => {
+    const { t, i18n } = useTranslation();
     const { formData, setFormData } = useFormData();
-    const manualFields = state?.manualFields || [];
+    const navigate = useNavigate();
+    const location = useLocation();
+    const manualFields = location.state?.manualFields || [];
     const [form, setForm] = useState(formData || {});
     const [submitError, setSubmitError] = useState('');
     const [cachedUploads, setCachedUploads] = useState({});
@@ -100,7 +102,7 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
             const payload = {
                 ...(form.personalInfo || {}),
                 branchId,
-                language,
+                language: i18n.language,
                 referenceNumber: reference,
                 addressInfo: form.addressInfo,
                 workInfo: form.workInfo,
@@ -114,16 +116,16 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
             });
             if (resp.ok) {
                 const data = await resp.json();
-                onNavigate('success', { referenceNumber: data.referenceNumber, createdAt: data.createdAt, aiModel: formData.provider });
+                navigate('/success', { state: { referenceNumber: data.referenceNumber, createdAt: data.createdAt, aiModel: formData.provider } });
             } else {
                 const text = await resp.text();
                 logErrorToServer(`SUBMIT_ERROR ${resp.status} ${text}`);
-                setSubmitError(t('dbSaveError', language));
+                setSubmitError(t('dbSaveError'));
             }
         } catch (e) {
             console.error(e);
             logErrorToServer(`SUBMIT_ERROR ${e.message}; STACK: ${e.stack}`);
-            setSubmitError(t('dbSaveError', language));
+            setSubmitError(t('dbSaveError'));
         }
     };
 
@@ -141,13 +143,13 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
             <div className="confirmation-card">
                 <div className="confirmation-card-header">
                     {icon}
-                    <h2>{t(titleKey, language)}</h2>
+                    <h2>{t(titleKey)}</h2>
                 </div>
                 <div className="confirmation-card-body">
                     <ul className="info-list">
                         {Object.entries(dataToRender).map(([key, value]) => {
                             if (value && (typeof value !== 'object' || Array.isArray(value)) && typeof value !== 'boolean') {
-                                const label = key === 'nidDigits' ? t('nid', language) : (t(key, language) || key);
+                                const label = key === 'nidDigits' ? t('nid') : (t(key) || key);
                                 return <li key={key}><strong>{label}:</strong> <span>{Array.isArray(value) ? value.join('') : String(value)}</span></li>
                             }
                             return null;
@@ -175,7 +177,7 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
             <div className="confirmation-card">
                 <div className="confirmation-card-header">
                     <FileTextIcon />
-                    <h2>{t(titleKey, language)}</h2>
+                    <h2>{t(titleKey)}</h2>
                 </div>
                 <div className="confirmation-card-body">
                     <div className="docs-grid">
@@ -191,7 +193,7 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                     </div>
                                 </div>
-                                <p className="doc-title">{t(DOCS.find(d => d.key === docType)?.labelKey, language) || docType}</p>
+                                <p className="doc-title">{t(DOCS.find(d => d.key === docType)?.labelKey) || docType}</p>
                             </div>
                         ))}
                     </div>
@@ -210,8 +212,8 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
                 </div>
             </header>
             <main className="form-main">
-                <h1 className="form-title">{t('confirmData', language)}</h1>
-                <p className="guide-message">{t('requiredFieldsHint', language)}</p>
+                <h1 className="form-title">{t('confirmData')}</h1>
+                <p className="guide-message">{t('requiredFieldsHint')}</p>
                 <div className="confirmation-grid">
                     {renderSection('personalInfo', form.personalInfo, <UserIcon />)}
                     {renderSection('addressInfoTitle', form.addressInfo, <MapPinIcon />)}
@@ -219,19 +221,19 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
                     {renderDocumentsSection('requiredDocs', cachedUploads)}
                 </div>
                 <div className="form-group">
-                    <label>{t('selectBranch', language)} *</label>
+                    <label>{t('selectBranch')} *</label>
                     <select value={branchId} onChange={e=>setBranchId(e.target.value)} required className="branch-select">
-                        <option value="">{t('selectBranch', language)}</option>
+                        <option value="">{t('selectBranch')}</option>
                         {branches.map(b=>(
-                          <option key={b.branch_id} value={b.branch_id}>{language==='ar'?b.name_ar:b.name_en}</option>
+                          <option key={b.branch_id} value={b.branch_id}>{i18n.language==='ar'?b.name_ar:b.name_en}</option>
                         ))}
                     </select>
                 </div>
 
                 {submitError && <p className="error-message">{submitError}</p>}
                 <div className="form-actions">
-                    <button className="btn-export" onClick={handleExport}>{t('exportPdf', language)}</button>
-                    <button className="btn-next" onClick={handleConfirm} disabled={!branchId}>{t('confirm', language)}</button>
+                    <button className="btn-export" onClick={handleExport}>{t('exportPdf')}</button>
+                    <button className="btn-next" onClick={handleConfirm} disabled={!branchId}>{t('confirm')}</button>
                 </div>
             </main>
             <Footer />
@@ -250,4 +252,4 @@ const ConfirmPage_EN = ({ onNavigate, state }) => {
     );
 };
 
-export default ConfirmPage_EN;
+export default ConfirmPage;

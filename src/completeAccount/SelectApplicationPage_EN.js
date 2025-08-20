@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -7,7 +8,8 @@ import { OpenAccountIcon, CompleteAccountIcon } from '../common/Icons';
 import { t } from '../i18n';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const SelectApplicationPage_EN = ({ onNavigate }) => {
+const SelectApplicationPage_EN = () => {
+  const navigate = useNavigate();
   useEffect(() => {
     const card = document.querySelector('.tilt-effect');
     if (!card) return;
@@ -47,11 +49,11 @@ const SelectApplicationPage_EN = ({ onNavigate }) => {
         </div>
         <div className="menu-card tilt-effect">
           <h2>{t('selectApplication', language)}</h2>
-          <button onClick={() => onNavigate('pendingApplications')}>
+          <button onClick={() => navigate('/pending-applications')}>
             <CompleteAccountIcon />
             <span>{t('pendingApplications', language)}</span>
           </button>
-          <button onClick={() => onNavigate('bankAccountLookup')}>
+          <button onClick={() => navigate('/bank-account-lookup')}>
             <OpenAccountIcon />
             <span>{t('bankAccountOpening', language)}</span>
           </button>

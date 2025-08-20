@@ -1,6 +1,7 @@
 // src/completeAccount/LookupPage_EN.js
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -16,7 +17,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ADMIN_NAME = process.env.REACT_APP_ADMIN_NAME || 'Admin';
 
-const LookupPage_EN = ({ onNavigate }) => {
+const LookupPage_EN = () => {
     const [apps, setApps] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -33,6 +34,7 @@ const LookupPage_EN = ({ onNavigate }) => {
     const [approving, setApproving] = useState(false);
     const [apiError, setApiError] = useState('');
     const { language } = useLanguage();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const load = async () => {
@@ -313,7 +315,7 @@ const LookupPage_EN = ({ onNavigate }) => {
                 updateStatus(selected.personalInfo.id, 'Approved');
                 setShowApproveDialog(false);
                 const photoDoc = selected.uploadedDocuments.find(d => d.doc_type === 'photo');
-                onNavigate('bankAccount', { personalInfo: selected.personalInfo, photo: photoDoc?.file_name, custId: data.CUSTID });
+                navigate('/bank-account', { state: { personalInfo: selected.personalInfo, photo: photoDoc?.file_name, custId: data.CUSTID } });
             } else {
                 const errMsg = data.error || 'server_error';
                 setApiError(errMsg);

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 import ThemeSwitcher from '../common/ThemeSwitcher';
@@ -10,8 +11,11 @@ import '../styles/CompleteAccountSuccessPage_EN.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
-const CompleteAccountSuccessPage_EN = ({ onNavigate, state }) => {
+const CompleteAccountSuccessPage_EN = () => {
   const { language } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state } = location;
   const [feesDeposited, setFeesDeposited] = useState(false);
   const cardRef = useRef(null);
   const receiptRef = useRef(null);
@@ -153,7 +157,7 @@ const CompleteAccountSuccessPage_EN = ({ onNavigate, state }) => {
             <button onClick={handleExportCard} className="sp-button sp-button-primary" disabled={!feesDeposited}>{t('exportCard', language)}</button>
           </div>
         </div>
-        <button className="sp-button sp-home-button" onClick={() => onNavigate('landing')}>{t('goHome', language)}</button>
+        <button className="sp-button sp-home-button" onClick={() => navigate('/landing')}>{t('goHome', language)}</button>
       </main>
       <Footer />
     </div>

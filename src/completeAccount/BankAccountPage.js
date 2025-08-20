@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import FullPageLoader from '../common/FullPageLoader';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { LOGO_COLOR } from '../assets/imagePaths';
-import { useLanguage } from '../contexts/LanguageContext';
-import { t } from '../i18n';
+import { useTranslation } from 'react-i18next';
 import { LockIcon } from '../common/Icons';
 import '../styles/BankAccountPage_EN.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
-const BankAccountPage_EN = ({ onNavigate, state }) => {
-  const { language } = useLanguage();
-  const isArabic = language === 'ar';
+const BankAccountPage_EN = () => {
+  const { t, i18n } = useTranslation();
+  const isArabic = i18n.language === 'ar';
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state } = location;
 
   const nid = state?.nid;
   const custId = state?.custId;
@@ -174,17 +177,19 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
       });
       const data = await resp.json();
       if (resp.ok && data.success) {
-        onNavigate('completeAccountSuccess', {
-          accountNumber: data.accountNumber,
-          customer,
-          custId,
-          photo: state?.photo
+        navigate('/complete-account-success', {
+          state: {
+            accountNumber: data.accountNumber,
+            customer,
+            custId,
+            photo: state?.photo
+          }
         });
       } else {
-        setError(data.error || t('server_error', language));
+        setError(data.error || t('server_error'));
       }
     } catch (err) {
-      setError(t('server_error', language));
+      setError(t('server_error'));
     }
     setCreating(false);
   };
@@ -197,7 +202,7 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
           <ThemeSwitcher />
           <LanguageSwitcher />
         </div>
-        <button onClick={() => onNavigate('completeAccount')} className="btn-back">
+        <button onClick={() => navigate('/complete-account')} className="btn-back">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -211,68 +216,68 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
           >
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
-          <span>{t('back', language)}</span>
+          <span>{t('back')}</span>
         </button>
       </header>
       <main className="bank-account-main">
         <div className="bank-account-content">
-          <h1 className="page-title">{t('bankAccountOpening', language)}</h1>
+          <h1 className="page-title">{t('bankAccountOpening')}</h1>
           <div>
-            <span className="customer-badge">{`${t('customerId', language)}: ${custId || ''}`}</span>
+            <span className="customer-badge">{`${t('customerId')}: ${custId || ''}`}</span>
           </div>
           {customer && (
             <div className="info-grid">
               <div className="form-group">
-                <p className="field-label">{t('fullName', language)}</p>
+                <p className="field-label">{t('fullName')}</p>
                 <div style={{position:'relative'}}>
                   <input name="full_name" value={customer.full_name || ''} onChange={handleChange} {...lockProps('full_name')} />
                   <LockIcon className="lock-icon" />
                 </div>
               </div>
               <div className="form-group">
-                <p className="field-label">{t('branch', language)}</p>
+                <p className="field-label">{t('branch')}</p>
                 <div style={{position:'relative'}}>
                   <input name="branch_id" value={customer.branch_id || ''} onChange={handleChange} {...lockProps('branch_id')} />
                   <LockIcon className="lock-icon" />
                 </div>
               </div>
               <div className="form-group">
-                <p className="field-label">{t('branchName', language)}</p>
+                <p className="field-label">{t('branchName')}</p>
                 <div style={{position:'relative'}}>
                   <input name="branch_name" value={customer.branch_name || ''} onChange={handleChange} {...lockProps('branch_name')} />
                   <LockIcon className="lock-icon" />
                 </div>
               </div>
               <div className="form-group">
-                <p className="field-label">{t('cityCode', language)}</p>
+                <p className="field-label">{t('cityCode')}</p>
                 <div style={{position:'relative'}}>
                   <input name="city_code" value={customer.city_code || ''} onChange={handleChange} {...lockProps('city_code')} />
                   <LockIcon className="lock-icon" />
                 </div>
               </div>
               <div className="form-group">
-                <p className="field-label">{t('city', language)}</p>
+                <p className="field-label">{t('city')}</p>
                 <div style={{position:'relative'}}>
                   <input name="city_name" value={customer.city_name || ''} onChange={handleChange} {...lockProps('city_name')} />
                   <LockIcon className="lock-icon" />
                 </div>
               </div>
               <div className="form-group">
-                <p className="field-label">{t('passportNumber', language)}</p>
+                <p className="field-label">{t('passportNumber')}</p>
                 <div style={{position:'relative'}}>
                   <input name="passport_number" value={customer.passport_number || ''} onChange={handleChange} {...lockProps('passport_number')} />
                   <LockIcon className="lock-icon" />
                 </div>
               </div>
               <div className="form-group">
-                <p className="field-label">{t('passportExpiryDate', language)}</p>
+                <p className="field-label">{t('passportExpiryDate')}</p>
                 <div style={{position:'relative'}}>
                   <input name="passport_expiry_date" value={customer.passport_expiry_date || ''} onChange={handleChange} {...lockProps('passport_expiry_date')} dir="ltr" />
                   <LockIcon className="lock-icon" />
                 </div>
               </div>
               <div className="form-group">
-                <p className="field-label">{t('branchDate', language)}</p>
+                <p className="field-label">{t('branchDate')}</p>
                 <div style={{position:'relative'}}>
                   <input name="branchDate" value={branchDate} onChange={handleChange} {...lockProps('branchDate')} dir="ltr" />
                   <LockIcon className="lock-icon" />
@@ -281,34 +286,34 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
             </div>
           )}
           <div className="signature-section">
-            <p className="field-label">{t('customerSignature', language)}</p>
+            <p className="field-label">{t('customerSignature')}</p>
             <div className={`signature-controls ${isArabic ? 'rtl' : ''}`}>
               <input type="file" id="signature-upload" className="hidden" onChange={handleSignature} />
-              <label htmlFor="signature-upload" className="secondary-btn">{t('uploadFile', language)}</label>
+              <label htmlFor="signature-upload" className="secondary-btn">{t('uploadFile')}</label>
               <span className="field-label">{signatureName}</span>
             </div>
           </div>
           <div className="doc-list">
-            <h2 className="doc-title">{t('contractMustBeSigned', language)}</h2>
+            <h2 className="doc-title">{t('contractMustBeSigned')}</h2>
             <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
               <input type="checkbox" id="doc1" className="document-checkbox" checked={checks.doc1} onChange={handleCheck('doc1')} />
-              <label htmlFor="doc1">{t('docMobileApp', language)}</label>
+              <label htmlFor="doc1">{t('docMobileApp')}</label>
             </div>
             <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
               <input type="checkbox" id="doc2" className="document-checkbox" checked={checks.doc2} onChange={handleCheck('doc2')} />
-              <label htmlFor="doc2">{t('docSmsService', language)}</label>
+              <label htmlFor="doc2">{t('docSmsService')}</label>
             </div>
             <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
               <input type="checkbox" id="doc3" className="document-checkbox" checked={checks.doc3} onChange={handleCheck('doc3')} />
-              <label htmlFor="doc3">{t('docLocalCard', language)}</label>
+              <label htmlFor="doc3">{t('docLocalCard')}</label>
             </div>
             <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
               <input type="checkbox" id="doc4" className="document-checkbox" checked={checks.doc4} onChange={handleCheck('doc4')} />
-              <label htmlFor="doc4">{t('docInternationalCard', language)}</label>
+              <label htmlFor="doc4">{t('docInternationalCard')}</label>
             </div>
             <div className={`doc-item ${isArabic ? 'rtl' : ''}`}>
               <input type="checkbox" id="doc5" className="document-checkbox" checked={checks.doc5} onChange={handleCheck('doc5')} />
-              <label htmlFor="doc5">{t('docBankAgreement', language)}</label>
+              <label htmlFor="doc5">{t('docBankAgreement')}</label>
             </div>
           </div>
           <div className="action-buttons">
@@ -318,16 +323,16 @@ const BankAccountPage_EN = ({ onNavigate, state }) => {
               disabled={!canCreate}
               className="primary-btn"
             >
-              {t('createAccount', language)}
+              {t('createAccount')}
             </button>
-            <button className="secondary-btn">{t('reprintDocuments', language)}</button>
+            <button className="secondary-btn">{t('reprintDocuments')}</button>
           </div>
           {error && <p className="error-message">{error}</p>}
         </div>
       </main>
       <Footer />
       {(uploading || loading || creating) && (
-        <FullPageLoader message={creating ? t('creating', language) : t('loading', language)} />
+        <FullPageLoader message={creating ? t('creating') : t('loading')} />
       )}
     </div>
   );
