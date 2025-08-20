@@ -4,14 +4,12 @@ import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
-import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ADMIN_NAME = process.env.REACT_APP_ADMIN_NAME || 'Admin';
 
 const ReviewWorkInfoPage_EN = () => {
-  const { language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = location;
@@ -109,7 +107,7 @@ const ReviewWorkInfoPage_EN = () => {
         {Object.entries(obj).map(([k, v]) => (
           v ? (
             <tr key={k}>
-              <td><strong>{t(k, language)}</strong></td>
+              <td><strong>{t(k)}</strong></td>
               <td>{v}</td>
               <td className="checkbox-cell">
                 <div className="custom-checkbox">
@@ -134,37 +132,37 @@ const ReviewWorkInfoPage_EN = () => {
         </div>
         <button onClick={() => navigate('/review-docs', { state })} className="btn-back">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          <span>{t('back', language)}</span>
+          <span>{t('back')}</span>
         </button>
       </header>
       <main className="form-main">
-        <h2 className="form-title">{t('workInfoTitle', language)}</h2>
+        <h2 className="form-title">{t('workInfoTitle')}</h2>
         {editing ? (
           <form className="form-container" onSubmit={e => {e.preventDefault(); handleSave();}}>
-            <div className="form-group"><input name="employment_status" value={form.employment_status || ''} onChange={e=>setForm({...form, employment_status:e.target.value})} className="form-input" placeholder={t('employmentStatus', language)} /></div>
-            <div className="form-group"><input name="job_title" value={form.job_title || ''} onChange={e=>setForm({...form, job_title:e.target.value})} className="form-input" placeholder={t('jobTitle', language)} /></div>
-            <div className="form-group"><input name="employer" value={form.employer || ''} onChange={e=>setForm({...form, employer:e.target.value})} className="form-input" placeholder={t('employer', language)} /></div>
-            <div className="form-group"><input name="employer_address" value={form.employer_address || ''} onChange={e=>setForm({...form, employer_address:e.target.value})} className="form-input" placeholder={t('employerAddress', language)} /></div>
-            <div className="form-group"><input name="employer_phone" value={form.employer_phone || ''} onChange={e=>setForm({...form, employer_phone:e.target.value})} className="form-input" placeholder={t('employerPhone', language)} /></div>
-            <div className="form-group"><input name="source_of_income" value={form.source_of_income || ''} onChange={e=>setForm({...form, source_of_income:e.target.value})} className="form-input" placeholder={t('sourceOfIncome', language)} /></div>
-            <div className="form-group"><input name="monthly_income" value={form.monthly_income || ''} onChange={e=>setForm({...form, monthly_income:e.target.value})} className="form-input" placeholder={t('monthlyIncome', language)} /></div>
-            <div className="form-group"><input name="work_country" value={form.work_country || ''} onChange={e=>setForm({...form, work_country:e.target.value})} className="form-input" placeholder={t('work_country', language)} /></div>
-            <div className="form-group"><input name="work_city" value={form.work_city || ''} onChange={e=>setForm({...form, work_city:e.target.value})} className="form-input" placeholder={t('work_city', language)} /></div>
+            <div className="form-group"><input name="employment_status" value={form.employment_status || ''} onChange={e=>setForm({...form, employment_status:e.target.value})} className="form-input" placeholder={t('employmentStatus')} /></div>
+            <div className="form-group"><input name="job_title" value={form.job_title || ''} onChange={e=>setForm({...form, job_title:e.target.value})} className="form-input" placeholder={t('jobTitle')} /></div>
+            <div className="form-group"><input name="employer" value={form.employer || ''} onChange={e=>setForm({...form, employer:e.target.value})} className="form-input" placeholder={t('employer')} /></div>
+            <div className="form-group"><input name="employer_address" value={form.employer_address || ''} onChange={e=>setForm({...form, employer_address:e.target.value})} className="form-input" placeholder={t('employerAddress')} /></div>
+            <div className="form-group"><input name="employer_phone" value={form.employer_phone || ''} onChange={e=>setForm({...form, employer_phone:e.target.value})} className="form-input" placeholder={t('employerPhone')} /></div>
+            <div className="form-group"><input name="source_of_income" value={form.source_of_income || ''} onChange={e=>setForm({...form, source_of_income:e.target.value})} className="form-input" placeholder={t('sourceOfIncome')} /></div>
+            <div className="form-group"><input name="monthly_income" value={form.monthly_income || ''} onChange={e=>setForm({...form, monthly_income:e.target.value})} className="form-input" placeholder={t('monthlyIncome')} /></div>
+            <div className="form-group"><input name="work_country" value={form.work_country || ''} onChange={e=>setForm({...form, work_country:e.target.value})} className="form-input" placeholder={t('work_country')} /></div>
+            <div className="form-group"><input name="work_city" value={form.work_city || ''} onChange={e=>setForm({...form, work_city:e.target.value})} className="form-input" placeholder={t('work_city')} /></div>
           </form>
         ) : (
           <>
             {renderTable(work)}
-            <button type="button" className="btn-next" onClick={() => setEditing(true)}>{t('unlock', language)}</button>
+            <button type="button" className="btn-next" onClick={() => setEditing(true)}>{t('unlock')}</button>
           </>
         )}
         <div className="form-actions" style={{display:'flex',alignItems:'center',gap:'10px'}}>
           <label style={{display:'flex',alignItems:'center',gap:'5px'}}>
             <input type="checkbox" checked={approved} onChange={toggleApproved} disabled={approving} />
-            {t('valid', language)}
+            {t('valid')}
             {approving && <div className="loading-spinner"></div>}
           </label>
           {apiError && <p className="error-message">{apiError}</p>}
-          <button className="btn-next" onClick={() => navigate('/review-address-info', { state })}>{t('approve', language)}</button>
+          <button className="btn-next" onClick={() => navigate('/review-address-info', { state })}>{t('approve')}</button>
         </div>
       </main>
       <Footer />

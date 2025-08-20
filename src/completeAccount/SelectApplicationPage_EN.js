@@ -6,7 +6,6 @@ import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { OpenAccountIcon, CompleteAccountIcon } from '../common/Icons';
 import { t } from '../i18n';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const SelectApplicationPage_EN = () => {
   const navigate = useNavigate();
@@ -32,8 +31,6 @@ const SelectApplicationPage_EN = () => {
     };
   }, []);
 
-  const { language } = useLanguage();
-
   return (
     <div className="app-container">
       <header className="header">
@@ -48,14 +45,14 @@ const SelectApplicationPage_EN = () => {
           <div className="overlay"></div>
         </div>
         <div className="menu-card tilt-effect">
-          <h2>{t('selectApplication', language)}</h2>
+          <h2>{t('selectApplication')}</h2>
           <button onClick={() => navigate('/pending-applications')}>
             <CompleteAccountIcon />
-            <span>{t('pendingApplications', language)}</span>
+            <span>{t('pendingApplications')}</span>
           </button>
           <button onClick={() => navigate('/bank-account-lookup')}>
             <OpenAccountIcon />
-            <span>{t('bankAccountOpening', language)}</span>
+            <span>{t('bankAccountOpening')}</span>
           </button>
         </div>
       </main>

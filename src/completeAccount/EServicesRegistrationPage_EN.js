@@ -4,12 +4,10 @@ import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
-import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 import { MobileAppIcon, SmsIcon, CardIcon, VisaMasterIcon } from '../common/Icons';
 
 const EServicesRegistrationPage_EN = () => {
-  const { language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = location;
@@ -35,11 +33,11 @@ const EServicesRegistrationPage_EN = () => {
         </div>
         <button onClick={() => navigate('/review-address-info', { state })} className="btn-back">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          <span>{t('back', language)}</span>
+          <span>{t('back')}</span>
         </button>
       </header>
       <main className="form-main">
-        <h2 className="form-title">{t('registerEServices', language)}</h2>
+        <h2 className="form-title">{t('registerEServices')}</h2>
         <div className="confirmation-document">
           <ul className="confirmation-list">
             <li>
@@ -49,7 +47,7 @@ const EServicesRegistrationPage_EN = () => {
                   <span className="checkmark"></span>
                 </div>
                 <MobileAppIcon />
-                <span>{t('registerMobileApp', language)}</span>
+                <span>{t('registerMobileApp')}</span>
               </label>
             </li>
             <li>
@@ -59,7 +57,7 @@ const EServicesRegistrationPage_EN = () => {
                   <span className="checkmark"></span>
                 </div>
                 <SmsIcon />
-                <span>{t('registerSmsService', language)}</span>
+                <span>{t('registerSmsService')}</span>
               </label>
             </li>
             <li>
@@ -69,7 +67,7 @@ const EServicesRegistrationPage_EN = () => {
                   <span className="checkmark"></span>
                 </div>
                 <CardIcon />
-                <span>{t('registerLocalCard', language)}</span>
+                <span>{t('registerLocalCard')}</span>
               </label>
             </li>
             <li>
@@ -79,14 +77,14 @@ const EServicesRegistrationPage_EN = () => {
                   <span className="checkmark"></span>
                 </div>
                 <VisaMasterIcon />
-                <span>{t('registerInternationalCard', language)}</span>
+                <span>{t('registerInternationalCard')}</span>
               </label>
             </li>
           </ul>
         </div>
         <div className="form-actions">
           <button className="btn-next" onClick={() => navigate('/account-summary', { state: { ...state, eServices: services } })}>
-            {t('completeAccountRequest', language)}
+            {t('completeAccountRequest')}
           </button>
         </div>
       </main>

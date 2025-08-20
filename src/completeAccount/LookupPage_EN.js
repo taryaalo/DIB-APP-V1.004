@@ -12,7 +12,6 @@ import '../styles/LookupPage_EN.css';
 import { logErrorToServer } from '../utils/logger';
 import FullPageLoader from '../common/FullPageLoader';
 import { t } from '../i18n';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ADMIN_NAME = process.env.REACT_APP_ADMIN_NAME || 'Admin';
@@ -33,7 +32,6 @@ const LookupPage_EN = () => {
     const [cities, setCities] = useState([]);
     const [approving, setApproving] = useState(false);
     const [apiError, setApiError] = useState('');
-    const { language } = useLanguage();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -183,13 +181,13 @@ const LookupPage_EN = () => {
                                 <label>{k.replace(/_/g,' ')}</label>
                                 {sectionName === 'addressInfo' && k === 'country' ? (
                                     <select className="form-input" value={editData.addressInfo?.country || ''} onChange={e=>{handleEditChange('addressInfo','country',e.target.value);}}>
-                                        <option value="">{t('country', language)}</option>
+                                        <option value="">{t('country')}</option>
                                         {countries.map(c => <option key={c.code} value={c.code}>{c.name_en}</option>)}
                                     </select>
                                 ) : sectionName === 'addressInfo' && k === 'city' ? (
                                     <select className="form-input" value={editData.addressInfo?.city || ''} onChange={e=>handleEditChange('addressInfo','city',e.target.value)}>
-                                        <option value="">{t('city', language)}</option>
-                                        {cities.length > 0 ? cities.map(c => <option key={c.city_code} value={c.city_code}>{c.name_en}</option>) : <option value="other">{t('other', language)}</option>}
+                                        <option value="">{t('city')}</option>
+                                        {cities.length > 0 ? cities.map(c => <option key={c.city_code} value={c.city_code}>{c.name_en}</option>) : <option value="other">{t('other')}</option>}
                                     </select>
                                 ) : (
                                     <input
@@ -223,7 +221,7 @@ const LookupPage_EN = () => {
         if (!docs || docs.length === 0) return null;
         return (
             <div className="confirmation-document">
-                <div className="confirmation-header">{t('uploadedDocuments', language)}</div>
+                <div className="confirmation-header">{t('uploadedDocuments')}</div>
                 <div className="doc-grid">
                     {docs.map(doc => {
                         const file = doc.file_name.replace(/\\/g,'/').split('/').pop();
@@ -255,15 +253,15 @@ const LookupPage_EN = () => {
             internationalCard: <VisaMasterIcon />
         };
         const serviceLabels = {
-            mobileApp: t('registerMobileApp', language),
-            sms: t('registerSmsService', language),
-            localCard: t('registerLocalCard', language),
-            internationalCard: t('registerInternationalCard', language)
+            mobileApp: t('registerMobileApp'),
+            sms: t('registerSmsService'),
+            localCard: t('registerLocalCard'),
+            internationalCard: t('registerInternationalCard')
         };
         return (
             <div className="modal-backdrop" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) onCancel();}}>
                 <div className="modal-content">
-                    <h3 className="modal-title">{t('registerEServices', language)}</h3>
+                    <h3 className="modal-title">{t('registerEServices')}</h3>
                     <ul className="confirmation-list">
                         {['mobileApp','sms','localCard','internationalCard'].map(key=> (
                             <li key={key}>
@@ -278,10 +276,10 @@ const LookupPage_EN = () => {
                             </li>
                         ))}
                     </ul>
-                    {apiError && <div className="error-message">{t(apiError, language)}</div>}
+                    {apiError && <div className="error-message">{t(apiError)}</div>}
                     <div className="modal-actions">
-                        <button onClick={onCancel} className="btn-next btn-cancel" disabled={approving}>{t('cancel', language)}</button>
-                        <button onClick={()=>onConfirm(services)} className="btn-next btn-confirm" disabled={approving}>{t('confirm', language)}</button>
+                        <button onClick={onCancel} className="btn-next btn-cancel" disabled={approving}>{t('cancel')}</button>
+                        <button onClick={()=>onConfirm(services)} className="btn-next btn-confirm" disabled={approving}>{t('confirm')}</button>
                     </div>
                 </div>
             </div>
@@ -339,30 +337,30 @@ const LookupPage_EN = () => {
             </header>
             <main className="form-main lookup-main">
                 <div className="lookup-header">
-                    <h2 className="lookup-title">{t('pendingApplications', language)}</h2>
+                    <h2 className="lookup-title">{t('pendingApplications')}</h2>
                     <div className="header-actions">
                         <select className="form-input" value={statusFilter} onChange={e=>{setStatusFilter(e.target.value);setPage(0);}}>
                             {['Pending','Approved','Rejected','All'].map(opt => (
-                                <option key={opt} value={opt}>{t(opt.toLowerCase(), language)}</option>
+                                <option key={opt} value={opt}>{t(opt.toLowerCase())}</option>
                             ))}
                         </select>
-                        <input className="form-input search-input" placeholder={t('search', language) + '...'} value={search} onChange={e=>setSearch(e.target.value)} />
+                        <input className="form-input search-input" placeholder={t('search') + '...'} value={search} onChange={e=>setSearch(e.target.value)} />
                     </div>
                 </div>
                 <table className="lookup-table">
                     <thead>
                         <tr>
-                            <th>{t('applicantName', language)}</th>
-                            <th>{t('referenceLabel', language)}</th>
-                            <th>{t('serviceType', language)}</th>
-                            <th>{t('submissionDate', language)}</th>
-                            <th>{t('status', language)}</th>
+                            <th>{t('applicantName')}</th>
+                            <th>{t('referenceLabel')}</th>
+                            <th>{t('serviceType')}</th>
+                            <th>{t('submissionDate')}</th>
+                            <th>{t('status')}</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading && (
-                            <tr><td colSpan="6" className="info-row">{t('loading', language)}</td></tr>
+                            <tr><td colSpan="6" className="info-row">{t('loading')}</td></tr>
                         )}
                         {paged.map(app => (
                             <tr key={app.personalInfo.id} className="hover-row">
@@ -373,12 +371,12 @@ const LookupPage_EN = () => {
                                 <td>{app.personalInfo.reference_number}</td>
                                 <td>{app.personalInfo.service_type}</td>
                                 <td>{new Date(app.personalInfo.created_at).toLocaleDateString()}</td>
-                                <td><span className={`status-badge status-${(app.status || 'Pending').toLowerCase()}`}>{t((app.status || 'Pending').toLowerCase(), language)}</span></td>
-                                <td><button onClick={() => setSelected(app)}>{t('review', language)}</button></td>
+                                <td><span className={`status-badge status-${(app.status || 'Pending').toLowerCase()}`}>{t((app.status || 'Pending').toLowerCase())}</span></td>
+                                <td><button onClick={() => setSelected(app)}>{t('review')}</button></td>
                             </tr>
                         ))}
                         {!loading && filtered.length === 0 && (
-                            <tr><td colSpan="6" className="info-row">{t('noResults', language)}</td></tr>
+                            <tr><td colSpan="6" className="info-row">{t('noResults')}</td></tr>
                         )}
                     </tbody>
                 </table>
@@ -389,7 +387,7 @@ const LookupPage_EN = () => {
                 </div>
             </main>
             <Footer />
-            {(loading || approving) && <FullPageLoader message={t(loading ? 'loading' : 'processing', language)} />}
+            {(loading || approving) && <FullPageLoader message={t(loading ? 'loading' : 'processing')} />}
             {selected && (
                 <div className="modal-backdrop" onClick={e=>{if(e.target.classList.contains('modal-backdrop')) setSelected(null);}}>
                     <div className="modal-content">
@@ -400,25 +398,25 @@ const LookupPage_EN = () => {
                             </div>
                             <button onClick={()=>{setSelected(null); setIsEditing(false);}} className="close-btn">&times;</button>
                         </div>
-                        {infoSection(t('personalInfo', language), selected.personalInfo, 'personalInfo')}
-                        {infoSection(t('addressInfoTitle', language), selected.addressInfo, 'addressInfo')}
-                        {infoSection(t('workInfoTitle', language), selected.workInfo, 'workInfo')}
+                        {infoSection(t('personalInfo'), selected.personalInfo, 'personalInfo')}
+                        {infoSection(t('addressInfoTitle'), selected.addressInfo, 'addressInfo')}
+                        {infoSection(t('workInfoTitle'), selected.workInfo, 'workInfo')}
                         {docsSection(selected.uploadedDocuments)}
                         <div className="detail-actions">
                             {isEditing ? (
-                                <button onClick={handleSave} className="btn-next btn-save">{t('save', language)}</button>
+                                <button onClick={handleSave} className="btn-next btn-save">{t('save')}</button>
                             ) : (
                                 <>
                                 {selected.status !== 'Approved' && (
                                     <>
                                     <button onClick={()=>updateStatus(selected.personalInfo.id,'Rejected')} className="btn-next btn-reject">
-                                        {t('reject', language)}
+                                        {t('reject')}
                                     </button>
                                     <button onClick={() => setIsEditing(true)} className="btn-next btn-edit">
-                                        {t('edit', language)}
+                                        {t('edit')}
                                     </button>
                                     <button onClick={()=>setShowApproveDialog(true)} className="btn-next btn-approve">
-                                        {t('approve', language)}
+                                        {t('approve')}
                                     </button>
                                     </>
                                 )}

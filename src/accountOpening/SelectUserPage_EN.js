@@ -6,7 +6,6 @@ import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { PersonalIcon, GuaranteedIcon, BusinessmenIcon, CompaniesIcon } from '../common/Icons';
 import { t } from '../i18n';
-import { useLanguage } from '../contexts/LanguageContext';
 import { useFormData } from '../contexts/FormContext';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
@@ -35,7 +34,6 @@ const SelectUserPage_EN = () => {
     };
   }, []);
 
-  const { language } = useLanguage();
   const { formData, setFormData } = useFormData();
 
   const selectService = async (type, page) => {
@@ -65,12 +63,12 @@ const SelectUserPage_EN = () => {
           <div className="overlay"></div>
         </div>
         <div className="menu-card tilt-effect">
-          <h2>{t('selectService', language)}</h2>
-          <button onClick={() => selectService('personal', 'personal-docs')}><PersonalIcon /><span>{t('personal', language)}</span></button>
-          <button onClick={() => selectService('expat', 'expat-docs')}><PersonalIcon /><span>{t('expat', language)}</span></button>
-          <button onClick={() => selectService('guaranteed', 'guaranteed-docs')}><GuaranteedIcon /><span>{t('guaranteed', language)}</span></button>
-          <button onClick={() => selectService('businessmen', 'businessmen-docs')}><BusinessmenIcon /><span>{t('businessmen', language)}</span></button>
-          <button onClick={() => selectService('companies', 'companies-docs')}><CompaniesIcon /><span>{t('companies', language)}</span></button>
+          <h2>{t('selectService')}</h2>
+          <button onClick={() => selectService('personal', 'personal-docs')}><PersonalIcon /><span>{t('personal')}</span></button>
+          <button onClick={() => selectService('expat', 'expat-docs')}><PersonalIcon /><span>{t('expat')}</span></button>
+          <button onClick={() => selectService('guaranteed', 'guaranteed-docs')}><GuaranteedIcon /><span>{t('guaranteed')}</span></button>
+          <button onClick={() => selectService('businessmen', 'businessmen-docs')}><BusinessmenIcon /><span>{t('businessmen')}</span></button>
+          <button onClick={() => selectService('companies', 'companies-docs')}><CompaniesIcon /><span>{t('companies')}</span></button>
         </div>
       </main>
             <Footer />

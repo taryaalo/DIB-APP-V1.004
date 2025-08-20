@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 import { SuccessIcon } from '../common/Icons';
 import ThemeSwitcher from '../common/ThemeSwitcher';
@@ -11,7 +10,6 @@ import '../styles/SuccessPage_EN.css';
 import { useFormData } from '../contexts/FormContext';
 
 const SuccessPage_EN = () => {
-  const { language } = useLanguage();
   const { setFormData } = useFormData();
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,26 +33,26 @@ const SuccessPage_EN = () => {
       </header>
       <main className="form-main" style={{ textAlign: 'center' }}>
         <SuccessIcon />
-        <h1 className="success-title">{t('successTitle', language)}</h1>
-        <p className="success-message">{t('successMsg', language)}</p>
+        <h1 className="success-title">{t('successTitle')}</h1>
+        <p className="success-message">{t('successMsg')}</p>
         {reference && (
           <div className="reference-number">
-            {t('referenceLabel', language)}: {reference}
+            {t('referenceLabel')}: {reference}
           </div>
         )}
         {createdAt && (
           <p>
-            {t('createdAt', language)}:{' '}
+            {t('createdAt')}:{' '}
             {new Date(createdAt).toLocaleString()}
           </p>
         )}
         {aiModel && (
           <p>
-            {t('aiModelUsed', language)}: {aiModel}
+            {t('aiModelUsed')}: {aiModel}
           </p>
         )}
         <button className="btn-next" onClick={() => navigate('/landing')}>
-          {t('backToHome', language)}
+          {t('backToHome')}
         </button>
       </main>
       <Footer />

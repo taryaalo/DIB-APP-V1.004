@@ -4,14 +4,12 @@ import { LOGO_COLOR } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
-import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 const ADMIN_NAME = process.env.REACT_APP_ADMIN_NAME || 'Admin';
 
 const ReviewAddressInfoPage_EN = () => {
-  const { language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = location;
@@ -54,7 +52,7 @@ const ReviewAddressInfoPage_EN = () => {
       {Object.entries(obj).map(([k, v]) => (
         v ? (
           <li key={k}>
-            <strong>{t(k, language)}:</strong> {v}
+            <strong>{t(k)}:</strong> {v}
           </li>
         ) : null
       ))}
@@ -118,33 +116,33 @@ const ReviewAddressInfoPage_EN = () => {
         </div>
         <button onClick={() => navigate('/review-work-info', { state })} className="btn-back">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          <span>{t('back', language)}</span>
+          <span>{t('back')}</span>
         </button>
       </header>
       <main className="form-main">
-        <h2 className="form-title">{t('addressInfoTitle', language)}</h2>
+        <h2 className="form-title">{t('addressInfoTitle')}</h2>
         {editing ? (
           <form className="form-container" onSubmit={e=>{e.preventDefault();handleSave();}}>
-            <div className="form-group"><input className="form-input" value={form.country || ''} onChange={e=>setForm({...form,country:e.target.value})} placeholder={t('country', language)} /></div>
-            <div className="form-group"><input className="form-input" value={form.city || ''} onChange={e=>setForm({...form,city:e.target.value})} placeholder={t('city', language)} /></div>
-            <div className="form-group"><input className="form-input" value={form.area || ''} onChange={e=>setForm({...form,area:e.target.value})} placeholder={t('area', language)} /></div>
-            <div className="form-group"><input className="form-input" value={form.residential_address || ''} onChange={e=>setForm({...form,residential_address:e.target.value})} placeholder={t('residentialAddress', language)} /></div>
+            <div className="form-group"><input className="form-input" value={form.country || ''} onChange={e=>setForm({...form,country:e.target.value})} placeholder={t('country')} /></div>
+            <div className="form-group"><input className="form-input" value={form.city || ''} onChange={e=>setForm({...form,city:e.target.value})} placeholder={t('city')} /></div>
+            <div className="form-group"><input className="form-input" value={form.area || ''} onChange={e=>setForm({...form,area:e.target.value})} placeholder={t('area')} /></div>
+            <div className="form-group"><input className="form-input" value={form.residential_address || ''} onChange={e=>setForm({...form,residential_address:e.target.value})} placeholder={t('residentialAddress')} /></div>
           </form>
         ) : (
           <>
             {renderList(info)}
-            <button type="button" className="btn-next" onClick={() => setEditing(true)}>{t('unlock', language)}</button>
+            <button type="button" className="btn-next" onClick={() => setEditing(true)}>{t('unlock')}</button>
           </>
         )}
         <div className="form-actions" style={{display:'flex',alignItems:'center',gap:'10px'}}>
           <label style={{display:'flex',alignItems:'center',gap:'5px'}}>
             <input type="checkbox" checked={approved} onChange={toggleApproved} disabled={approving} />
-            {t('valid', language)}
+            {t('valid')}
             {approving && <div className="loading-spinner"></div>}
           </label>
           {apiError && <p className="error-message">{apiError}</p>}
           <button className="btn-next" onClick={() => navigate('/eservices-reg', { state })}>
-            {t('approve', language)}
+            {t('approve')}
           </button>
         </div>
       </main>

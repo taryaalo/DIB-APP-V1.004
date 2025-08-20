@@ -84,31 +84,31 @@ const AccountSummaryPage_EN = () => {
         </div>
         <button onClick={() => navigate('/eservices-reg', { state })} className="btn-back">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          <span>{t('back', language)}</span>
+          <span>{t('back')}</span>
         </button>
       </header>
       <main className="form-main">
-        <h2 className="form-title">{t('accountSummary', language)}</h2>
+        <h2 className="form-title">{t('accountSummary')}</h2>
         <div className="confirmation-document">
-          <div className="confirmation-header">{t('personalInfo', language)}</div>
+          <div className="confirmation-header">{t('personalInfo')}</div>
           {renderList(state.personalInfo)}
-          <div className="confirmation-header">{t('addressInfoTitle', language)}</div>
+          <div className="confirmation-header">{t('addressInfoTitle')}</div>
           {renderList(state.addressInfo)}
-          <div className="confirmation-header">{t('workInfoTitle', language)}</div>
+          <div className="confirmation-header">{t('workInfoTitle')}</div>
           {renderList(state.workInfo)}
-          <div className="confirmation-header">{t('registerEServices', language)}</div>
+          <div className="confirmation-header">{t('registerEServices')}</div>
           <ul className="confirmation-list">
-            <li><strong>{t('registerMobileApp', language)}:</strong> {state.eServices?.mobileApp ? t('yes', language) : t('no', language)}</li>
-            <li><strong>{t('registerSmsService', language)}:</strong> {state.eServices?.sms ? t('yes', language) : t('no', language)}</li>
-            <li><strong>{t('registerLocalCard', language)}:</strong> {state.eServices?.localCard ? t('yes', language) : t('no', language)}</li>
-            <li><strong>{t('registerInternationalCard', language)}:</strong> {state.eServices?.internationalCard ? t('yes', language) : t('no', language)}</li>
+            <li><strong>{t('registerMobileApp')}:</strong> {state.eServices?.mobileApp ? t('yes') : t('no')}</li>
+            <li><strong>{t('registerSmsService')}:</strong> {state.eServices?.sms ? t('yes') : t('no')}</li>
+            <li><strong>{t('registerLocalCard')}:</strong> {state.eServices?.localCard ? t('yes') : t('no')}</li>
+            <li><strong>{t('registerInternationalCard')}:</strong> {state.eServices?.internationalCard ? t('yes') : t('no')}</li>
           </ul>
-          <div className="confirmation-header">{t('customerId', language)}</div>
+          <div className="confirmation-header">{t('customerId')}</div>
           <p>{customerId || '...'}</p>
         </div>
         <div className="form-actions">
-          <button className="btn-export" onClick={handleExport} style={{marginRight:'10px'}}>{t('exportPdf', language)}</button>
-          <button className="btn-next" onClick={() => navigate('/landing')}>{t('backToHome', language)}</button>
+          <button className="btn-export" onClick={handleExport} style={{marginRight:'10px'}}>{t('exportPdf')}</button>
+          <button className="btn-next" onClick={() => navigate('/landing')}>{t('backToHome')}</button>
         </div>
       </main>
       <Footer />

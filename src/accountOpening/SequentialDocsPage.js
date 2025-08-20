@@ -6,6 +6,7 @@ import { uploadDocument } from '../utils/fileUploader';
 import { cacheExtractedData } from '../utils/dataCacher';
 import { normalizeNationality } from '../utils/normalizeNationality';
 import { t } from '../i18n';
+import { LOGO_WHITE } from '../assets/imagePaths';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import AIProviderSwitcher from '../common/AIProviderSwitcher';
