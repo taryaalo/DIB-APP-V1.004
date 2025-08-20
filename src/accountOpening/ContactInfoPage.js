@@ -102,8 +102,8 @@ const ContactInfoPage_EN = () => {
                             <select className="form-input" required name="country" value={form.country} onChange={handleChange}>
                                 <option value="">{t('country')}</option>
                                 {countries.map(c => (
-                                    <option key={c.code} value={c.code}>
-                                        {i18n.language === 'ar' ? c.name_ar : c.name_en}
+                                    <option key={c.countryCode} value={c.countryCode}>
+                                        {i18n.language === 'ar' ? c.nameAr : c.nameEn}
                                     </option>
                                 ))}
                             </select>
@@ -113,7 +113,7 @@ const ContactInfoPage_EN = () => {
                             <select name="city" value={form.city} onChange={handleChange} required className="form-input">
                                 <option value="">{t('city')}</option>
                                 {cities.length > 0 ? cities.map(c => (
-                                    <option key={c.city_code} value={c.city_code}>{i18n.language === 'ar' ? c.name_ar : c.name_en}</option>
+                                    <option key={c.cityCode} value={c.cityCode}>{i18n.language === 'ar' ? c.nameAr : c.nameEn}</option>
                                 )) : <option value="other">{t('other')}</option>}
                             </select>
                         </div>
