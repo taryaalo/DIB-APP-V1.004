@@ -4,7 +4,7 @@ const { isAuthenticated } = require('../middleware/auth');
 const pool = require('../config/db');
 const { logActivity, logError } = require('../utils/logger');
 
-router.post('/api/application-status', isAuthenticated, async (req, res) => {
+router.post('/api/application-status', async (req, res) => {
     const { id, status, adminName } = req.body || {};
     if (!id || !status) return res.status(400).json({ error: 'missing_parameters' });
     try {
@@ -19,7 +19,7 @@ router.post('/api/application-status', isAuthenticated, async (req, res) => {
     }
 });
 
-router.get('/api/applications', isAuthenticated, async (req, res) => {
+router.get('/api/applications', async (req, res) => {
     try {
       const result = await pool.query('SELECT * FROM personal_info ORDER BY created_at DESC');
       const apps = [];

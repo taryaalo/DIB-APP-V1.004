@@ -13,7 +13,6 @@ import Footer from '../common/Footer';
 import { UploadIcon } from '../common/Icons';
 import { useTranslation } from 'react-i18next';
 import { useFormData } from '../contexts/FormContext';
-import { LOGO_WHITE } from '../assets/imagePaths';
 import '../styles/SequentialDocsPage.css';
 
 const DOCS = [
