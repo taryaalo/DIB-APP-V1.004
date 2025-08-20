@@ -102,6 +102,17 @@ const SelfiePage_EN = () => {
     };
 
     init();
+
+    return () => {
+      clearInterval(livenessInterval.current);
+      clearInterval(verificationInterval.current);
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+    };
   }, [t, startCamera]);
 
   useEffect(() => {
@@ -146,6 +157,9 @@ const SelfiePage_EN = () => {
     const headTurnThreshold = 25;
 
     livenessInterval.current = setInterval(async () => {
+      if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !videoRef.current.srcObject || videoRef.current.readyState < 3) {
+        return;
+      }
       const detection = await faceapi
         .detectSingleFace(
           videoRef.current,
@@ -232,25 +246,27 @@ const SelfiePage_EN = () => {
 
   const startVerification = () => {
     verificationInterval.current = setInterval(async () => {
-      const detection = await faceapi
-        .detectSingleFace(videoRef.current)
-        .withFaceLandmarks()
-        .withFaceDescriptor();
+      if (videoRef.current && videoRef.current.readyState >= 3) {
+        const detection = await faceapi
+          .detectSingleFace(videoRef.current)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
 
-      if (detection && registeredDescriptor.current) {
-        const distance = faceapi.euclideanDistance(
-          registeredDescriptor.current,
-          detection.descriptor
-        );
-
-        if (distance < 0.6) {
-          clearInterval(verificationInterval.current);
-          overlayRef.current.classList.add('success');
-          setStatus(
-            t('identityVerified') + ` (Distance: ${distance.toFixed(2)})`
+        if (detection && registeredDescriptor.current) {
+          const distance = faceapi.euclideanDistance(
+            registeredDescriptor.current,
+            detection.descriptor
           );
-          drawDetections(detection);
-          capturePhoto(videoRef.current, photoRefs.verified.current);
+
+          if (distance < 0.6) {
+            clearInterval(verificationInterval.current);
+            overlayRef.current.classList.add('success');
+            setStatus(
+              t('identityVerified') + ` (Distance: ${distance.toFixed(2)})`
+            );
+            drawDetections(detection);
+            capturePhoto(videoRef.current, photoRefs.verified.current);
+          }
         }
       }
     }, 700);
