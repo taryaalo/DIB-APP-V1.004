@@ -34,18 +34,27 @@ const SelectUserPage_EN = () => {
     };
   }, []);
 
-  const { formData, setFormData } = useFormData();
+  const { formData, updateFormData, updateHighestCompletedStep } = useFormData();
 
   const selectService = async (type, page) => {
-    setFormData(d => ({ ...d, serviceType: type }));
+    // Update the userType in the central form data
+    updateFormData({ userType: type });
+
+    // Mark step 1 as complete
+    updateHighestCompletedStep(1);
+
+    // Persist to backend/cache if needed (optional, depends on requirements)
     try {
       await fetch(`${API_BASE_URL}/api/cache-form`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, serviceType: type })
+        // Pass the latest data, though formData from context might be slightly stale
+        // A better approach would be to have updateFormData return the new state
+        body: JSON.stringify({ ...formData, userType: type })
       });
     } catch (e) { console.error(e); }
-    // Service type will be persisted on confirmation page
+
+    // Navigate to the next page
     navigate(`/${page}`);
   };
 

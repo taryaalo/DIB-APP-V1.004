@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { FormProvider } from './contexts/FormContext';
 import GlobalStyles from './styles/GlobalStyles';
+import ProtectedRoute from './common/ProtectedRoute';
 
 // Import Page Components
 import LanguageSelectionPage from './components/LanguageSelectionPage';
@@ -46,10 +47,36 @@ const AppContent = () => {
 
     return (
         <Routes location={location}>
-            <Route path="/" element={<LanguageSelectionPage />} />
+            {/* Standalone/Entry Pages */}
             <Route path="/landing" element={<LandingPage_EN />} />
             <Route path="/eservices" element={<EServicesLanding />} />
-            <Route path="/select-user" element={<SelectUserPage_EN />} />
+
+            {/* Account Opening Flow */}
+            <Route path="/" element={<ProtectedRoute stepIndex={0}><LanguageSelectionPage /></ProtectedRoute>} />
+            <Route path="/select-user" element={<ProtectedRoute stepIndex={1}><SelectUserPage_EN /></ProtectedRoute>} />
+
+            {/* Personal/Individual Flow */}
+            <Route path="/personal-docs" element={<ProtectedRoute stepIndex={2}><SequentialDocsPage flow="personal" /></ProtectedRoute>} />
+            <Route path="/businessmen-docs" element={<ProtectedRoute stepIndex={2}><SequentialDocsPage flow="businessmen" /></ProtectedRoute>} />
+            <Route path="/guaranteed-docs" element={<ProtectedRoute stepIndex={2}><SequentialDocsPage flow="guaranteed" /></ProtectedRoute>} />
+            <Route path="/expat-docs" element={<ProtectedRoute stepIndex={2}><SequentialDocsPage flow="expat" /></ProtectedRoute>} />
+            <Route path="/face-registration" element={<ProtectedRoute stepIndex={3}><SelfiePage /></ProtectedRoute>} />
+            <Route path="/personal-info" element={<ProtectedRoute stepIndex={4}><PersonalInfoPage /></ProtectedRoute>} />
+            <Route path="/work-info" element={<ProtectedRoute stepIndex={5}><WorkInfoPage_EN /></ProtectedRoute>} />
+            <Route path="/contact-info" element={<ProtectedRoute stepIndex={6}><ContactInfoPage /></ProtectedRoute>} />
+
+            {/* Companies Flow */}
+            <Route path="/companies-docs" element={<ProtectedRoute stepIndex={2}><CompaniesDocsPage /></ProtectedRoute>} />
+            <Route path="/company-info" element={<ProtectedRoute stepIndex={3}><CompanyInfoPage /></ProtectedRoute>} />
+            <Route path="/company-contact" element={<ProtectedRoute stepIndex={4}><CompanyContactPage /></ProtectedRoute>} />
+            <Route path="/legal-rep-info" element={<ProtectedRoute stepIndex={5}><LegalRepInfoPage /></ProtectedRoute>} />
+            <Route path="/financial-info" element={<ProtectedRoute stepIndex={6}><FinancialInfoPage /></ProtectedRoute>} />
+
+            {/* Common Final Steps */}
+            <Route path="/confirm" element={<ProtectedRoute stepIndex={7}><ConfirmPage /></ProtectedRoute>} />
+            <Route path="/success" element={<ProtectedRoute stepIndex={8}><SuccessPage_EN /></ProtectedRoute>} />
+
+            {/* Complete Account Flow (Not protected by sequential logic for now) */}
             <Route path="/complete-account" element={<SelectApplicationPage_EN />} />
             <Route path="/pending-applications" element={<LookupPage_EN />} />
             <Route path="/bank-account-lookup" element={<BankAccountLookupPage />} />
@@ -60,21 +87,6 @@ const AppContent = () => {
             <Route path="/account-summary" element={<AccountSummaryPage_EN />} />
             <Route path="/bank-account" element={<BankAccountPage />} />
             <Route path="/complete-account-success" element={<CompleteAccountSuccessPage_EN />} />
-            <Route path="/personal-docs" element={<SequentialDocsPage flow="personal" />} />
-            <Route path="/businessmen-docs" element={<SequentialDocsPage flow="businessmen" />} />
-            <Route path="/guaranteed-docs" element={<SequentialDocsPage flow="guaranteed" />} />
-            <Route path="/expat-docs" element={<SequentialDocsPage flow="expat" />} />
-            <Route path="/face-registration" element={<SelfiePage />} />
-            <Route path="/companies-docs" element={<CompaniesDocsPage />} />
-            <Route path="/company-info" element={<CompanyInfoPage />} />
-            <Route path="/company-contact" element={<CompanyContactPage />} />
-            <Route path="/legal-rep-info" element={<LegalRepInfoPage />} />
-            <Route path="/financial-info" element={<FinancialInfoPage />} />
-            <Route path="/contact-info" element={<ContactInfoPage />} />
-            <Route path="/work-info" element={<WorkInfoPage_EN />} />
-            <Route path="/personal-info" element={<PersonalInfoPage />} />
-            <Route path="/confirm" element={<ConfirmPage />} />
-            <Route path="/success" element={<SuccessPage_EN />} />
         </Routes>
     );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LOGO_WHITE } from '../assets/imagePaths';
 import { CalendarIcon, LockIcon } from '../common/Icons';
 import { logToServer } from '../utils/logger';
@@ -16,36 +16,11 @@ import { mapExtractedFields } from '../utils/fieldMapper';
 
 const PersonalInfoPage_EN = () => {
     const { t, i18n } = useTranslation();
-    const { formData, setFormData } = useFormData();
+    const { formData, updateFormData, updateHighestCompletedStep, resetForm } = useFormData();
     const navigate = useNavigate();
     const location = useLocation();
-    const [form, setForm] = useState({
-        firstNameAr: '',
-        middleNameAr: '',
-        lastNameAr: '',
-        surnameAr: '',
-        motherFullName: '',
-        maritalStatus: '',
-        firstNameEn: '',
-        middleNameEn: '',
-        lastNameEn: '',
-        surnameEn: '',
-        passportNumber: '',
-        passportIssueDate: '',
-        passportExpiryDate: '',
-        birthPlace: '',
-        dob: '',
-        gender: '',
-        nationality: '',
-        familyRecordNumber: '',
-        nidDigits: Array(12).fill(''),
-        phone: '',
-        enableEmail: false,
-        email: '',
-        residenceExpiry: '',
-        censusCardNumber: '',
-        documentType: ''
-    });
+
+    // Local state is now only for UI-specific things, not form data.
     const [locked, setLocked] = useState({});
     const [manualFields, setManualFields] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -59,17 +34,29 @@ const PersonalInfoPage_EN = () => {
     const [otpTimer, setOtpTimer] = useState(0);
     const [showTerms, setShowTerms] = useState(false);
 
+    // Form data is now directly from context
+    const { personalInfo } = formData;
+
+    const handleLogoClick = () => {
+        if (window.confirm(t('confirm_exit'))) {
+            resetForm();
+            navigate('/');
+        }
+    };
+
     useEffect(() => {
         async function loadExtracted() {
             setLoading(true);
             setError('');
             try {
+                // Data should already be in context from SequentialDocsPage,
+                // but this can be a fallback or for users who land here directly (though routing should prevent that).
                 const passportRaw = await getCachedExtracted('passport');
                 const nidRaw = await getCachedExtracted('nationalId');
                 const passportResp = mapExtractedFields('passport', passportRaw || {});
                 const nidResp = mapExtractedFields('nationalId', nidRaw || {});
                 
-                let updated = { ...form };
+                let updated = {};
 
                 if (passportResp && Object.keys(passportResp).length) {
                     const arabicNameParts = (passportResp.fullNameArabic || '').trim().split(/\s+/);
@@ -125,12 +112,14 @@ const PersonalInfoPage_EN = () => {
                     if (!updated.maritalStatus) updated.maritalStatus = nidResp.maritalStatus || '';
                 }
 
-                setForm(updated);
-                setFormData(d => ({ ...d, personalInfo: updated }));
+                // Only update if there's new data, to avoid overwriting user input
+                if (Object.keys(updated).length > 0) {
+                    updateFormData({ personalInfo: updated });
+                }
                 
                 const lockedFields = {};
-                Object.keys(updated).forEach(k => {
-                    if(updated[k] && (!Array.isArray(updated[k]) || updated[k].some(item => item))) {
+                Object.keys(personalInfo).forEach(k => {
+                    if(personalInfo[k] && (!Array.isArray(personalInfo[k]) || personalInfo[k].some(item => item))) {
                         lockedFields[k] = true;
                     }
                 });
@@ -143,7 +132,10 @@ const PersonalInfoPage_EN = () => {
                 setLoading(false);
             }
         }
-        loadExtracted();
+        // Only run on initial mount if personal info is empty
+        if (!personalInfo.firstNameEn && !personalInfo.firstNameAr) {
+            loadExtracted();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -159,31 +151,32 @@ const PersonalInfoPage_EN = () => {
 
     const handleChange = (e, index) => {
         const { name, value, type, checked } = e.target;
-        if (locked[name]) return;
+
+        if (locked[name] && name !== 'nidDigits') return;
+
         if (name.startsWith('agree')) {
             setAgreements(a => ({ ...a, [name]: checked }));
-        } else if (name === 'enableEmail') {
-            setForm(f => ({ ...f, enableEmail: checked }));
-        } else if (name.startsWith('nidDigit')) {
-            const digits = [...form.nidDigits];
-            digits[index] = value.replace(/[^0-9]/g, '').slice(-1);
-            setForm(f => ({ ...f, nidDigits: digits }));
+            return;
+        }
+
+        let finalValue = type === 'checkbox' ? checked : value;
+        let fieldName = name;
+
+        if (name.startsWith('nidDigit')) {
+            const newNidDigits = [...personalInfo.nidDigits];
+            newNidDigits[index] = value.replace(/[^0-9]/g, '').slice(-1);
+            fieldName = 'nidDigits';
+            finalValue = newNidDigits;
             if (value && e.target.nextSibling) e.target.nextSibling.focus();
         } else if (['fullName', 'firstNameAr', 'middleNameAr', 'lastNameAr', 'surnameAr', 'motherFullName'].includes(name)) {
-            const arabic = value.replace(/[^\u0600-\u06FF\s]/g, '');
-            setForm(f => ({ ...f, [name]: arabic }));
+            finalValue = value.replace(/[^\u0600-\u06FF\s]/g, '');
         } else if (['firstNameEn', 'middleNameEn', 'lastNameEn', 'surnameEn'].includes(name)) {
-            const eng = value.replace(/[^A-Za-z\s]/g, '');
-            setForm(f => ({ ...f, [name]: eng }));
-        } else if (name === 'phone') {
-            const digits = value.replace(/[^0-9]/g, '');
-            setForm(f => ({ ...f, phone: digits }));
-        } else if (name === 'familyRecordNumber') {
-            const digits = value.replace(/[^0-9]/g, '');
-            setForm(f => ({ ...f, familyRecordNumber: digits }));
-        } else {
-            setForm(f => ({ ...f, [name]: value }));
+            finalValue = value.replace(/[^A-Za-z\s]/g, '');
+        } else if (name === 'phone' || name === 'familyRecordNumber') {
+            finalValue = value.replace(/[^0-9]/g, '');
         }
+
+        updateFormData({ personalInfo: { [fieldName]: finalValue } });
     };
 
     const handleNIDKeyDown = (e, index) => {
@@ -193,16 +186,16 @@ const PersonalInfoPage_EN = () => {
     };
 
     const handleNIDPaste = (e, index) => {
-        const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, form.nidDigits.length - index);
+        const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, personalInfo.nidDigits.length - index);
         if (!paste) return;
         e.preventDefault();
-        const digits = [...form.nidDigits];
+        const newNidDigits = [...personalInfo.nidDigits];
         for (let i = 0; i < paste.length; i++) {
-            if (digits[index + i] !== undefined) {
-                digits[index + i] = paste[i];
+            if (newNidDigits[index + i] !== undefined) {
+                newNidDigits[index + i] = paste[i];
             }
         }
-        setForm(f => ({ ...f, nidDigits: digits }));
+        updateFormData({ personalInfo: { nidDigits: newNidDigits } });
         const inputs = e.target.parentElement.querySelectorAll('input');
         const next = index + paste.length;
         if (inputs[next]) inputs[next].focus();
@@ -235,9 +228,9 @@ const PersonalInfoPage_EN = () => {
         'motherFullName','dob','birthPlace','gender','maritalStatus','nationality','passportNumber',
         'passportIssueDate','passportExpiryDate','familyRecordNumber','phone'
     ].every(k => {
-        const val = k === 'phone' ? form[k] : form[k];
+        const val = personalInfo[k];
         return Array.isArray(val) ? val.every(Boolean) : (val || '').toString().trim() !== '';
-    }) && (!form.enableEmail || form.email.trim() !== '');
+    }) && (!personalInfo.enableEmail || personalInfo.email.trim() !== '');
 
     const handleSubmit = (e) => {
         if (e) e.preventDefault();
@@ -258,7 +251,7 @@ const PersonalInfoPage_EN = () => {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: `+218${form.phone}`, language: i18n.language })
+                    body: JSON.stringify({ phone: `+218${personalInfo.phone}`, language: i18n.language })
                 });
                 setVerifyStep(2);
                 setOtpTimer(120);
@@ -270,15 +263,15 @@ const PersonalInfoPage_EN = () => {
                 const resp = await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/verify-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: `+218${form.phone}`, otp })
+                    body: JSON.stringify({ phone: `+218${personalInfo.phone}`, otp })
                 });
                 const data = await resp.json();
                 if (data.verified) {
-                    if (form.enableEmail) {
+                    if (personalInfo.enableEmail) {
                         await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: form.email, language: i18n.language })
+                            body: JSON.stringify({ email: personalInfo.email, language: i18n.language })
                         });
                         setVerifyStep(3);
                         setOtpTimer(120);
@@ -296,7 +289,7 @@ const PersonalInfoPage_EN = () => {
                 const resp = await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/verify-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: form.email, otp })
+                    body: JSON.stringify({ email: personalInfo.email, otp })
                 });
                 const data = await resp.json();
                 if (data.verified) {
@@ -313,13 +306,23 @@ const PersonalInfoPage_EN = () => {
         setVerifyStep(1);
         setOtp('');
         setOtpError('');
-        setFormData(d => ({ ...d, personalInfo: { ...form, phone: `+218${form.phone}` } }));
+
+        // Update the context with the final, verified data
+        const finalPersonalInfo = { ...personalInfo, phone: `+218${personalInfo.phone}` };
+        updateFormData({ personalInfo: finalPersonalInfo });
+
+        // Mark step 4 as complete
+        updateHighestCompletedStep(4);
+
+        // Persist the data to the backend
         fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/cache-form`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...formData, personalInfo: { ...form, phone: `+218${form.phone}` } })
+            body: JSON.stringify({ ...formData, personalInfo: finalPersonalInfo })
         }).catch(e => console.error(e));
-        navigate('/confirm', { state: { form, manualFields } });
+
+        // Navigate to the next step in the flow
+        navigate('/work-info');
     };
 
     const resendOtp = async () => {
@@ -328,13 +331,13 @@ const PersonalInfoPage_EN = () => {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: `+218${form.phone}`, language: i18n.language })
+                    body: JSON.stringify({ phone: `+218${personalInfo.phone}`, language: i18n.language })
                 });
             } else if (verifyStep === 3) {
                 await fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: form.email, language: i18n.language })
+                    body: JSON.stringify({ email: personalInfo.email, language: i18n.language })
                 });
             }
             setOtpTimer(120);
@@ -358,7 +361,9 @@ const PersonalInfoPage_EN = () => {
     return (
         <div className="form-page">
             <header className="header docs-header">
-                <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
+                <div role="button" tabIndex="0" onClick={handleLogoClick} onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()} style={{ cursor: 'pointer' }}>
+                    <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
+                </div>
                 <div className="header-switchers">
                     <ThemeSwitcher />
                     <LanguageSwitcher />
@@ -377,31 +382,31 @@ const PersonalInfoPage_EN = () => {
                     
                     <div className="form-grid-columns">
                         <div className="form-column" style={{direction: 'rtl', textAlign: 'right'}}>
-                           <div className="form-group"><label>{t('firstNameAr')} *</label><div style={{position: 'relative'}}><input name="firstNameAr" value={form.firstNameAr} onChange={handleChange} required type="text" {...lockProps('firstNameAr')} /><LockIcon className="lock-icon"/></div></div>
-                           <div className="form-group"><label>{t('middleNameAr')} *</label><div style={{position: 'relative'}}><input name="middleNameAr" value={form.middleNameAr} onChange={handleChange} required type="text" {...lockProps('middleNameAr')} /><LockIcon className="lock-icon"/></div></div>
-                           <div className="form-group"><label>{t('lastNameAr')} *</label><div style={{position: 'relative'}}><input name="lastNameAr" value={form.lastNameAr} onChange={handleChange} required type="text" {...lockProps('lastNameAr')} /><LockIcon className="lock-icon"/></div></div>
-                           <div className="form-group"><label>{t('surnameAr')} *</label><div style={{position: 'relative'}}><input name="surnameAr" value={form.surnameAr} onChange={handleChange} required type="text" {...lockProps('surnameAr')} /><LockIcon className="lock-icon"/></div></div>
+                           <div className="form-group"><label>{t('firstNameAr')} *</label><div style={{position: 'relative'}}><input name="firstNameAr" value={personalInfo.firstNameAr} onChange={handleChange} required type="text" {...lockProps('firstNameAr')} /><LockIcon className="lock-icon"/></div></div>
+                           <div className="form-group"><label>{t('middleNameAr')} *</label><div style={{position: 'relative'}}><input name="middleNameAr" value={personalInfo.middleNameAr} onChange={handleChange} required type="text" {...lockProps('middleNameAr')} /><LockIcon className="lock-icon"/></div></div>
+                           <div className="form-group"><label>{t('lastNameAr')} *</label><div style={{position: 'relative'}}><input name="lastNameAr" value={personalInfo.lastNameAr} onChange={handleChange} required type="text" {...lockProps('lastNameAr')} /><LockIcon className="lock-icon"/></div></div>
+                           <div className="form-group"><label>{t('surnameAr')} *</label><div style={{position: 'relative'}}><input name="surnameAr" value={personalInfo.surnameAr} onChange={handleChange} required type="text" {...lockProps('surnameAr')} /><LockIcon className="lock-icon"/></div></div>
                         </div>
 
                         <div className="form-column">
-                           <div className="form-group"><label>{t('firstNameEn')} *</label><div style={{position: 'relative'}}><input name="firstNameEn" value={form.firstNameEn} onChange={handleChange} required type="text" {...lockProps('firstNameEn')} /><LockIcon className="lock-icon"/></div></div>
-                           <div className="form-group"><label>{t('middleNameEn')} *</label><div style={{position: 'relative'}}><input name="middleNameEn" value={form.middleNameEn} onChange={handleChange} required type="text" {...lockProps('middleNameEn')} /><LockIcon className="lock-icon"/></div></div>
-                           <div className="form-group"><label>{t('lastNameEn')} *</label><div style={{position: 'relative'}}><input name="lastNameEn" value={form.lastNameEn} onChange={handleChange} required type="text" {...lockProps('lastNameEn')} /><LockIcon className="lock-icon"/></div></div>
-                           <div className="form-group"><label>{t('surnameEn')} *</label><div style={{position: 'relative'}}><input name="surnameEn" value={form.surnameEn} onChange={handleChange} required type="text" {...lockProps('surnameEn')} /><LockIcon className="lock-icon"/></div></div>
+                           <div className="form-group"><label>{t('firstNameEn')} *</label><div style={{position: 'relative'}}><input name="firstNameEn" value={personalInfo.firstNameEn} onChange={handleChange} required type="text" {...lockProps('firstNameEn')} /><LockIcon className="lock-icon"/></div></div>
+                           <div className="form-group"><label>{t('middleNameEn')} *</label><div style={{position: 'relative'}}><input name="middleNameEn" value={personalInfo.middleNameEn} onChange={handleChange} required type="text" {...lockProps('middleNameEn')} /><LockIcon className="lock-icon"/></div></div>
+                           <div className="form-group"><label>{t('lastNameEn')} *</label><div style={{position: 'relative'}}><input name="lastNameEn" value={personalInfo.lastNameEn} onChange={handleChange} required type="text" {...lockProps('lastNameEn')} /><LockIcon className="lock-icon"/></div></div>
+                           <div className="form-group"><label>{t('surnameEn')} *</label><div style={{position: 'relative'}}><input name="surnameEn" value={personalInfo.surnameEn} onChange={handleChange} required type="text" {...lockProps('surnameEn')} /><LockIcon className="lock-icon"/></div></div>
                         </div>
                     </div>
                     
                     <hr style={{margin: '20px 0'}} />
 
-                    <div className="form-group"><label>{t('motherFullName')} *</label><div style={{position: 'relative'}}><input name="motherFullName" value={form.motherFullName} onChange={handleChange} required type="text" {...lockProps('motherFullName')} /><LockIcon className="lock-icon"/></div></div>
+                    <div className="form-group"><label>{t('motherFullName')} *</label><div style={{position: 'relative'}}><input name="motherFullName" value={personalInfo.motherFullName} onChange={handleChange} required type="text" {...lockProps('motherFullName')} /><LockIcon className="lock-icon"/></div></div>
 
                     <div className="company-form-grid">
-                        <div className="form-group date-input-container"><label>{t('dateOfBirth')} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="dob" value={form.dob} onChange={handleChange} type="text" required {...lockProps('dob')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
-                        <div className="form-group"><label>{t('birthPlace')} <span className="required-star">*</span></label><div style={{position: 'relative'}}><input name="birthPlace" value={form.birthPlace} onChange={handleChange} type="text" required {...lockProps('birthPlace')} /><LockIcon className="lock-icon" /></div></div>
+                        <div className="form-group date-input-container"><label>{t('dateOfBirth')} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="dob" value={personalInfo.dob} onChange={handleChange} type="text" required {...lockProps('dob')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
+                        <div className="form-group"><label>{t('birthPlace')} <span className="required-star">*</span></label><div style={{position: 'relative'}}><input name="birthPlace" value={personalInfo.birthPlace} onChange={handleChange} type="text" required {...lockProps('birthPlace')} /><LockIcon className="lock-icon" /></div></div>
                         <div className="form-group">
                             <label>{t('gender')} *</label>
                             <div style={{position: 'relative'}}>
-                                <select name="gender" value={form.gender} onChange={handleChange} required {...lockProps('gender')}>
+                                <select name="gender" value={personalInfo.gender} onChange={handleChange} required {...lockProps('gender')}>
                                     <option value="">{t('gender')}</option>
                                     <option value="male">{t('male')}</option>
                                     <option value="female">{t('female')}</option>
@@ -412,7 +417,7 @@ const PersonalInfoPage_EN = () => {
                         <div className="form-group">
                            <label>{t('maritalStatus')} *</label>
                            <div style={{position: 'relative'}}>
-                               <select name="maritalStatus" value={form.maritalStatus} onChange={handleChange} required {...lockProps('maritalStatus')}>
+                               <select name="maritalStatus" value={personalInfo.maritalStatus} onChange={handleChange} required {...lockProps('maritalStatus')}>
                                    <option value="">{t('maritalStatus')}</option>
                                    <option value="single">{t('single')}</option>
                                    <option value="married">{t('married')}</option>
@@ -425,7 +430,7 @@ const PersonalInfoPage_EN = () => {
                         <div className="form-group">
                             <label>{t('nationality')} <span className="required-star">*</span></label>
                             <div style={{position: 'relative'}}>
-                                <select name="nationality" value={form.nationality} onChange={handleChange} disabled={locked.nationality} required {...lockProps('nationality')}>
+                                <select name="nationality" value={personalInfo.nationality} onChange={handleChange} disabled={locked.nationality} required {...lockProps('nationality')}>
                                     <option value="">{t('nationality')}</option>
                                     <option value="libyan">{t('libyan')}</option>
                                     <option value="other">{t('other')}</option>
@@ -433,15 +438,15 @@ const PersonalInfoPage_EN = () => {
                                 <LockIcon className="lock-icon" />
                             </div>
                         </div>
-                        <div className="form-group"><label>{t('passportNumber')} <span className="required-star">*</span></label><div style={{position: 'relative'}}><input name="passportNumber" value={form.passportNumber} onChange={handleChange} type="text" required {...lockProps('passportNumber')} /><LockIcon className="lock-icon"/></div></div>
-                        <div className="form-group date-input-container"><label>{t('passportIssueDate')} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="passportIssueDate" value={form.passportIssueDate} onChange={handleChange} type="text" required {...lockProps('passportIssueDate')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
-                        <div className="form-group date-input-container"><label>{t('passportExpiryDate')} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="passportExpiryDate" value={form.passportExpiryDate} onChange={handleChange} type="text" required {...lockProps('passportExpiryDate')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
+                        <div className="form-group"><label>{t('passportNumber')} <span className="required-star">*</span></label><div style={{position: 'relative'}}><input name="passportNumber" value={personalInfo.passportNumber} onChange={handleChange} type="text" required {...lockProps('passportNumber')} /><LockIcon className="lock-icon"/></div></div>
+                        <div className="form-group date-input-container"><label>{t('passportIssueDate')} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="passportIssueDate" value={personalInfo.passportIssueDate} onChange={handleChange} type="text" required {...lockProps('passportIssueDate')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
+                        <div className="form-group date-input-container"><label>{t('passportExpiryDate')} <span className="required-star">*</span></label><div style={{position: 'relative', width: '100%'}}><input name="passportExpiryDate" value={personalInfo.passportExpiryDate} onChange={handleChange} type="text" required {...lockProps('passportExpiryDate')} onFocus={e=>e.target.type='date'} onBlur={e=>e.target.type='text'} /><CalendarIcon/></div></div>
                     </div>
                     
                     <div className="form-group">
                         <label>{t('familyRecordNumber')} <span className="required-star">*</span></label>
                         <div style={{position: 'relative'}}>
-                            <input name="familyRecordNumber" value={form.familyRecordNumber} onChange={handleChange} required type="text" {...lockProps('familyRecordNumber')} />
+                            <input name="familyRecordNumber" value={personalInfo.familyRecordNumber} onChange={handleChange} required type="text" {...lockProps('familyRecordNumber')} />
                             <LockIcon className="lock-icon" />
                         </div>
                     </div>
@@ -449,7 +454,7 @@ const PersonalInfoPage_EN = () => {
                     <div className="form-group">
                         <label>{t('nid')} <span className="required-star">*</span></label>
                         <div className="national-id-group" onDoubleClick={(e) => unlockField('nidDigits', e)}>
-                            {form.nidDigits.map((d, idx) => (<input key={idx} name={`nidDigit${idx}`} value={d} onChange={(e)=>handleChange(e, idx)} onKeyDown={(e)=>handleNIDKeyDown(e, idx)} onPaste={(e)=>handleNIDPaste(e, idx)} required type="text" maxLength="1" className={`national-id-input${locked.nidDigits ? ' locked' : ''}`} readOnly={!!locked.nidDigits}/>
+                            {personalInfo.nidDigits.map((d, idx) => (<input key={idx} name={`nidDigit${idx}`} value={d} onChange={(e)=>handleChange(e, idx)} onKeyDown={(e)=>handleNIDKeyDown(e, idx)} onPaste={(e)=>handleNIDPaste(e, idx)} required type="text" maxLength="1" className={`national-id-input${locked.nidDigits ? ' locked' : ''}`} readOnly={!!locked.nidDigits}/>
                             ))}
                         </div>
                     </div>
@@ -458,15 +463,15 @@ const PersonalInfoPage_EN = () => {
                         <label>{t('phoneNumber')} <span className="required-star">*</span></label>
                         <div className="phone-input-group">
                             <span className="phone-prefix">+218</span>
-                            <input name="phone" value={form.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber')} className="form-input" />
+                            <input name="phone" value={personalInfo.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber')} className="form-input" />
                         </div>
                         <LockIcon className="lock-icon" />
                     </div>
-                    <div className="form-group"><label><input type="checkbox" name="enableEmail" checked={form.enableEmail} onChange={handleChange} /> {t('enableEmail')}</label></div>
-                    {form.enableEmail && (
+                    <div className="form-group"><label><input type="checkbox" name="enableEmail" checked={personalInfo.enableEmail} onChange={handleChange} /> {t('enableEmail')}</label></div>
+                    {personalInfo.enableEmail && (
                         <div className="form-group">
                             <label>{t('email')} <span className="required-star">*</span></label>
-                            <input name="email" value={form.email} onChange={handleChange} required type="email" {...lockProps('email')} placeholder={t('email')} />
+                            <input name="email" value={personalInfo.email} onChange={handleChange} required type="email" {...lockProps('email')} placeholder={t('email')} />
                             <LockIcon className="lock-icon" />
                         </div>
                     )}
@@ -489,8 +494,8 @@ const PersonalInfoPage_EN = () => {
                         {verifyStep === 1 ? (
                             <>
                                 <h3>{t('verifyContact')}</h3>
-                                <p>{t('phoneNumber')}: +218{form.phone}</p>
-                                {form.enableEmail && <p>{t('email')}: {form.email}</p>}
+                                <p>{t('phoneNumber')}: +218{personalInfo.phone}</p>
+                                {personalInfo.enableEmail && <p>{t('email')}: {personalInfo.email}</p>}
                             </>
                         ) : (
                             <>

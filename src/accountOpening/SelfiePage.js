@@ -11,7 +11,7 @@ const challenges = ['center','turnLeft','turnRight','turnUp','turnDown'];
 
 const SelfiePage_EN = () => {
   const { t } = useTranslation();
-  const { formData } = useFormData();
+  const { formData, updateHighestCompletedStep, resetForm } = useFormData();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -335,13 +335,25 @@ const SelfiePage_EN = () => {
   };
 
   const handleNext = () => {
-    const nextPath = location.state?.nextPage || '/contact-info';
+    updateHighestCompletedStep(3);
+    const nextPath = location.state?.nextPage || '/personal-info';
     navigate(nextPath);
+  };
+
+  const handleLogoClick = () => {
+      if (window.confirm(t('confirm_exit'))) {
+          resetForm();
+          navigate('/');
+      }
   };
 
   return (
     <div className="selfie-page">
       <header className="header docs-header">
+        <div role="button" tabIndex="0" onClick={handleLogoClick} onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()} style={{ cursor: 'pointer' }}>
+            {/* Assuming a logo should be here. If not, this can be adapted. For now, adding a placeholder text/icon */}
+            <span className="logo-placeholder">DIB</span>
+        </div>
         <div className="header-switchers">
           <ThemeSwitcher />
           <LanguageSwitcher />

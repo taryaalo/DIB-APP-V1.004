@@ -24,16 +24,23 @@ const DOCS = [
 
 const ConfirmPage = () => {
     const { t, i18n } = useTranslation();
-    const { formData, setFormData } = useFormData();
+    const { formData, updateFormData, updateHighestCompletedStep, resetForm } = useFormData();
     const navigate = useNavigate();
     const location = useLocation();
-    const manualFields = location.state?.manualFields || [];
-    const [form, setForm] = useState(formData || {});
+    // manualFields should be sourced from context if needed, removing location.state dependency
+    const manualFields = formData.manualFields || [];
     const [submitError, setSubmitError] = useState('');
     const [cachedUploads, setCachedUploads] = useState({});
     const [previewUrl, setPreviewUrl] = useState(null);
     const [branches, setBranches] = useState([]);
-    const [branchId, setBranchId] = useState(form.personalInfo?.branchId || '');
+    const [branchId, setBranchId] = useState(formData.personalInfo?.branchId || '');
+
+    const handleLogoClick = () => {
+        if (window.confirm(t('confirm_exit'))) {
+            resetForm();
+            navigate('/');
+        }
+    };
 
     useEffect(() => {
         const fetchCachedUploads = async () => {
@@ -59,16 +66,14 @@ const ConfirmPage = () => {
                 const raw = await getCachedExtracted('nationalId');
                 const mapped = mapExtractedFields('nationalId', raw || {});
                 if (mapped && Object.keys(mapped).length) {
-                    setForm(prev => ({
-                        ...prev,
+                    updateFormData({
                         personalInfo: {
-                            ...(prev.personalInfo || {}),
-                            familyRecordNumber: prev.personalInfo?.familyRecordNumber || mapped.familyId || '',
-                            nidDigits: prev.personalInfo?.nidDigits && prev.personalInfo.nidDigits.some(d => d) ? prev.personalInfo.nidDigits : (mapped.nationalId ? mapped.nationalId.replace(/\D/g, '').slice(0,12).split('') : Array(12).fill('')),
-                            motherFullName: prev.personalInfo?.motherFullName || mapped.motherFullName || '',
-                            maritalStatus: prev.personalInfo?.maritalStatus || mapped.maritalStatus || ''
+                            familyRecordNumber: formData.personalInfo?.familyRecordNumber || mapped.familyId || '',
+                            nidDigits: formData.personalInfo?.nidDigits && formData.personalInfo.nidDigits.some(d => d) ? formData.personalInfo.nidDigits : (mapped.nationalId ? mapped.nationalId.replace(/\D/g, '').slice(0,12).split('') : Array(12).fill('')),
+                            motherFullName: formData.personalInfo?.motherFullName || mapped.motherFullName || '',
+                            maritalStatus: formData.personalInfo?.maritalStatus || mapped.maritalStatus || ''
                         }
-                    }));
+                    });
                 }
             } catch (e) {
                 console.error('Failed to load NID', e);
@@ -82,7 +87,7 @@ const ConfirmPage = () => {
     const handleConfirm = async () => {
         setSubmitError('');
         try {
-            let reference = form.personalInfo?.referenceNumber || form.personalInfo?.reference_number;
+            let reference = formData.personalInfo?.referenceNumber;
             if (!reference) {
                 const initResp = await fetch(`${API_BASE_URL}/api/initialize-application`, {
                     method: 'POST',
@@ -92,20 +97,22 @@ const ConfirmPage = () => {
                 if (initResp.ok) {
                     const data = await initResp.json();
                     reference = data.referenceNumber;
-                    setFormData(d => ({ ...d, personalInfo: { ...(d.personalInfo || {}), referenceNumber: reference } }));
+                    updateFormData({ personalInfo: { referenceNumber: reference } });
                 } else {
                     const text = await initResp.text();
                     logErrorToServer(`INIT_APP_ERROR ${initResp.status} ${text}`);
+                    setSubmitError(t('errorSubmitting'));
+                    return;
                 }
             }
 
             const payload = {
-                ...(form.personalInfo || {}),
+                ...formData.personalInfo,
                 branchId,
                 language: i18n.language,
                 referenceNumber: reference,
-                addressInfo: form.addressInfo,
-                workInfo: form.workInfo,
+                addressInfo: formData.contactInfo, // Corrected from addressInfo
+                workInfo: formData.workInfo,
                 aiModel: formData.provider,
                 manualFields
             };
@@ -116,7 +123,9 @@ const ConfirmPage = () => {
             });
             if (resp.ok) {
                 const data = await resp.json();
-                navigate('/success', { state: { referenceNumber: data.referenceNumber, createdAt: data.createdAt, aiModel: formData.provider } });
+                updateFormData({ submissionResult: { referenceNumber: data.referenceNumber, createdAt: data.createdAt } });
+                updateHighestCompletedStep(7);
+                navigate('/success');
             } else {
                 const text = await resp.text();
                 logErrorToServer(`SUBMIT_ERROR ${resp.status} ${text}`);
@@ -205,7 +214,9 @@ const ConfirmPage = () => {
     return (
         <div className="form-page confirmation-page sequential-docs-page">
             <header className="header docs-header">
-                <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
+                <div role="button" tabIndex="0" onClick={handleLogoClick} onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()} style={{ cursor: 'pointer' }}>
+                    <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
+                </div>
                 <div className="header-switchers">
                     <ThemeSwitcher />
                     <LanguageSwitcher />
@@ -215,9 +226,9 @@ const ConfirmPage = () => {
                 <h1 className="form-title">{t('confirmData')}</h1>
                 <p className="guide-message">{t('requiredFieldsHint')}</p>
                 <div className="confirmation-grid">
-                    {renderSection('personalInfo', form.personalInfo, <UserIcon />)}
-                    {renderSection('addressInfoTitle', form.addressInfo, <MapPinIcon />)}
-                    {renderSection('workInfoTitle', form.workInfo, <BriefcaseIcon />)}
+                    {renderSection('personalInfo', formData.personalInfo, <UserIcon />)}
+                    {renderSection('addressInfoTitle', formData.contactInfo, <MapPinIcon />)}
+                    {renderSection('workInfoTitle', formData.workInfo, <BriefcaseIcon />)}
                     {renderDocumentsSection('requiredDocs', cachedUploads)}
                 </div>
                 <div className="form-group">
