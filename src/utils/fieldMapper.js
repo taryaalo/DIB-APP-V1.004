@@ -23,6 +23,9 @@ export function mapPassportFields(data = {}) {
 export function mapNIDFields(data = {}) {
   if (!data || typeof data !== 'object') return data;
   const fieldMap = {
+    'Full Name (Arabic)': 'fullNameArabic',
+    'Given Name (English)': 'givenNameEng',
+    'Surname (English)': 'surnameEng',
     'Family Record Number': 'familyId',
     'National ID': 'nationalId',
     'Sex': 'sex',

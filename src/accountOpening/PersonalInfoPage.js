@@ -94,6 +94,23 @@ const PersonalInfoPage_EN = () => {
                 }
 
                 if (nidResp && Object.keys(nidResp).length) {
+                    if (!updated.firstNameAr && nidResp.fullNameArabic) {
+                        const arabicNameParts = (nidResp.fullNameArabic || '').trim().split(/\s+/);
+                        updated.firstNameAr = arabicNameParts[0] || '';
+                        updated.middleNameAr = arabicNameParts[1] || '';
+                        updated.lastNameAr = arabicNameParts[2] || '';
+                        updated.surnameAr = arabicNameParts.length > 3 ? arabicNameParts.slice(3).join(' ') : '';
+                    }
+                    if (!updated.firstNameEn && nidResp.givenNameEng) {
+                        const engNameParts = (nidResp.givenNameEng || '').trim().split(/\s+/);
+                        updated.firstNameEn = engNameParts[0] || '';
+                        updated.middleNameEn = engNameParts[1] || '';
+                        updated.lastNameEn = engNameParts[2] || '';
+                    }
+                    if (!updated.surnameEn && nidResp.surnameEng) {
+                        updated.surnameEn = nidResp.surnameEng || '';
+                    }
+
                     updated.nidDigits = nidResp.nationalId ? nidResp.nationalId.replace(/\D/g, '').slice(0, 12).split('') : Array(12).fill('');
                     if (!updated.gender) {
                       updated.gender = nidResp.sex === 'M' ? 'male' : nidResp.sex === 'F' ? 'female' : (nidResp.sex || '');
@@ -103,9 +120,9 @@ const PersonalInfoPage_EN = () => {
                             ? `${nidResp.birthYear}-${nidResp.birthMonth.toString().padStart(2,'0')}-${nidResp.birthDay.toString().padStart(2,'0')}`
                             : '';
                     }
-                    updated.familyRecordNumber = nidResp.familyId || '';
-                    updated.motherFullName = nidResp.motherFullName || '';
-                    updated.maritalStatus = nidResp.maritalStatus || '';
+                    if (!updated.familyRecordNumber) updated.familyRecordNumber = nidResp.familyId || '';
+                    if (!updated.motherFullName) updated.motherFullName = nidResp.motherFullName || '';
+                    if (!updated.maritalStatus) updated.maritalStatus = nidResp.maritalStatus || '';
                 }
 
                 setForm(updated);
