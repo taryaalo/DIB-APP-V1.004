@@ -24,7 +24,7 @@ const DOCS = [
 
 const SequentialDocsPage_EN = () => {
     const { t } = useTranslation();
-    const { setFormData, formData } = useFormData();
+    const { formData, updateFormData, updateHighestCompletedStep, resetForm } = useFormData();
     const navigate = useNavigate();
     const location = useLocation();
     const [current, setCurrent] = useState(0);
@@ -40,9 +40,16 @@ const SequentialDocsPage_EN = () => {
     const [provider, setProvider] = useState(formData.provider || 'chatgpt');
     const fileInputRef = useRef(null);
 
+    const handleLogoClick = () => {
+        if (window.confirm(t('confirm_exit'))) {
+            resetForm();
+            navigate('/');
+        }
+    };
+
     useEffect(() => {
-        setFormData(d => ({ ...d, provider }));
-    }, [provider, setFormData]);
+        updateFormData({ provider });
+    }, [provider, updateFormData]);
     
     const resetComponentState = () => {
         setImage(null);
@@ -91,7 +98,7 @@ const SequentialDocsPage_EN = () => {
                 });
                 if (initResp.ok) {
                     const initData = await initResp.json();
-                    setFormData(d => ({ ...d, personalInfo: { ...d.personalInfo, referenceNumber: initData.referenceNumber } }));
+                    updateFormData({ personalInfo: { referenceNumber: initData.referenceNumber } });
                 }
             }
             
@@ -104,7 +111,22 @@ const SequentialDocsPage_EN = () => {
                   const firstName = names[0] || '';
                   const middleName = names.slice(1).join(' ');
                   const genderVal = result.sex === 'M' ? 'male' : result.sex === 'F' ? 'female' : (result.sex || '');
-                  setFormData((d) => ({ ...d, personalInfo: { ...(d.personalInfo || {}), fullName: result.fullNameArabic, firstNameEn: firstName, middleNameEn: middleName, lastNameEn: result.surnameEng, dob: result.dateOfBirth, gender: genderVal, nationality: normalizeNationality(result.nationality), passportNumber: result.passportNo, passportIssueDate: result.dateOfIssue, passportExpiryDate: result.expiryDate, birthPlace: result.placeOfBirth, }, passportData: result, }));
+                  updateFormData({
+                    personalInfo: {
+                        fullName: result.fullNameArabic,
+                        firstNameEn: firstName,
+                        middleNameEn: middleName,
+                        lastNameEn: result.surnameEng,
+                        dob: result.dateOfBirth,
+                        gender: genderVal,
+                        nationality: normalizeNationality(result.nationality),
+                        passportNumber: result.passportNo,
+                        passportIssueDate: result.dateOfIssue,
+                        passportExpiryDate: result.expiryDate,
+                        birthPlace: result.placeOfBirth,
+                    },
+                    documents: { passport: { data: result, file: uploadedFile } }
+                  });
                   setIsValid(true);
                  } else {
                   setError(t('invalidPassport'));
@@ -118,12 +140,19 @@ const SequentialDocsPage_EN = () => {
                 result = mapExtractedFields('nationalId', result);
                 if (result && result.nationalId && result.familyId) {
                   const nidDigits = result.nationalId ? result.nationalId.replace(/\D/g, '').slice(0, 12).split('') : [];
-                  setFormData((d) => {
-                    const genderVal = result.sex === 'M' ? 'male' : result.sex === 'F' ? 'female' : (result.sex || '');
-                    const dob = result.birthYear && result.birthMonth && result.birthDay
-                      ? `${result.birthYear}-${result.birthMonth.toString().padStart(2, '0')}-${result.birthDay.toString().padStart(2, '0')}`
-                      : d.personalInfo?.dob || '';
-                    return { ...d, personalInfo: { ...(d.personalInfo || {}), familyRecordNumber: result.familyId, nidDigits: nidDigits.length ? nidDigits : d.personalInfo?.nidDigits || Array(12).fill(''), gender: d.personalInfo?.gender || genderVal, dob: d.personalInfo?.dob || dob, }, nidData: result, };
+                  const genderVal = result.sex === 'M' ? 'male' : result.sex === 'F' ? 'female' : (result.sex || '');
+                  const dob = result.birthYear && result.birthMonth && result.birthDay
+                    ? `${result.birthYear}-${result.birthMonth.toString().padStart(2, '0')}-${result.birthDay.toString().padStart(2, '0')}`
+                    : formData.personalInfo?.dob || '';
+
+                  updateFormData({
+                    personalInfo: {
+                        familyRecordNumber: result.familyId,
+                        nidDigits: nidDigits.length ? nidDigits : formData.personalInfo?.nidDigits || Array(12).fill(''),
+                        gender: formData.personalInfo?.gender || genderVal,
+                        dob: formData.personalInfo?.dob || dob,
+                    },
+                    documents: { nationalId: { data: result, file: uploadedFile } }
                   });
                   setIsValid(true);
                 } else {
@@ -135,10 +164,12 @@ const SequentialDocsPage_EN = () => {
                 }
             } else {
                 result = { uploaded: true };
+                updateFormData({ documents: { [DOCS[current].key]: { data: result, file: uploadedFile } } });
                 setIsValid(true);
             }
             
             setData((d) => ({ ...d, [DOCS[current].key]: result }));
+            // Caching in context now, so this might be redundant, but keeping for safety.
             await cacheExtractedData(DOCS[current].key, result);
             setScanComplete(true);
 
@@ -157,7 +188,9 @@ const SequentialDocsPage_EN = () => {
                 setCurrent(c => c + 1);
                 resetComponentState();
             } else {
-                navigate('/face-registration', { state: { backPage: location.pathname, nextPage: '/contact-info' } });
+                // This is the last document, so mark step 2 as complete and navigate.
+                updateHighestCompletedStep(2);
+                navigate('/face-registration');
             }
             setIsConfirming(false);
         }, 500);
@@ -174,7 +207,9 @@ const SequentialDocsPage_EN = () => {
     return (
         <div className="form-page sequential-docs-page">
             <header className="header docs-header">
-                <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
+                <div role="button" tabIndex="0" onClick={handleLogoClick} onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()} style={{ cursor: 'pointer' }}>
+                    <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
+                </div>
                 <div className="header-switchers">
                     <AIProviderSwitcher provider={provider} onChange={setProvider} />
                     <ThemeSwitcher />

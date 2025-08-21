@@ -6,45 +6,37 @@ import LanguageSwitcher from '../common/LanguageSwitcher';
 import Footer from '../common/Footer';
 import { t } from '../i18n';
 import { useFormData } from '../contexts/FormContext';
+import useFetchDropdownData from '../hooks/useFetchDropdownData';
 import { CalendarIcon } from '../common/Icons';
 import i18n from 'i18next';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 const WorkInfoPage_EN = () => {
-    const { formData, setFormData } = useFormData();
+    const { formData, updateFormData, updateHighestCompletedStep, resetForm } = useFormData();
     const navigate = useNavigate();
-    const [sources, setSources] = useState([]);
-    const [countries, setCountries] = useState([]);
-    const [cities, setCities] = useState([]);
-    const [form, setForm] = useState({
-        employmentStatus: '',
-        jobTitle: '',
-        employer: '',
-        employerAddress: '',
-        employerPhone: '',
-        sourceOfIncome: '',
-        monthlyIncome: '',
-        workSector: '',
-        fieldOfWork: '',
-        workStartDate: '',
-        workCountry: '',
-        workCity: '',
-        ...(formData.workInfo || {})
-    });
+    const { workInfo } = formData;
+
+    const handleLogoClick = () => {
+        if (window.confirm(t('confirm_exit'))) {
+            resetForm();
+            navigate('/');
+        }
+    };
+
+    const { data: sources } = useFetchDropdownData('/api/income-sources');
+    const { data: countries } = useFetchDropdownData('/api/countries');
+    const { data: cities, loading: citiesLoading } = useFetchDropdownData(workInfo.workCountry ? `/api/cities?country=${workInfo.workCountry}` : null);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/api/income-sources`).then(r=>r.json()).then(setSources).catch(()=>{});
-        fetch(`${API_BASE_URL}/api/countries`).then(r=>r.json()).then(setCountries).catch(()=>{});
-    }, []);
-
-    useEffect(() => {
-        if (!form.workCountry) { setCities([]); return; }
-        fetch(`${API_BASE_URL}/api/cities?country=${form.workCountry}`)
-            .then(r=>r.json())
-            .then(data => setCities(data))
-            .catch(()=> setCities([]));
-    }, [form.workCountry]);
+        // If the selected city is no longer in the list of available cities for the new country, reset it.
+        if (workInfo.workCountry && !citiesLoading && cities.length > 0) {
+            const cityExists = cities.some(c => c.cityCode === workInfo.workCity);
+            if (!cityExists) {
+                updateFormData({ workInfo: { workCity: '' } });
+            }
+        }
+    }, [workInfo.workCountry, cities, citiesLoading, workInfo.workCity, updateFormData]);
 
     useEffect(() => {
         const reference = formData.personalInfo?.referenceNumber || formData.personalInfo?.reference_number;
@@ -73,40 +65,43 @@ const WorkInfoPage_EN = () => {
                             workCountry: data.work_country || '',
                             workCity: data.work_city || ''
                         };
-                        setForm(f => ({ ...f, ...mapped }));
-                        setFormData(d => ({ ...d, workInfo: mapped }));
+                        updateFormData({ workInfo: mapped });
                     }
                 }
             } catch (e) { console.error(e); }
         }
-        load();
-    }, [formData.personalInfo, setFormData]);
+        // Only load if data is not already present
+        if (!workInfo.jobTitle) {
+            load();
+        }
+    }, [formData.personalInfo, updateFormData, workInfo.jobTitle]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm(f => ({ ...f, [name]: value }));
+        updateFormData({ workInfo: { [name]: value } });
     };
 
     const handleSubmit = async () => {
-        setFormData(d => ({ ...d, workInfo: form }));
+        updateHighestCompletedStep(5);
         try {
             await fetch(`${API_BASE_URL}/api/cache-form`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...formData, workInfo: form })
+                body: JSON.stringify(formData) // formData is already up-to-date
             });
         } catch (e) { console.error(e); }
-        // Data will be saved on confirmation page
-        navigate('/personal-info');
+        navigate('/contact-info');
     };
 
-    const isComplete = form.jobTitle && form.employer && form.workSector && form.fieldOfWork &&
-        form.workStartDate && form.sourceOfIncome && form.monthlyIncome && form.workCountry && form.workCity;
+    const isComplete = workInfo.jobTitle && workInfo.employer && workInfo.workSector && workInfo.fieldOfWork &&
+        workInfo.workStartDate && workInfo.sourceOfIncome && workInfo.monthlyIncome && workInfo.workCountry && workInfo.workCity;
 
     return (
         <div className="form-page">
             <header className="header docs-header">
-                <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
+                <div role="button" tabIndex="0" onClick={handleLogoClick} onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()} style={{ cursor: 'pointer' }}>
+                    <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
+                </div>
                 <div className="header-switchers">
                     <ThemeSwitcher />
                     <LanguageSwitcher />
@@ -123,15 +118,15 @@ const WorkInfoPage_EN = () => {
                         <p className="guide-message">{t('requiredFieldsHint')}</p>
                         <div className="form-group">
                             <label>{t('jobTitle')} <span className="required-star">*</span></label>
-                            <input name="jobTitle" value={form.jobTitle} onChange={handleChange} type="text" required className="form-input" placeholder={t('jobTitle')} />
+                            <input name="jobTitle" value={workInfo.jobTitle} onChange={handleChange} type="text" required className="form-input" placeholder={t('jobTitle')} />
                         </div>
                         <div className="form-group">
                             <label>{t('employer')} <span className="required-star">*</span></label>
-                            <input name="employer" value={form.employer} onChange={handleChange} type="text" required className="form-input" placeholder={t('employer')} />
+                            <input name="employer" value={workInfo.employer} onChange={handleChange} type="text" required className="form-input" placeholder={t('employer')} />
                         </div>
                         <div className="form-group">
                             <label>{t('workSector')} <span className="required-star">*</span></label>
-                            <select name="workSector" value={form.workSector} onChange={handleChange} className="form-input" required>
+                            <select name="workSector" value={workInfo.workSector} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('workSector')}</option>
                                 <option value="private">{t('workSectorPrivate')}</option>
                                 <option value="public">{t('workSectorPublic')}</option>
@@ -140,19 +135,19 @@ const WorkInfoPage_EN = () => {
                         </div>
                         <div className="form-group">
                             <label>{t('fieldOfWork')} <span className="required-star">*</span></label>
-                            <input name="fieldOfWork" value={form.fieldOfWork} onChange={handleChange} type="text" required className="form-input" placeholder={t('fieldOfWork')} />
+                            <input name="fieldOfWork" value={workInfo.fieldOfWork} onChange={handleChange} type="text" required className="form-input" placeholder={t('fieldOfWork')} />
                         </div>
                         <div className="form-group date-input-container">
                             <label>{t('workStartDate')} <span className="required-star">*</span></label>
-                            <input name="workStartDate" value={form.workStartDate} onChange={handleChange} type="text" required className="form-input" placeholder={t('workStartDate')} onFocus={(e) => e.target.type='date'} onBlur={(e) => e.target.type='text'}/><CalendarIcon/>
+                            <input name="workStartDate" value={workInfo.workStartDate} onChange={handleChange} type="text" required className="form-input" placeholder={t('workStartDate')} onFocus={(e) => e.target.type='date'} onBlur={(e) => e.target.type='text'}/><CalendarIcon/>
                         </div>
                         <div className="form-group">
                             <label>{t('employerAddress')}</label>
-                            <input name="employerAddress" value={form.employerAddress} onChange={handleChange} type="text" className="form-input" placeholder={t('employerAddress')} />
+                            <input name="employerAddress" value={workInfo.employerAddress} onChange={handleChange} type="text" className="form-input" placeholder={t('employerAddress')} />
                         </div>
                         <div className="form-group">
                             <label>{t('country')} <span className="required-star">*</span></label>
-                            <select name="workCountry" value={form.workCountry} onChange={handleChange} required className="form-input">
+                            <select name="workCountry" value={workInfo.workCountry} onChange={handleChange} required className="form-input">
                                 <option value="">{t('country')}</option>
                                 {countries.map(c => (
                                     <option key={c.countryCode} value={c.countryCode}>{i18n.language === 'ar' ? c.nameAr : c.nameEn}</option>
@@ -161,7 +156,7 @@ const WorkInfoPage_EN = () => {
                         </div>
                         <div className="form-group">
                             <label>{t('city')} <span className="required-star">*</span></label>
-                            <select name="workCity" value={form.workCity} onChange={handleChange} required className="form-input">
+                            <select name="workCity" value={workInfo.workCity} onChange={handleChange} required className="form-input" disabled={!workInfo.workCountry || citiesLoading}>
                                 <option value="">{t('city')}</option>
                                 {cities.length > 0 ? cities.map(c => (
                                     <option key={c.cityCode} value={c.cityCode}>{i18n.language === 'ar' ? c.nameAr : c.nameEn}</option>
@@ -171,12 +166,12 @@ const WorkInfoPage_EN = () => {
                         <div className="form-group">
                             <div className="phone-input-group">
                                <span className="phone-prefix">+218</span>
-                               <input name="employerPhone" value={form.employerPhone} onChange={handleChange} type="tel" className="form-input" placeholder={t('employerPhone')} />
+                               <input name="employerPhone" value={workInfo.employerPhone} onChange={handleChange} type="tel" className="form-input" placeholder={t('employerPhone')} />
                             </div>
                         </div>
                         <div className="form-group">
                             <label>{t('sourceOfIncome')} <span className="required-star">*</span></label>
-                            <select name="sourceOfIncome" value={form.sourceOfIncome} onChange={handleChange} className="form-input" required>
+                            <select name="sourceOfIncome" value={workInfo.sourceOfIncome} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('sourceOfIncome')}</option>
                                 {sources.map(s => (
                                     <option key={s.id} value={s.nameEn}>
@@ -187,7 +182,7 @@ const WorkInfoPage_EN = () => {
                         </div>
                         <div className="form-group">
                             <label>{t('monthlyIncome')} <span className="required-star">*</span></label>
-                            <select name="monthlyIncome" value={form.monthlyIncome} onChange={handleChange} className="form-input" required>
+                            <select name="monthlyIncome" value={workInfo.monthlyIncome} onChange={handleChange} className="form-input" required>
                                 <option value="">{t('monthlyIncome')}</option>
                                 <option value="<2000">{t('incomeLess2000')}</option>
                                 <option value="2000-5000">{t('income2000to5000')}</option>
