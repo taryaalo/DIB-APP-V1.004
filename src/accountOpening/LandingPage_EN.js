@@ -42,6 +42,11 @@ const LandingPage_EN = () => {
             <CompleteAccountIcon />
             <span>{t('registerEServices')}</span>
           </button>
+          {/* Temporary button for NID Verification flow */}
+          <button onClick={() => navigate('/nid-verification')} className="btn-secondary">
+            <OpenAccountIcon />
+            <span>NID Verification (Test)</span>
+          </button>
         </div>
       </div>
       <Footer noBackground />
