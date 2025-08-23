@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { FormProvider } from './contexts/FormContext';
-import GlobalStyles from './styles/GlobalStyles';
+import { theme } from './styles/theme';
+import OldGlobalStyles from './styles/GlobalStyles';
+import NewGlobalStyles from './styles/global';
 import ProtectedRoute from './common/ProtectedRoute';
 
 // Import Page Components
@@ -93,11 +96,14 @@ const AppContent = () => {
 
 export default function App() {
     return (
-        <ThemeProvider>
-            <FormProvider>
-                <GlobalStyles />
-                <AppContent />
-            </FormProvider>
-        </ThemeProvider>
+        <StyledThemeProvider theme={theme}>
+            <ThemeProvider>
+                <FormProvider>
+                    <OldGlobalStyles />
+                    <NewGlobalStyles />
+                    <AppContent />
+                </FormProvider>
+            </ThemeProvider>
+        </StyledThemeProvider>
     );
 }

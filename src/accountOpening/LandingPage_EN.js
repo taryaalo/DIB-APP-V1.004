@@ -12,12 +12,14 @@ import { useFormData } from '../contexts/FormContext';
 const LandingPage_EN = () => {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { setFormData } = useFormData();
+  const { updateFormData: setFormData } = useFormData();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`${process.env.REACT_APP_API_BASE_URL || ''}/api/clear-cache`, { method: 'POST' }).catch(() => {});
-    setFormData({ provider: 'gemini' });
+    if (setFormData) {
+  setFormData({ provider: 'gemini' });
+}
   }, [setFormData]);
   return (
     <div className="landing-container">
