@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LOGO_WHITE } from '../assets/imagePaths';
 import { CalendarIcon, LockIcon } from '../common/Icons';
