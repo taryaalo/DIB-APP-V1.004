@@ -33,6 +33,13 @@ const PersonalInfoPage_EN = () => {
     const [otpError, setOtpError] = useState('');
     const [otpTimer, setOtpTimer] = useState(0);
     const [showTerms, setShowTerms] = useState(false);
+    const phoneInputRef = useRef(null);
+
+    // New state for NID verification
+    const [nidVerificationLoading, setNidVerificationLoading] = useState(false);
+    const [nidVerificationError, setNidVerificationError] = useState('');
+    const [nidVerificationSuccess, setNidVerificationSuccess] = useState('');
+    const [isNidVerified, setIsNidVerified] = useState(false);
 
     // Form data is now directly from context
     const { personalInfo } = formData;
@@ -325,6 +332,75 @@ const PersonalInfoPage_EN = () => {
         navigate('/work-info');
     };
 
+    const handleNidVerify = async () => {
+        setNidVerificationLoading(true);
+        setNidVerificationError('');
+        setNidVerificationSuccess('');
+        setIsNidVerified(false);
+
+        const nid = personalInfo.nidDigits.join('');
+        const phone = personalInfo.phone;
+
+        try {
+            // Mocking API responses for development
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+            let data;
+            if (nid === '123456789012' && phone === '912345678') {
+                data = {
+                    success: true,
+                    data: {
+                        nidData: {
+                            fullNameArabic: 'أحمد محمد علي الليبي'
+                        },
+                        phoneMatch: { isMatching: true }
+                    }
+                };
+            } else if (nid === '123456789012' && phone !== '912345678') {
+                data = {
+                    success: true,
+                    data: {
+                        nidData: {
+                            fullNameArabic: 'أحمد محمد علي الليبي'
+                        },
+                        phoneMatch: { isMatching: false }
+                    }
+                };
+            } else {
+                data = { success: false, error: 'Nid Not Found!' };
+            }
+
+            if (!data.success) {
+                throw new Error(data.error || 'An unknown error occurred.');
+            }
+
+            const { nidData, phoneMatch } = data.data;
+
+            if (phoneMatch.isMatching) {
+                setNidVerificationSuccess('Your data has been successfully verified.');
+                setIsNidVerified(true);
+                const nameParts = (nidData.fullNameArabic || '').trim().split(/\s+/);
+                updateFormData({
+                    personalInfo: {
+                        ...personalInfo,
+                        firstNameAr: nameParts[0] || '',
+                        middleNameAr: nameParts[1] || '',
+                        lastNameAr: nameParts[2] || '',
+                        surnameAr: nameParts.length > 3 ? nameParts.slice(3).join(' ') : '',
+                    }
+                });
+            } else {
+                setNidVerificationError('Your phone number does not match the NID database. Please insert the correct phone number. (رقمك غير مربوط مع قاعدة البيانات الوطنية الرجاء استعمال رقم مربوط)');
+                if (phoneInputRef.current) {
+                    phoneInputRef.current.focus();
+                }
+            }
+        } catch (err) {
+            setNidVerificationError(err.message);
+        } finally {
+            setNidVerificationLoading(false);
+        }
+    };
+
     const resendOtp = async () => {
         try {
             if (verifyStep === 2) {
@@ -461,10 +537,15 @@ const PersonalInfoPage_EN = () => {
 
                     <div className="form-group">
                         <label>{t('phoneNumber')} <span className="required-star">*</span></label>
-                        <div className="phone-input-group">
+                        <div className="phone-input-group" style={{ alignItems: 'center' }}>
                             <span className="phone-prefix">+218</span>
-                            <input name="phone" value={personalInfo.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber')} className="form-input" />
+                            <input name="phone" ref={phoneInputRef} value={personalInfo.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber')} className="form-input" />
+                            <button type="button" onClick={handleNidVerify} className="btn-next" disabled={nidVerificationLoading || !personalInfo.phone} style={{ marginLeft: '10px', width: 'auto' }}>
+                                {nidVerificationLoading ? t('verifying') : t('verify')}
+                            </button>
                         </div>
+                        {nidVerificationError && <p className="error-message" style={{ marginTop: '5px' }}>{nidVerificationError}</p>}
+                        {nidVerificationSuccess && <p className="success-message" style={{ marginTop: '5px' }}>{nidVerificationSuccess}</p>}
                         <LockIcon className="lock-icon" />
                     </div>
                     <div className="form-group"><label><input type="checkbox" name="enableEmail" checked={personalInfo.enableEmail} onChange={handleChange} /> {t('enableEmail')}</label></div>
@@ -482,7 +563,7 @@ const PersonalInfoPage_EN = () => {
                             <label className="agreement-item"><div className="custom-checkbox"><input name="agree2" type="checkbox" checked={agreements.agree2} onChange={handleChange} required/><span className="checkmark"></span></div><span>{t('agreePrefix')} <button type="button" className="terms-link" onClick={()=>setShowTerms(true)}>{t('termsAndConditions')}</button></span></label>
                         </div>
                         {agreeError && <p className="error-message">{t('agreeError')}</p>}
-                        <button className="btn-next" type="submit" disabled={!isComplete || !agreements.agree1 || !agreements.agree2}>{t('submitRequest')}</button>
+                        <button className="btn-next" type="submit" disabled={!isComplete || !agreements.agree1 || !agreements.agree2 || !isNidVerified}>{t('submitRequest')}</button>
                     </div>
                 </form>
             </main>

@@ -18,7 +18,6 @@ import CompaniesDocsPage from './accountOpening/CompaniesDocsPage';
 import ContactInfoPage from './accountOpening/ContactInfoPage';
 import WorkInfoPage_EN from './accountOpening/WorkInfoPage_EN';
 import PersonalInfoPage from './accountOpening/PersonalInfoPage';
-import NidVerificationPage from './accountOpening/NidVerificationPage';
 import CompanyInfoPage from './accountOpening/CompanyInfoPage';
 import CompanyContactPage from './accountOpening/CompanyContactPage';
 import LegalRepInfoPage from './accountOpening/LegalRepInfoPage';
@@ -65,7 +64,6 @@ const AppContent = () => {
             <Route path="/guaranteed-docs" element={<ProtectedRoute stepIndex={2}><SequentialDocsPage flow="guaranteed" /></ProtectedRoute>} />
             <Route path="/expat-docs" element={<ProtectedRoute stepIndex={2}><SequentialDocsPage flow="expat" /></ProtectedRoute>} />
             <Route path="/face-registration" element={<ProtectedRoute stepIndex={3}><SelfiePage /></ProtectedRoute>} />
-            <Route path="/nid-verification" element={<NidVerificationPage />} />
             <Route path="/personal-info" element={<ProtectedRoute stepIndex={4}><PersonalInfoPage /></ProtectedRoute>} />
             <Route path="/work-info" element={<ProtectedRoute stepIndex={5}><WorkInfoPage_EN /></ProtectedRoute>} />
             <Route path="/contact-info" element={<ProtectedRoute stepIndex={6}><ContactInfoPage /></ProtectedRoute>} />
