@@ -14,6 +14,8 @@ import { getCachedExtracted } from '../utils/dataCacher';
 import { normalizeNationality } from '../utils/normalizeNationality';
 import { mapExtractedFields } from '../utils/fieldMapper';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+
 const PersonalInfoPage_EN = () => {
     const { t, i18n } = useTranslation();
     const { formData, updateFormData, updateHighestCompletedStep, resetForm } = useFormData();
@@ -341,60 +343,59 @@ const PersonalInfoPage_EN = () => {
         const nid = personalInfo.nidDigits.join('');
         const phone = personalInfo.phone;
 
-        try {
-            // Mocking API responses for development
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-            let data;
-            if (nid === '123456789012' && phone === '912345678') {
-                data = {
-                    success: true,
-                    data: {
-                        nidData: {
-                            fullNameArabic: 'أحمد محمد علي الليبي'
-                        },
-                        phoneMatch: { isMatching: true }
-                    }
-                };
-            } else if (nid === '123456789012' && phone !== '912345678') {
-                data = {
-                    success: true,
-                    data: {
-                        nidData: {
-                            fullNameArabic: 'أحمد محمد علي الليبي'
-                        },
-                        phoneMatch: { isMatching: false }
-                    }
-                };
-            } else {
-                data = { success: false, error: 'Nid Not Found!' };
-            }
+        const payload = {
+            nid,
+            phoneNumber: `+218${phone}`,
+            referenceNumber: formData.personalInfo?.referenceNumber
+        };
 
-            if (!data.success) {
-                throw new Error(data.error || 'An unknown error occurred.');
+        console.log("NID API POST:", payload);
+        logToServer(`NID API POST: ${JSON.stringify(payload)}`);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/nid-validation`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            console.log("NID API Response:", data);
+            logToServer(`NID API Response: ${JSON.stringify(data)}`);
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || t('nidVerificationError'));
             }
 
             const { nidData, phoneMatch } = data.data;
 
-            if (phoneMatch.isMatching) {
-                setNidVerificationSuccess('Your data has been successfully verified.');
+            if (phoneMatch && phoneMatch.isMatching) {
+                setNidVerificationSuccess(t('nidVerified'));
                 setIsNidVerified(true);
-                const nameParts = (nidData.fullNameArabic || '').trim().split(/\s+/);
-                updateFormData({
-                    personalInfo: {
-                        ...personalInfo,
-                        firstNameAr: nameParts[0] || '',
-                        middleNameAr: nameParts[1] || '',
-                        lastNameAr: nameParts[2] || '',
-                        surnameAr: nameParts.length > 3 ? nameParts.slice(3).join(' ') : '',
-                    }
-                });
+
+                // Optionally update form with data from NID if needed
+                if (nidData && nidData.fullNameArabic) {
+                    const nameParts = (nidData.fullNameArabic || '').trim().split(/\s+/);
+                    updateFormData({
+                        personalInfo: {
+                            ...personalInfo,
+                            firstNameAr: nameParts[0] || '',
+                            middleNameAr: nameParts[1] || '',
+                            lastNameAr: nameParts[2] || '',
+                            surnameAr: nameParts.length > 3 ? nameParts.slice(3).join(' ') : '',
+                        }
+                    });
+                }
             } else {
-                setNidVerificationError('Your phone number does not match the NID database. Please insert the correct phone number. (رقمك غير مربوط مع قاعدة البيانات الوطنية الرجاء استعمال رقم مربوط)');
+                setNidVerificationError(t('nidPhoneMismatch'));
                 if (phoneInputRef.current) {
                     phoneInputRef.current.focus();
                 }
             }
         } catch (err) {
+            console.error("NID Verification Error:", err);
+            logToServer(`NID API Error: ${err.message}`);
             setNidVerificationError(err.message);
         } finally {
             setNidVerificationLoading(false);
