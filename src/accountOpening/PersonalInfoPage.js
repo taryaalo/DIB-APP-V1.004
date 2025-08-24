@@ -558,8 +558,10 @@ const PersonalInfoPage_EN = () => {
                             ))}
                         </div>
                         {nidValidationLoading && <p className="loading-message"> {t('Verifying NID...')} </p>}
+
                         {nidValidationError && <div className="fancy-message error"><ErrorIcon /> {nidValidationError}</div>}
                         {nidValidationSuccess && <div className="fancy-message success"><CheckIcon /> {nidValidationSuccess}</div>}
+
                     </div>
 
                     <div className="form-group">
@@ -571,8 +573,11 @@ const PersonalInfoPage_EN = () => {
                                 {phoneMatchLoading ? t('verifying') : t('verify')}
                             </button>
                         </div>
+
                         {phoneMatchError && <div className="fancy-message error" style={{ marginTop: '5px' }}><ErrorIcon /> {phoneMatchError}</div>}
                         {phoneMatchSuccess && <div className="fancy-message success" style={{ marginTop: '5px' }}><CheckIcon /> {phoneMatchSuccess}</div>}
+
+
                         <LockIcon className="lock-icon" />
                     </div>
                     <div className="form-group"><label><input type="checkbox" name="enableEmail" checked={personalInfo.enableEmail} onChange={handleChange} /> {t('enableEmail')}</label></div>
