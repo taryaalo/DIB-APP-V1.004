@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LOGO_WHITE } from '../assets/imagePaths';
-import { CalendarIcon, LockIcon } from '../common/Icons';
+import { CalendarIcon, LockIcon, CheckIcon, ErrorIcon } from '../common/Icons';
 import { logToServer } from '../utils/logger';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -558,8 +558,10 @@ const PersonalInfoPage_EN = () => {
                             ))}
                         </div>
                         {nidValidationLoading && <p className="loading-message"> {t('Verifying NID...')} </p>}
-                        {nidValidationError && <p className="error-message">{nidValidationError}</p>}
-                        {nidValidationSuccess && <p className="success-message">{nidValidationSuccess}</p>}
+
+                        {nidValidationError && <div className="fancy-message error"><ErrorIcon /> {nidValidationError}</div>}
+                        {nidValidationSuccess && <div className="fancy-message success"><CheckIcon /> {nidValidationSuccess}</div>}
+
                     </div>
 
                     <div className="form-group">
@@ -571,8 +573,11 @@ const PersonalInfoPage_EN = () => {
                                 {phoneMatchLoading ? t('verifying') : t('verify')}
                             </button>
                         </div>
-                        {phoneMatchError && <p className="error-message" style={{ marginTop: '5px' }}>{phoneMatchError}</p>}
-                        {phoneMatchSuccess && <p className="success-message" style={{ marginTop: '5px' }}>{phoneMatchSuccess}</p>}
+
+                        {phoneMatchError && <div className="fancy-message error" style={{ marginTop: '5px' }}><ErrorIcon /> {phoneMatchError}</div>}
+                        {phoneMatchSuccess && <div className="fancy-message success" style={{ marginTop: '5px' }}><CheckIcon /> {phoneMatchSuccess}</div>}
+
+
                         <LockIcon className="lock-icon" />
                     </div>
                     <div className="form-group"><label><input type="checkbox" name="enableEmail" checked={personalInfo.enableEmail} onChange={handleChange} /> {t('enableEmail')}</label></div>
