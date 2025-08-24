@@ -353,7 +353,7 @@ const PersonalInfoPage_EN = () => {
         logToServer(`NID API POST: ${JSON.stringify(payload)}`);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/nid-validation`, {
+            const response = await fetch(`${API_BASE_URL}/api/nid/validate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
