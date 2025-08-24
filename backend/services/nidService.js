@@ -50,7 +50,7 @@ const checkNidState = async (token) => {
 
 const isPhoneMatching = async (nid, phone, token) => {
     try {
-        const response = await axios.post(`${process.env.NID_API_URL}/ismatching`, { nid, phone }, {
+        const response = await axios.post(`${process.env.PHONE_API_URL}/ismatching`, { nid, phone }, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
