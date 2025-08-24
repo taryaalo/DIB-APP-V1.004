@@ -68,6 +68,7 @@ require('dotenv').config();
 const { logActivity, logError, logEmailDebug } = require('./utils/logger');
 const { sanitize } = require('./utils/sanitizer');
 const { isAuthenticated } = require('./middleware/auth');
+const nidRoutes = require('./routes/nid');
 
 const https = require('https');
 const http = require('http');
@@ -1042,6 +1043,8 @@ app.post('/api/work-validation', async (req, res) => {
     res.status(500).json({ error: 'server_error' });
   }
 });
+
+app.use('/api/nid', nidRoutes);
 
 app.use((err, req, res, next) => {
   logError(`ERROR ${err.message}`);
