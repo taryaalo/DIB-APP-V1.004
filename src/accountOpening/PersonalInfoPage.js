@@ -38,10 +38,16 @@ const PersonalInfoPage_EN = () => {
     const phoneInputRef = useRef(null);
 
     // New state for NID verification
-    const [nidVerificationLoading, setNidVerificationLoading] = useState(false);
-    const [nidVerificationError, setNidVerificationError] = useState('');
-    const [nidVerificationSuccess, setNidVerificationSuccess] = useState('');
-    const [isNidVerified, setIsNidVerified] = useState(false);
+    const [nidValidationLoading, setNidValidationLoading] = useState(false);
+    const [nidValidationError, setNidValidationError] = useState('');
+    const [nidValidationSuccess, setNidValidationSuccess] = useState('');
+
+    // New state for phone matching
+    const [phoneMatchLoading, setPhoneMatchLoading] = useState(false);
+    const [phoneMatchError, setPhoneMatchError] = useState('');
+    const [phoneMatchSuccess, setPhoneMatchSuccess] = useState('');
+    const [isPhoneMatched, setIsPhoneMatched] = useState(false);
+    const [shakePhone, setShakePhone] = useState(false);
 
     // Form data is now directly from context
     const { personalInfo } = formData;
@@ -334,73 +340,90 @@ const PersonalInfoPage_EN = () => {
         navigate('/work-info');
     };
 
-    const handleNidVerify = async () => {
-        setNidVerificationLoading(true);
-        setNidVerificationError('');
-        setNidVerificationSuccess('');
-        setIsNidVerified(false);
-
+    const handleNidValidate = async () => {
         const nid = personalInfo.nidDigits.join('');
-        const phone = personalInfo.phone;
+        if (nid.length !== 12) return;
 
-        const payload = {
-            nid,
-            phoneNumber: `+218${phone}`,
-            referenceNumber: formData.personalInfo?.referenceNumber
-        };
-
-        console.log("NID API POST:", payload);
-        logToServer(`NID API POST: ${JSON.stringify(payload)}`);
+        setNidValidationLoading(true);
+        setNidValidationError('');
+        setNidValidationSuccess('');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/nid-validation`, {
+            const response = await fetch(`${API_BASE_URL}/api/nid/validate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ nid })
             });
 
             const data = await response.json();
 
-            console.log("NID API Response:", data);
-            logToServer(`NID API Response: ${JSON.stringify(data)}`);
-
-            if (!response.ok || !data.success) {
-                throw new Error(data.error || t('nidVerificationError'));
+            if (!response.ok) {
+                throw new Error(data.error || t('nidValidationError'));
             }
 
-            const { nidData, phoneMatch } = data.data;
-
-            if (phoneMatch && phoneMatch.isMatching) {
-                setNidVerificationSuccess(t('nidVerified'));
-                setIsNidVerified(true);
-
-                // Optionally update form with data from NID if needed
-                if (nidData && nidData.fullNameArabic) {
-                    const nameParts = (nidData.fullNameArabic || '').trim().split(/\s+/);
-                    updateFormData({
-                        personalInfo: {
-                            ...personalInfo,
-                            firstNameAr: nameParts[0] || '',
-                            middleNameAr: nameParts[1] || '',
-                            lastNameAr: nameParts[2] || '',
-                            surnameAr: nameParts.length > 3 ? nameParts.slice(3).join(' ') : '',
-                        }
-                    });
+            updateFormData({
+                personalInfo: {
+                    ...personalInfo,
+                    firstNameAr: data.firstName,
+                    middleNameAr: data.fatherName,
+                    lastNameAr: data.grandFatherName,
+                    surnameAr: data.surName,
                 }
-            } else {
-                setNidVerificationError(t('nidPhoneMismatch'));
-                if (phoneInputRef.current) {
-                    phoneInputRef.current.focus();
-                }
-            }
+            });
+            setNidValidationSuccess('تم تحديث اسمك ليطابق بيانات منظومة الرقم الوطني');
+
         } catch (err) {
-            console.error("NID Verification Error:", err);
-            logToServer(`NID API Error: ${err.message}`);
-            setNidVerificationError(err.message);
+            setNidValidationError(err.message);
         } finally {
-            setNidVerificationLoading(false);
+            setNidValidationLoading(false);
         }
     };
+
+    const handlePhoneMatch = async () => {
+        setPhoneMatchLoading(true);
+        setPhoneMatchError('');
+        setPhoneMatchSuccess('');
+        setIsPhoneMatched(false);
+        setShakePhone(false);
+
+        const nid = personalInfo.nidDigits.join('');
+        const phone = personalInfo.phone;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/nid/phone/match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nid, phone })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || t('phoneMatchError'));
+            }
+
+            if (data.isMatching) {
+                setPhoneMatchSuccess('رقم هاتفك مطابق لبيانات منظومة الرقم الوطني');
+                setIsPhoneMatched(true);
+            } else {
+                setPhoneMatchError('رقم هاتفك غير مطابق لبيانات منظومة الرقم الوطني');
+                updateFormData({ personalInfo: { ...personalInfo, phone: '' } });
+                setShakePhone(true);
+                setTimeout(() => setShakePhone(false), 500);
+            }
+        } catch (err) {
+            setPhoneMatchError(err.message);
+        } finally {
+            setPhoneMatchLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const nid = personalInfo.nidDigits.join('');
+        if (nid.length === 12) {
+            handleNidValidate();
+        }
+    }, [personalInfo.nidDigits]);
 
     const resendOtp = async () => {
         try {
@@ -534,19 +557,22 @@ const PersonalInfoPage_EN = () => {
                             {personalInfo.nidDigits.map((d, idx) => (<input key={idx} name={`nidDigit${idx}`} value={d} onChange={(e)=>handleChange(e, idx)} onKeyDown={(e)=>handleNIDKeyDown(e, idx)} onPaste={(e)=>handleNIDPaste(e, idx)} required type="text" maxLength="1" className={`national-id-input${locked.nidDigits ? ' locked' : ''}`} readOnly={!!locked.nidDigits}/>
                             ))}
                         </div>
+                        {nidValidationLoading && <p className="loading-message"> {t('Verifying NID...')} </p>}
+                        {nidValidationError && <p className="error-message">{nidValidationError}</p>}
+                        {nidValidationSuccess && <p className="success-message">{nidValidationSuccess}</p>}
                     </div>
 
                     <div className="form-group">
                         <label>{t('phoneNumber')} <span className="required-star">*</span></label>
                         <div className="phone-input-group" style={{ alignItems: 'center' }}>
                             <span className="phone-prefix">+218</span>
-                            <input name="phone" ref={phoneInputRef} value={personalInfo.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber')} className="form-input" />
-                            <button type="button" onClick={handleNidVerify} className="btn-next" disabled={nidVerificationLoading || !personalInfo.phone} style={{ marginLeft: '10px', width: 'auto' }}>
-                                {nidVerificationLoading ? t('verifying') : t('verify')}
+                            <input name="phone" ref={phoneInputRef} value={personalInfo.phone} onChange={handleChange} required type="tel" {...lockProps('phone')} placeholder={t('phoneNumber')} className={`form-input ${shakePhone ? 'shake' : ''} ${phoneMatchError ? 'input-error' : ''}`} />
+                            <button type="button" onClick={handlePhoneMatch} className="btn-next" disabled={phoneMatchLoading || !personalInfo.phone || personalInfo.nidDigits.join('').length !== 12} style={{ marginLeft: '10px', width: 'auto' }}>
+                                {phoneMatchLoading ? t('verifying') : t('verify')}
                             </button>
                         </div>
-                        {nidVerificationError && <p className="error-message" style={{ marginTop: '5px' }}>{nidVerificationError}</p>}
-                        {nidVerificationSuccess && <p className="success-message" style={{ marginTop: '5px' }}>{nidVerificationSuccess}</p>}
+                        {phoneMatchError && <p className="error-message" style={{ marginTop: '5px' }}>{phoneMatchError}</p>}
+                        {phoneMatchSuccess && <p className="success-message" style={{ marginTop: '5px' }}>{phoneMatchSuccess}</p>}
                         <LockIcon className="lock-icon" />
                     </div>
                     <div className="form-group"><label><input type="checkbox" name="enableEmail" checked={personalInfo.enableEmail} onChange={handleChange} /> {t('enableEmail')}</label></div>
@@ -564,7 +590,7 @@ const PersonalInfoPage_EN = () => {
                             <label className="agreement-item"><div className="custom-checkbox"><input name="agree2" type="checkbox" checked={agreements.agree2} onChange={handleChange} required/><span className="checkmark"></span></div><span>{t('agreePrefix')} <button type="button" className="terms-link" onClick={()=>setShowTerms(true)}>{t('termsAndConditions')}</button></span></label>
                         </div>
                         {agreeError && <p className="error-message">{t('agreeError')}</p>}
-                        <button className="btn-next" type="submit" disabled={!isComplete || !agreements.agree1 || !agreements.agree2 || !isNidVerified}>{t('submitRequest')}</button>
+                        <button className="btn-next" type="submit" disabled={!isComplete || !agreements.agree1 || !agreements.agree2 || !isPhoneMatched}>{t('submitRequest')}</button>
                     </div>
                 </form>
             </main>
