@@ -40,17 +40,18 @@ const WorkInfoPage_EN = () => {
 
     useEffect(() => {
         const reference = formData.personalInfo?.referenceNumber || formData.personalInfo?.reference_number;
-        if (!reference) return;
+        if (!reference || !countries.length) return;
+
         async function load() {
             try {
                 const resp = await fetch(`${API_BASE_URL}/api/work-info?reference=${encodeURIComponent(reference)}`);
                 if (resp.ok) {
                     const data = await resp.json();
                     if (data) {
-                        // Format date for input field
-                        if (data.work_start_date) {
-                            data.workStartDate = new Date(data.work_start_date).toISOString().split('T')[0];
-                        }
+                        // Find country code from the fetched country name/code
+                        const countryValue = data.work_country || '';
+                        const countryObj = countries.find(c => c.countryCode === countryValue || c.nameEn === countryValue || c.nameAr === countryValue);
+
                         const mapped = {
                             employmentStatus: data.employment_status || '',
                             jobTitle: data.job_title || '',
@@ -62,7 +63,7 @@ const WorkInfoPage_EN = () => {
                             workSector: data.work_sector || '',
                             fieldOfWork: data.field_of_work || '',
                             workStartDate: data.work_start_date ? new Date(data.work_start_date).toISOString().split('T')[0] : '',
-                            workCountry: data.work_country || '',
+                            workCountry: countryObj ? countryObj.countryCode : '',
                             workCity: data.work_city || ''
                         };
                         updateFormData({ workInfo: mapped });
@@ -74,7 +75,7 @@ const WorkInfoPage_EN = () => {
         if (!workInfo.jobTitle) {
             load();
         }
-    }, [formData.personalInfo, updateFormData, workInfo.jobTitle]);
+    }, [formData.personalInfo, updateFormData, workInfo.jobTitle, countries]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

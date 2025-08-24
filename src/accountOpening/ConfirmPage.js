@@ -236,7 +236,7 @@ const ConfirmPage = () => {
                     <select value={branchId} onChange={e=>setBranchId(e.target.value)} required className="branch-select">
                         <option value="">{t('selectBranch')}</option>
                         {branches.map(b=>(
-                          <option key={b.branch_id} value={b.branch_id}>{i18n.language==='ar'?b.name_ar:b.name_en}</option>
+                          <option key={b.branchId} value={b.branchId}>{i18n.language==='ar'?b.nameAr:b.nameEn}</option>
                         ))}
                     </select>
                 </div>

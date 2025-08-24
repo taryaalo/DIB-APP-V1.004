@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useFormData } from '../contexts/FormContext';
 import ThemeSwitcher from '../common/ThemeSwitcher';
 import LanguageSwitcher from '../common/LanguageSwitcher';
+import { LOGO_WHITE } from '../assets/imagePaths';
 import '../styles/SelfiePage.css';
 
 const challenges = ['center','turnLeft','turnRight','turnUp','turnDown'];
@@ -348,11 +349,10 @@ const SelfiePage_EN = () => {
   };
 
   return (
-    <div className="selfie-page">
+    <div className="form-page sequential-docs-page selfie-page">
       <header className="header docs-header">
         <div role="button" tabIndex="0" onClick={handleLogoClick} onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()} style={{ cursor: 'pointer' }}>
-            {/* Assuming a logo should be here. If not, this can be adapted. For now, adding a placeholder text/icon */}
-            <span className="logo-placeholder">DIB</span>
+            <img src={LOGO_WHITE} alt="Bank Logo" className="logo" />
         </div>
         <div className="header-switchers">
           <ThemeSwitcher />
@@ -362,34 +362,36 @@ const SelfiePage_EN = () => {
           <span>{t('back')}</span>
         </button>
       </header>
-      <div className="container">
-        <h1 className="page-title">{t('selfieTitle')}</h1>
-        <div className="camera-container">
-          <video id="video" ref={videoRef} autoPlay muted playsInline></video>
-          <canvas id="canvas" ref={canvasRef}></canvas>
-          <div id="guideContainer">
-            <p id="guideText" ref={guideTextRef}></p>
-            <svg id="guideSvg" viewBox="0 0 400 480">
-              <ellipse id="faceFitGuide" ref={faceFitGuideRef} cx="200" cy="240" rx="120" ry="180"/>
-              <g id="virtualFaceGuide" ref={virtualFaceGuideRef}></g>
-            </svg>
+      <main className="form-main">
+        <div className="content-wrapper">
+          <h2 className="form-title">{t('selfieTitle')}</h2>
+          <div className="camera-container">
+            <video id="video" ref={videoRef} autoPlay muted playsInline></video>
+            <canvas id="canvas" ref={canvasRef}></canvas>
+            <div id="guideContainer">
+              <p id="guideText" ref={guideTextRef}></p>
+              <svg id="guideSvg" viewBox="0 0 400 480">
+                <ellipse id="faceFitGuide" ref={faceFitGuideRef} cx="200" cy="240" rx="120" ry="180"/>
+                <g id="virtualFaceGuide" ref={virtualFaceGuideRef}></g>
+              </svg>
+            </div>
+            <div id="overlay" ref={overlayRef} className="overlay"></div>
           </div>
-          <div id="overlay" ref={overlayRef} className="overlay"></div>
-        </div>
-        <button id="registerButton" disabled={buttonDisabled} onClick={handleStart}>{t('startLivenessCheck')}</button>
-        <div id="results" className="info">{status}</div>
-        <div className="photo-strip">
-          <div className="photo-box"><label>{t('center')}</label><img ref={photoRefs.center} alt="center" /></div>
-          <div className="photo-box"><label>{t('left')}</label><img ref={photoRefs.turnLeft} alt="left" /></div>
-          <div className="photo-box"><label>{t('right')}</label><img ref={photoRefs.turnRight} alt="right" /></div>
-          <div className="photo-box"><label>{t('up')}</label><img ref={photoRefs.turnUp} alt="up" /></div>
-          <div className="photo-box"><label>{t('down')}</label><img ref={photoRefs.turnDown} alt="down" /></div>
-          <div className="photo-box">
-            <label>{t('verified')}</label>
-            <img ref={photoRefs.verified} alt="verified" />
+          <button id="registerButton" disabled={buttonDisabled} onClick={handleStart}>{t('startLivenessCheck')}</button>
+          <div id="results" className="info">{status}</div>
+          <div className="photo-strip">
+            <div className="photo-box"><label>{t('center')}</label><img ref={photoRefs.center} alt="center" /></div>
+            <div className="photo-box"><label>{t('left')}</label><img ref={photoRefs.turnLeft} alt="left" /></div>
+            <div className="photo-box"><label>{t('right')}</label><img ref={photoRefs.turnRight} alt="right" /></div>
+            <div className="photo-box"><label>{t('up')}</label><img ref={photoRefs.turnUp} alt="up" /></div>
+            <div className="photo-box"><label>{t('down')}</label><img ref={photoRefs.turnDown} alt="down" /></div>
+            <div className="photo-box">
+              <label>{t('verified')}</label>
+              <img ref={photoRefs.verified} alt="verified" />
+            </div>
           </div>
         </div>
-      </div>
+      </main>
       <div className="form-actions">
         <button className="btn-next" onClick={handleNext}>{t('next')}</button>
       </div>

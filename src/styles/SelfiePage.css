@@ -1,67 +1,218 @@
-.selfie-page {
-  font-family: 'Roboto', sans-serif;
+.selfie-page .content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 800px; /* Or any other max-width you prefer */
+  margin: 0 auto; /* This centers the wrapper in the form-main */
+  padding: 2.5rem;
+  background-color: var(--form-bg-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
 }
-.selfie-page .container {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  background:#ffffff;
-  padding:2.5rem;
-  border-radius:12px;
-  box-shadow:0 8px 25px rgba(0,0,0,0.08);
-  width:100%;
-  max-width:800px;
-  margin-top:2rem;
-}
+
 .selfie-page .camera-container {
-  position:relative;
-  width:100%;
-  padding-top:75%;
-  border-radius:10px;
-  overflow:hidden;
-  background-color:#000;
-  border:1px solid var(--border-color, #e4e7ea);
+  position: relative;
+  width: 100%;
+  max-width: 640px; /* Example fixed width */
+  height: 480px;    /* Example fixed height */
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #000;
+  border: 1px solid var(--border-color);
+  margin-bottom: 1.5rem; /* Space below camera */
 }
+
 .selfie-page video,
 .selfie-page canvas {
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
+
 .selfie-page video { transform: scaleX(-1); }
+
 .selfie-page #guideContainer {
-  position:absolute;top:0;left:0;right:0;bottom:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  pointer-events:none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
+
 .selfie-page #guideText {
-  color:white;font-size:2rem;font-weight:bold;text-shadow:0 2px 10px black;text-align:center;z-index:10;position:absolute;top:10%;width:80%;
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  text-shadow: 0 2px 10px black;
+  text-align: center;
+  z-index: 10;
+  position: absolute;
+  top: 10%;
+  width: 80%;
 }
-.selfie-page #guideSvg { width:100%;height:100%;position:absolute;}
-.selfie-page #faceFitGuide { stroke:var(--theme-primary,#1abc9c);stroke-width:4;fill:none;transition:stroke .3s ease,opacity .3s ease;filter:drop-shadow(0 0 10px var(--theme-primary,#1abc9c));animation:pulse-glow 2s infinite alternate;}
-.selfie-page #faceFitGuide.correct { stroke:#28a745;filter:drop-shadow(0 0 10px #28a745);}
-.selfie-page #faceFitGuide.hidden { opacity:0;}
-@keyframes pulse-glow {from{stroke-width:4;}to{stroke-width:8;}}
-.selfie-page #virtualFaceGuide {opacity:0;transition:opacity .3s ease,transform .5s ease;transform-style:preserve-3d;}
-.selfie-page #virtualFaceGuide.visible {opacity:.9;}
-.selfie-page #virtualFaceGuide.animate-turnLeft {animation:turn-left 1.5s infinite alternate ease-in-out;}
-.selfie-page #virtualFaceGuide.animate-turnRight {animation:turn-right 1.5s infinite alternate ease-in-out;}
-.selfie-page #virtualFaceGuide.animate-turnUp {animation:turn-up 1.5s infinite alternate ease-in-out;}
-.selfie-page #virtualFaceGuide.animate-turnDown {animation:turn-down 1.5s infinite alternate ease-in-out;}
-@keyframes turn-left {0%{transform:rotateY(0deg);}100%{transform:rotateY(-35deg);}}
-@keyframes turn-right {0%{transform:rotateY(0deg);}100%{transform:rotateY(35deg);}}
-@keyframes turn-up {0%{transform:rotateX(0deg);}100%{transform:rotateX(25deg);}}
-@keyframes turn-down {0%{transform:rotateX(0deg);}100%{transform:rotateX(-25deg);}}
-.selfie-page .overlay {position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .5s ease;pointer-events:none;}
-.selfie-page .overlay.success {opacity:1;background-color:rgba(25,135,84,0.6);}
-.selfie-page .overlay.success::after {content:'\2713';font-size:150px;color:white;}
-.selfie-page button#registerButton {padding:12px 28px;font-size:18px;font-weight:500;color:white;border:none;border-radius:8px;cursor:pointer;transition:all .2s ease;box-shadow:0 4px 8px rgba(0,0,0,0.1);margin-top:2rem;width:300px;background-color:var(--theme-primary,#1abc9c);}
-.selfie-page button#registerButton:disabled {background:#adb5bd;cursor:not-allowed;box-shadow:none;}
-.selfie-page #results {margin-top:1.5rem;font-size:1.2rem;font-weight:500;text-align:center;padding:.8rem;border-radius:8px;width:90%;}
-.selfie-page .photo-strip {display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;width:100%;margin-top:2rem;}
-.selfie-page .photo-box {display:flex;flex-direction:column;align-items:center;}
-.selfie-page .photo-box label {font-weight:500;margin-bottom:.5rem;color:var(--text-light,#7f8c8d);font-size:14px;}
-.selfie-page .photo-box img {width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;background-color:#e9ecef;border:1px solid var(--border-color,#e4e7ea);object-fit:cover;}
+
+.selfie-page #guideSvg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.selfie-page #faceFitGuide {
+  stroke: var(--theme-primary, #1abc9c);
+  stroke-width: 4;
+  fill: none;
+  transition: stroke .3s ease, opacity .3s ease;
+  filter: drop-shadow(0 0 10px var(--theme-primary, #1abc9c));
+  animation: pulse-glow 2s infinite alternate;
+}
+
+.selfie-page #faceFitGuide.correct {
+  stroke: #28a745;
+  filter: drop-shadow(0 0 10px #28a745);
+}
+
+.selfie-page #faceFitGuide.hidden { opacity: 0; }
+
+@keyframes pulse-glow {
+  from { stroke-width: 4; }
+  to { stroke-width: 8; }
+}
+
+.selfie-page #virtualFaceGuide {
+  opacity: 0;
+  transition: opacity .3s ease, transform .5s ease;
+  transform-style: preserve-3d;
+}
+
+.selfie-page #virtualFaceGuide.visible { opacity: .9; }
+
+.selfie-page #virtualFaceGuide.animate-turnLeft { animation: turn-left 1.5s infinite alternate ease-in-out; }
+.selfie-page #virtualFaceGuide.animate-turnRight { animation: turn-right 1.5s infinite alternate ease-in-out; }
+.selfie-page #virtualFaceGuide.animate-turnUp { animation: turn-up 1.5s infinite alternate ease-in-out; }
+.selfie-page #virtualFaceGuide.animate-turnDown { animation: turn-down 1.5s infinite alternate ease-in-out; }
+
+@keyframes turn-left { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(-35deg); } }
+@keyframes turn-right { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(35deg); } }
+@keyframes turn-up { 0% { transform: rotateX(0deg); } 100% { transform: rotateX(25deg); } }
+@keyframes turn-down { 0% { transform: rotateX(0deg); } 100% { transform: rotateX(-25deg); } }
+
+.selfie-page .overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .5s ease;
+  pointer-events: none;
+}
+
+.selfie-page .overlay.success {
+  opacity: 1;
+  background-color: rgba(25, 135, 84, 0.6);
+}
+
+.selfie-page .overlay.success::after {
+  content: '\2713';
+  font-size: 150px;
+  color: white;
+}
+
+.selfie-page button#registerButton {
+  padding: 12px 28px;
+  font-size: 18px;
+  font-weight: 500;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-top: 2rem;
+  width: 300px;
+  background-color: var(--primary-color);
+}
+
+.selfie-page button#registerButton:disabled {
+  background: var(--disabled-bg-color);
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.selfie-page #results {
+  margin-top: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-align: center;
+  padding: .8rem;
+  border-radius: 8px;
+  width: 90%;
+  background-color: var(--form-input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.selfie-page .photo-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.selfie-page .photo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.selfie-page .photo-box label {
+  font-weight: 500;
+  margin-bottom: .5rem;
+  color: var(--text-color-light);
+  font-size: 14px;
+}
+
+.selfie-page .photo-box img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  border-radius: 8px;
+  background-color: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  object-fit: cover;
+}
+
+/* Add styles for dark theme */
+[data-theme='dark'] .selfie-page .content-wrapper {
+    background-color: var(--form-bg-color-dark);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+[data-theme='dark'] .selfie-page #results {
+    background-color: var(--form-input-bg-dark);
+    color: var(--text-color-dark);
+    border: 1px solid var(--border-color-dark);
+}
+
+[data-theme='dark'] .selfie-page .photo-box label {
+    color: var(--text-color-light-dark);
+}
+
+[data-theme='dark'] .selfie-page .photo-box img {
+    background-color: var(--secondary-color-dark);
+    border: 1px solid var(--border-color-dark);
+}
